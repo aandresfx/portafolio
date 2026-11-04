@@ -23,6 +23,7 @@
             --shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
             --bar-gap: 25px;
+            --chart-label-size: 11px; /* Variable para el tamaño de letra del gráfico */
         }
 
         body.dark-mode {
@@ -120,7 +121,8 @@
             position: relative;
             margin-bottom: 15px;
         }
-        h2 { margin: 0; font-size: 18px; text-align: center; }
+        /* Títulos en mayúsculas */
+        h2 { margin: 0; font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
         
         .panel-btn {
             position: absolute;
@@ -135,6 +137,18 @@
         .panel-btn:hover { color: var(--text-main); }
         .btn-toggle-left { right: 0; }
         .btn-toggle-chart { right: 0; }
+
+        /* Reloj */
+        .datetime-display {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: capitalize;
+            z-index: 10;
+        }
 
         .btn-float-open {
             position: fixed;
@@ -171,7 +185,7 @@
             gap: 8px;
             font-size: 12px;
             backdrop-filter: blur(10px);
-            width: 200px;
+            width: 220px;
         }
         .chart-settings-menu.active { display: flex; }
         .chart-settings-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -219,7 +233,7 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 20px; 
+            margin-top: 30px; /* Más margen para el reloj */
             padding-bottom: 10px;
         }
 
@@ -292,13 +306,14 @@
             z-index: 10;
         }
 
-        .name-text { font-size: 11px; font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
-        .cap-text { font-size: 10px; color: #3182ce; font-weight: bold; margin-bottom: 2px; }
-        .status-text { font-size: 10px; margin-bottom: 2px; white-space: normal;}
-        .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
-        .audit-link { font-size: 10px; color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
+        /* Aplicando la variable de tamaño de letra a los textos */
+        .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
+        .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
+        .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
+        .date-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); margin-bottom: 2px; }
+        .audit-link { font-size: calc(var(--chart-label-size) - 1px); color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
         .audit-link:hover { text-decoration: underline; }
-        .notes-text { font-size: 9px; color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
+        .notes-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
         /* --- CONFIGURACIÓN FLOTANTE GLOBAL --- */
         .settings-btn {
@@ -380,6 +395,9 @@
 
         <!-- Panel Gráfico -->
         <div class="panel-grafico glass-panel">
+            <!-- Reloj en vivo -->
+            <div class="datetime-display" id="datetime-display"></div>
+
             <div class="panel-header">
                 <h2>Gráfico</h2>
                 <button class="panel-btn btn-toggle-chart" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
@@ -395,6 +413,10 @@
                     <label><input type="checkbox" id="chk-notes" checked onchange="toggleChartLabel('notes', this.checked)"> Notas</label>
                     
                     <hr>
+                    <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                        <span>Tamaño de letra: <span id="font-size-val">11</span>px</span>
+                        <input type="range" id="font-size-slider" min="8" max="20" value="11" oninput="cambiarFontSize(this.value)">
+                    </label>
                     <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
                         <span>Separación de barras:</span>
                         <input type="range" id="gap-slider" min="5" max="80" value="25" oninput="cambiarGapBarras(this.value)">
@@ -466,7 +488,7 @@
             { key: 'max', label: 'Obj' },
             { key: 'url', label: 'URL' },
             { key: 'notes', label: 'Notas' },
-            { key: 'actions', label: '' } // Nueva columna para eliminar
+            { key: 'actions', label: '' }
         ];
 
         let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
@@ -496,8 +518,8 @@
         let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
         let barGap = parseInt(localStorage.getItem('barGap') || 25);
+        let chartFontSize = parseInt(localStorage.getItem('chartFontSize') || 11); // Nueva variable para tamaño de letra
         
-        // Estado para la ordenación
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
 
@@ -518,6 +540,10 @@
 
         document.getElementById('gap-slider').value = barGap;
         document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
+        
+        document.getElementById('font-size-slider').value = chartFontSize;
+        document.getElementById('font-size-val').innerText = chartFontSize;
+        document.documentElement.style.setProperty('--chart-label-size', chartFontSize + 'px');
 
         document.getElementById('toggle-pattern').checked = showPattern;
         document.getElementById('bg-opacity').value = overlayOpacity;
@@ -526,6 +552,17 @@
         if(isDarkMode) document.body.classList.add('dark-mode');
         if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
         if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
+
+        // --- RELOJ EN VIVO ---
+        function updateClock() {
+            const now = new Date();
+            const optionsDate = { weekday: 'long', day: 'numeric', month: 'long' };
+            const dateStr = now.toLocaleDateString('es-ES', optionsDate);
+            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('datetime-display').innerText = `${dateStr} ${timeStr} hs`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
         function updateBackground() {
             let rgb = isDarkMode ? '26, 32, 44' : '255, 255, 255';
@@ -683,7 +720,6 @@
                         columnOrder = newOrder;
                         localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
                         renderTabla(); 
-                        // Pequeño delay para evitar que el clic se dispare al soltar
                         setTimeout(() => { isDraggingColumn = false; }, 100);
                     }
                 });
@@ -824,12 +860,13 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
+                // Textos sin el emoji en el enlace de auditoría
                 let labelsHTML = '';
                 if (chartLabels.name) labelsHTML += `<div class="name-text">${cuenta.name}</div>`;
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
                 if (chartLabels.date) labelsHTML += `<div class="date-text">${cuenta.startDate || ''}</div>`;
-                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>`;
+                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
                 column.innerHTML = `
@@ -872,6 +909,13 @@
             barGap = parseInt(val);
             document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
             localStorage.setItem('barGap', barGap);
+        }
+
+        function cambiarFontSize(val) {
+            chartFontSize = parseInt(val);
+            document.getElementById('font-size-val').innerText = chartFontSize;
+            document.documentElement.style.setProperty('--chart-label-size', chartFontSize + 'px');
+            localStorage.setItem('chartFontSize', chartFontSize);
         }
 
         function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
