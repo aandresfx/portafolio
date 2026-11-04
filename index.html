@@ -6,25 +6,49 @@
     <title>Dashboard Pro - Gestión de Cuentas</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            /* Variables Modo Claro */
+            --bg-color: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
             --card-bg: rgba(255, 255, 255, 0.98);
             --text-main: #2d3748;
             --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e0;
+            --bar-bg: #edf2f7;
+            --zero-line: #a0aec0;
+            --axis-line: #cbd5e0;
+            --shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        body.dark-mode {
+            /* Variables Modo Oscuro */
+            --bg-color: #1a202c;
+            --card-bg: #2d3748;
+            --text-main: #f7fafc;
+            --text-muted: #a0aec0;
+            --border-color: #4a5568;
+            --input-bg: #1a202c;
+            --input-border: #4a5568;
+            --bar-bg: #4a5568;
+            --zero-line: #718096;
+            --axis-line: #4a5568;
+            --shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
+            background: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
             min-height: 100vh;
             display: flex;
             justify-content: center;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
-            max-width: 1700px; /* Más ancho para acomodar más columnas */
+            max-width: 1700px;
             width: 100%;
             display: flex;
             gap: 20px;
@@ -32,49 +56,45 @@
             flex-wrap: wrap;
         }
 
-        /* --- TABLA COMPRIMIDA --- */
+        /* --- TABLA --- */
         .panel-tabla {
             background: var(--card-bg);
             padding: 15px 20px;
             border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
             flex: 1.5;
             min-width: 850px;
             overflow-x: auto;
+            transition: background 0.3s ease;
         }
-        h2 { margin: 0 0 10px 0; font-size: 18px; color: #1a202c; }
+        h2 { margin: 0 0 10px 0; font-size: 18px; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-        th { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        th { font-size: 11px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
         
-        input, select, textarea {
-            padding: 6px; border: 1px solid #cbd5e0; border-radius: 5px;
-            font-family: inherit; font-size: 12px; box-sizing: border-box; transition: border-color 0.2s;
-            background: white;
+        input, select {
+            padding: 6px; border: 1px solid var(--input-border); border-radius: 5px;
+            font-family: inherit; font-size: 12px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main);
         }
-        input:focus, select:focus, textarea:focus { border-color: #4299e1; outline: none; }
+        input:focus, select:focus { border-color: #4299e1; outline: none; }
 
-        /* Eliminar flechas de inputs numéricos */
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
-        /* Anchos ajustados */
-        .in-name { width: 100px; }
-        .in-cap { width: 80px; }
-        .in-date { width: 90px; text-align: center;}
-        .in-mod { width: 105px; }
+        .in-name { width: 90px; }
+        .in-cap { width: 75px; text-align: right; }
+        .in-cost { width: 65px; text-align: right; }
+        .in-date { width: 85px; text-align: center; }
+        .in-mod { width: 100px; }
         .in-status { width: 105px; }
-        .in-num { width: 50px; text-align: center; }
-        .in-notes { width: 130px; min-height: 40px; resize: vertical; font-size: 11px; }
+        .in-num { width: 45px; text-align: center; }
+        .in-notes { width: 120px; } /* Ahora es un input de una línea */
         
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 10px 15px;
             border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px;
-            transition: background 0.2s; width: 100%; font-size: 13px;
+            width: 100%; font-size: 13px;
         }
         .btn-add:hover { background: #3182ce; }
 
@@ -83,16 +103,12 @@
             background: var(--card-bg);
             padding: 15px 20px;
             border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
             flex: 1;
             min-width: 450px;
             overflow-x: auto;
+            transition: background 0.3s ease;
         }
-        
-        .color-picker-container {
-            display: flex; gap: 15px; margin-bottom: 10px; font-size: 12px; align-items: center;
-        }
-        input[type="color"] { width: 25px; height: 25px; padding: 0; border: none; border-radius: 4px; cursor: pointer; }
 
         .chart-layout {
             display: flex;
@@ -105,14 +121,14 @@
             position: relative;
             width: 40px;
             height: 300px;
-            border-right: 1px solid #cbd5e0;
+            border-right: 1px solid var(--axis-line);
             margin-right: 15px;
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
             font-size: 10px; color: var(--text-muted); font-weight: 600;
         }
-        .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: #cbd5e0; }
+        .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper {
             display: flex; gap: 25px; flex-grow: 1;
@@ -121,7 +137,7 @@
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
-            background-color: #a0aec0; z-index: 0; border-bottom: 1px dashed #cbd5e0;
+            background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
         }
 
         .chart-column {
@@ -130,33 +146,74 @@
         }
 
         .bar-range-bg {
-            position: absolute; width: 100%; background-color: #edf2f7;
-            border-radius: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); z-index: 1;
+            position: absolute; width: 100%; background-color: var(--bar-bg);
+            border-radius: 4px; z-index: 1;
+            display: flex; justify-content: center;
+        }
+
+        /* Texto del objetivo en la parte superior de la barra gris */
+        .target-text {
+            position: absolute;
+            top: -18px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
         }
 
         .bar-fill {
             position: absolute; width: 100%; border-radius: 4px;
             z-index: 2; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; /* Centrar texto */
         }
 
+        /* Texto dentro del relleno */
+        .val-text { font-size: 11px; font-weight: bold; }
+
         .labels-area {
-            position: absolute; top: 100%; width: 100px;
+            position: absolute; top: 100%; width: 90px;
             left: 50%; transform: translateX(-50%);
             text-align: center; padding-top: 8px;
         }
 
-        .val-text { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
-        .name-text { font-size: 11px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; word-wrap: break-word; }
+        .name-text { font-size: 11px; font-weight: 600; margin-bottom: 2px; word-wrap: break-word; }
         .cap-text { font-size: 10px; color: #3182ce; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: 10px; margin-bottom: 2px; }
         .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
-        .notes-text { font-size: 9px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.1;}
+        .notes-text { font-size: 9px; color: var(--text-muted); font-style: italic; word-wrap: break-word; line-height: 1.1;}
 
+        /* --- CONFIGURACIÓN FLOTANTE --- */
+        .settings-btn {
+            position: fixed; bottom: 20px; left: 20px;
+            background: var(--card-bg); color: var(--text-main);
+            border: 1px solid var(--border-color); border-radius: 50%;
+            width: 45px; height: 45px; font-size: 20px; cursor: pointer;
+            box-shadow: var(--shadow); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .settings-btn:hover { transform: rotate(90deg); }
+
+        .settings-panel {
+            position: fixed; bottom: 75px; left: 20px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 15px; width: 220px;
+            box-shadow: var(--shadow); z-index: 100;
+            display: none; flex-direction: column; gap: 12px;
+        }
+        .settings-panel.active { display: flex; }
+        
+        .settings-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
+        .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; }
+        .toggle-btn {
+            background: #4299e1; color: white; border: none; padding: 8px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- Panel Tabla -->
         <div class="panel-tabla">
             <h2>Gestión de Cuentas</h2>
             <table id="tabla-datos">
@@ -164,12 +221,13 @@
                     <tr>
                         <th>Cuenta</th>
                         <th>Capital</th>
+                        <th>Costo</th>
                         <th>Inicio</th>
                         <th>Modalidad</th>
                         <th>Estado</th>
                         <th>Actual</th>
-                        <th>Mín</th>
-                        <th>Máx</th>
+                        <th>Mínimo</th>
+                        <th>Objetivo</th>
                         <th>Notas</th>
                     </tr>
                 </thead>
@@ -178,13 +236,9 @@
             <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
         </div>
 
+        <!-- Panel Gráfico -->
         <div class="panel-grafico">
             <h2>Progreso Visual</h2>
-            <div class="color-picker-container">
-                <label>Color Pos: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
-                <label>Color Neg: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
-            </div>
-
             <div class="chart-layout">
                 <div class="y-axis" id="y-axis"></div>
                 <div class="charts-wrapper" id="chart-area">
@@ -194,38 +248,45 @@
         </div>
     </div>
 
+    <!-- Configuración Flotante -->
+    <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+    <div class="settings-panel" id="settings-panel">
+        <label>Color Positivo: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
+        <label>Color Negativo: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
+        <button class="toggle-btn" onclick="toggleDarkMode()">Modo Oscuro 🌙 / ☀️</button>
+    </div>
+
     <script>
         // --- DATOS INICIALES ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { name: "FTMO 100k", capital: "$100.000", startDate: "01/09/2024", modality: "Examen", status: "En curso", actual: -9.4, min: -10, max: 10, notes: "Costo: $500" },
-            { name: "FTMO 25k", capital: "$25.000", startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Costo: $250" },
-            { name: "Bullfy", capital: "$5.000", startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: 6.0, min: -4, max: 8, notes: "Costo: $100" },
-            { name: "Personal", capital: "$10.000", startDate: "15/11/2026", modality: "Capital propio", status: "En curso", actual: 2.5, min: null, max: null, notes: "Ahorros" }
+            { name: "FTMO 100k", capital: "$100.000", cost: "$510", startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2" },
+            { name: "FTMO 25k", capital: "$25.000", cost: "$250", startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2" },
+            { name: "Bullfy", capital: "$5.000", cost: "$100", startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: 6.0, min: -4, max: 8, notes: "Fase Única" },
+            { name: "Personal", capital: "$10.000", cost: "-", startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
+        
+        if(isDarkMode) document.body.classList.add('dark-mode');
 
-        // Formatear Capital
-        function formatCapital(input) {
-            let val = input.value.replace(/\D/g, ''); // Solo números
+        // --- UTILIDADES ---
+        function formatCurrency(input) {
+            let val = input.value.replace(/\D/g, ''); 
             if(val === '') { input.value = ''; return; }
             input.value = '$' + parseInt(val, 10).toLocaleString('es-AR');
         }
 
-        // Formatear Fecha al escribir
         function formatDate(input) {
             let val = input.value.replace(/\D/g, '');
-            if (val.length > 2 && val.length <= 4) {
-                val = val.substring(0, 2) + '/' + val.substring(2);
-            } else if (val.length > 4) {
-                val = val.substring(0, 2) + '/' + val.substring(2, 4) + '/' + val.substring(4, 8);
-            }
+            if (val.length > 2 && val.length <= 4) val = val.substring(0, 2) + '/' + val.substring(2);
+            else if (val.length > 4) val = val.substring(0, 2) + '/' + val.substring(2, 4) + '/' + val.substring(4, 8);
             input.value = val;
         }
 
-        // Convertir DD/MM/AAAA a objeto Date para ordenar
         function parseDate(dateStr) {
             if(!dateStr) return new Date(0);
             const parts = dateStr.split('/');
@@ -233,17 +294,28 @@
             return new Date(dateStr);
         }
 
+        // Calcular si el texto debe ser negro o blanco según el fondo
+        function getContrastColor(hexcolor) {
+            if(!hexcolor) return '#ffffff';
+            let r = parseInt(hexcolor.substr(1, 2), 16);
+            let g = parseInt(hexcolor.substr(3, 2), 16);
+            let b = parseInt(hexcolor.substr(5, 2), 16);
+            let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? '#000000' : '#ffffff';
+        }
+
+        // --- RENDERIZADO TABLA ---
         function renderTabla() {
             const tbody = document.querySelector('#tabla-datos tbody');
             tbody.innerHTML = '';
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
-                
                 const isPropio = cuenta.modality === 'Capital propio';
                 
                 tr.innerHTML = `
                     <td><input type="text" class="in-name" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)"></td>
-                    <td><input type="text" class="in-cap" value="${cuenta.capital || ''}" onchange="actualizarDato(${index}, 'capital', this.value)" onblur="formatCapital(this)"></td>
+                    <td><input type="text" class="in-cap" value="${cuenta.capital || ''}" onchange="actualizarDato(${index}, 'capital', this.value)" onblur="formatCurrency(this)"></td>
+                    <td><input type="text" class="in-cost" value="${cuenta.cost || ''}" onchange="actualizarDato(${index}, 'cost', this.value)" onblur="formatCurrency(this)" placeholder="-$"></td>
                     <td><input type="text" class="in-date" value="${cuenta.startDate}" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA"></td>
                     
                     <td>
@@ -263,11 +335,10 @@
                     </td>
 
                     <td><input type="number" step="0.1" class="in-num" value="${cuenta.actual}" onchange="actualizarDato(${index}, 'actual', parseFloat(this.value))"></td>
-                    
                     <td><input type="number" step="1" class="in-num" value="${isPropio ? '' : cuenta.min}" ${isPropio ? 'disabled placeholder="N/A"' : ''} onchange="actualizarDato(${index}, 'min', parseFloat(this.value))"></td>
                     <td><input type="number" step="1" class="in-num" value="${isPropio ? '' : cuenta.max}" ${isPropio ? 'disabled placeholder="N/A"' : ''} onchange="actualizarDato(${index}, 'max', parseFloat(this.value))"></td>
                     
-                    <td><textarea class="in-notes" onchange="actualizarDato(${index}, 'notes', this.value)">${cuenta.notes || ''}</textarea></td>
+                    <td><input type="text" class="in-notes" value="${cuenta.notes || ''}" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="..."></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -285,6 +356,7 @@
             guardarYRenderizar();
         }
 
+        // --- RENDERIZADO GRÁFICO ---
         function renderGrafico() {
             const chartArea = document.getElementById('chart-area');
             const yAxis = document.getElementById('y-axis');
@@ -294,7 +366,6 @@
 
             cuentas.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
-            // 1. Límites Globales (ignorando los que no tienen min/max)
             let globalMin = 0;
             let globalMax = 0;
             cuentas.forEach(c => {
@@ -312,7 +383,7 @@
             const rangeGlobal = globalMax - globalMin;
             const zeroBottomPercent = ((0 - globalMin) / rangeGlobal) * 100;
 
-            // 2. Dibujar Eje Y (Ticks)
+            // Eje Y
             const step = rangeGlobal > 30 ? 10 : 5;
             for (let i = globalMin; i <= globalMax; i += step) {
                 const topPercent = 100 - (((i - globalMin) / rangeGlobal) * 100);
@@ -325,14 +396,12 @@
 
             document.getElementById('global-zero-line').style.bottom = `${zeroBottomPercent}%`;
 
-            // 3. Dibujar las barras
+            // Barras
             cuentas.forEach(cuenta => {
                 const column = document.createElement('div');
                 column.className = 'chart-column';
-
                 const isPropio = cuenta.modality === 'Capital propio';
                 
-                // Fondo Gris
                 let rangeHeightPercent = 0;
                 let rangeBottomPercent = 0;
                 if(!isPropio) {
@@ -340,11 +409,11 @@
                     rangeBottomPercent = ((cuenta.min - globalMin) / rangeGlobal) * 100;
                 }
 
-                // Relleno de color
                 let fillHeightPercent = (Math.abs(cuenta.actual || 0) / rangeGlobal) * 100;
                 let fillBottomPercent = zeroBottomPercent;
                 
                 let color = cuenta.actual >= 0 ? colores.pos : colores.neg;
+                let textColor = getContrastColor(color);
                 let textoValor = cuenta.actual > 0 ? `+${cuenta.actual}%` : `${cuenta.actual}%`;
 
                 if (cuenta.actual < 0) {
@@ -352,12 +421,16 @@
                 }
                 if (cuenta.actual === 0 || cuenta.actual === null) fillHeightPercent = 0;
 
+                // El objetivo (max) flota arriba de la barra gris
+                let targetHTML = (!isPropio && cuenta.max) ? `<div class="target-text">${cuenta.max}%</div>` : '';
+
                 column.innerHTML = `
-                    ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;"></div>` : ''}
-                    <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};"></div>
+                    ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
+                    <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
+                        <span class="val-text" style="color: ${textColor};">${textoValor}</span>
+                    </div>
                     
                     <div class="labels-area">
-                        <div class="val-text" style="color: ${color};">${textoValor}</div>
                         <div class="name-text">${cuenta.name}</div>
                         <div class="cap-text">${cuenta.capital || ''}</div>
                         <div class="status-text">${cuenta.status || ''}</div>
@@ -369,6 +442,7 @@
             });
         }
 
+        // --- ACCIONES ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
             guardarYRenderizar();
@@ -381,10 +455,20 @@
             renderGrafico();
         }
 
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('active');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
         function agregarFila() {
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
-            cuentas.push({ name: "Nueva", capital: "", startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "" });
+            cuentas.push({ name: "Nueva", capital: "", cost: "", startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "" });
             guardarYRenderizar();
         }
 
