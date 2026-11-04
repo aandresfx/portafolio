@@ -23,7 +23,13 @@
             --shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
             --bar-gap: 25px;
-            --chart-label-size: 11px; /* Variable para el tamaño de letra del gráfico */
+            --chart-label-size: 11px;
+            
+            /* Colores por defecto de las empresas */
+            --company-FTMO: #3182ce;
+            --company-Darwinex: #4a5568;
+            --company-Axi: #e53e3e;
+            --company-Bullfy: #dd6b20;
         }
 
         body.dark-mode {
@@ -121,7 +127,6 @@
             position: relative;
             margin-bottom: 15px;
         }
-        /* Títulos en mayúsculas */
         h2 { margin: 0; font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
         
         .panel-btn {
@@ -138,7 +143,6 @@
         .btn-toggle-left { right: 0; }
         .btn-toggle-chart { right: 0; }
 
-        /* Reloj */
         .datetime-display {
             position: absolute;
             top: 15px;
@@ -205,7 +209,7 @@
         }
         input:focus, select:focus { border-color: #4299e1; outline: none; }
         
-        .in-name { width: 75px; }
+        .in-name { width: 80px; }
         .in-cap { width: 65px; text-align: right; }
         .in-cost { width: 55px; text-align: right; }
         .in-date { width: 75px; text-align: center; }
@@ -233,7 +237,7 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 30px; /* Más margen para el reloj */
+            margin-top: 30px;
             padding-bottom: 10px;
         }
 
@@ -306,9 +310,9 @@
             z-index: 10;
         }
 
-        /* Aplicando la variable de tamaño de letra a los textos */
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
+        .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
         .date-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); margin-bottom: 2px; }
         .audit-link { font-size: calc(var(--chart-label-size) - 1px); color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
@@ -330,7 +334,7 @@
         .settings-panel {
             position: fixed; bottom: 75px; left: 20px;
             background: var(--card-bg); border: var(--glass-border);
-            border-radius: 10px; padding: 15px; width: 280px;
+            border-radius: 10px; padding: 15px; width: 300px;
             box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 80vh; overflow-y: auto;
@@ -349,6 +353,10 @@
         .toggle-btn:hover { opacity: 0.9; }
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
+        
+        .company-list { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; max-height: 120px; overflow-y: auto; padding-right: 5px;}
+        .company-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+        .company-row input[type="color"] { width: 25px; height: 20px; }
 
         /* Marca de agua */
         .watermark {
@@ -379,7 +387,7 @@
         <!-- Panel Tabla -->
         <div class="panel-tabla glass-panel" id="panel-tabla">
             <div class="panel-header">
-                <h2>Cuentas</h2>
+                <h2>Empresas</h2>
                 <button class="panel-btn btn-toggle-left" onclick="toggleLeftPanel()" title="Ocultar Panel">⬅️</button>
             </div>
             <div class="table-container">
@@ -405,8 +413,9 @@
                 <!-- Menú de opciones del gráfico -->
                 <div class="chart-settings-menu" id="chart-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
-                    <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Cuenta</label>
+                    <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
+                    <label><input type="checkbox" id="chk-cost" checked onchange="toggleChartLabel('cost', this.checked)"> Costo</label>
                     <label><input type="checkbox" id="chk-status" checked onchange="toggleChartLabel('status', this.checked)"> Estado</label>
                     <label><input type="checkbox" id="chk-date" checked onchange="toggleChartLabel('date', this.checked)"> Fecha</label>
                     <label><input type="checkbox" id="chk-url" checked onchange="toggleChartLabel('url', this.checked)"> URL</label>
@@ -438,13 +447,34 @@
     <!-- Configuración Flotante Global -->
     <button class="settings-btn" onclick="toggleGlobalSettings()">⚙️</button>
     <div class="settings-panel" id="global-settings-panel">
+        
+        <label style="margin-top:5px;">Colores de Barras:</label>
         <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
         <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
         <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
         <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
         <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
         <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
+        <label>Colores de Modalidad:</label>
+        <label>Examen: <input type="color" id="color-mod-examen" onchange="guardarColores()"></label>
+        <label>Capital propio: <input type="color" id="color-mod-propio" onchange="guardarColores()"></label>
+        <label>Mixto: <input type="color" id="color-mod-mixto" onchange="guardarColores()"></label>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
+        
+        <label>Empresas:</label>
+        <div class="company-list" id="company-list">
+            <!-- Se genera con JS -->
+        </div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
+            <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
+            <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+        </div>
+
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
         <div>
@@ -477,7 +507,7 @@
         // --- COLUMNAS ---
         const columnasDef = [
             { key: 'visible', label: '👁' },
-            { key: 'name', label: 'Cuenta' },
+            { key: 'name', label: 'Empresa' },
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
             { key: 'startDate', label: 'Inicio' },
@@ -497,20 +527,28 @@
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
-            { visible: true, name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
-            { visible: true, name: "Bullfy", capital: 5000, cost: 100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
-            { visible: true, name: "Personal", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
+            { visible: true, name: "FTMO", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
+            { visible: true, name: "FTMO", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
+            { visible: true, name: "Bullfy", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
+            { visible: true, name: "Axi", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
+        ];
+
+        let empresas = JSON.parse(localStorage.getItem('misEmpresas')) || [
+            { name: "FTMO", color: "#3182ce" },
+            { name: "Darwinex", color: "#4a5568" },
+            { name: "Axi", color: "#e53e3e" },
+            { name: "Bullfy", color: "#dd6b20" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
             passed: "#a3e635", failed: "#7f1d1d",
-            ownPos: "#3b82f6", ownNeg: "#ec4899"
+            ownPos: "#3b82f6", ownNeg: "#ec4899",
+            modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
-            name: true, capital: true, status: true, date: true, url: true, notes: true
+            name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true
         };
 
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -518,40 +556,49 @@
         let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
         let barGap = parseInt(localStorage.getItem('barGap') || 25);
-        let chartFontSize = parseInt(localStorage.getItem('chartFontSize') || 11); // Nueva variable para tamaño de letra
+        let chartFontSize = parseInt(localStorage.getItem('chartFontSize') || 11);
         
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
 
         // Inicializar UI
-        document.getElementById('color-pos').value = colores.pos;
-        document.getElementById('color-neg').value = colores.neg;
-        document.getElementById('color-passed').value = colores.passed;
-        document.getElementById('color-failed').value = colores.failed;
-        document.getElementById('color-own-pos').value = colores.ownPos;
-        document.getElementById('color-own-neg').value = colores.ownNeg;
+        function initUI() {
+            document.getElementById('color-pos').value = colores.pos;
+            document.getElementById('color-neg').value = colores.neg;
+            document.getElementById('color-passed').value = colores.passed;
+            document.getElementById('color-failed').value = colores.failed;
+            document.getElementById('color-own-pos').value = colores.ownPos;
+            document.getElementById('color-own-neg').value = colores.ownNeg;
+            document.getElementById('color-mod-examen').value = colores.modExamen;
+            document.getElementById('color-mod-propio').value = colores.modPropio;
+            document.getElementById('color-mod-mixto').value = colores.modMixto;
 
-        document.getElementById('chk-name').checked = chartLabels.name;
-        document.getElementById('chk-capital').checked = chartLabels.capital;
-        document.getElementById('chk-status').checked = chartLabels.status;
-        document.getElementById('chk-date').checked = chartLabels.date;
-        document.getElementById('chk-url').checked = chartLabels.url;
-        document.getElementById('chk-notes').checked = chartLabels.notes;
+            document.getElementById('chk-name').checked = chartLabels.name;
+            document.getElementById('chk-capital').checked = chartLabels.capital;
+            document.getElementById('chk-cost').checked = chartLabels.cost;
+            document.getElementById('chk-status').checked = chartLabels.status;
+            document.getElementById('chk-date').checked = chartLabels.date;
+            document.getElementById('chk-url').checked = chartLabels.url;
+            document.getElementById('chk-notes').checked = chartLabels.notes;
 
-        document.getElementById('gap-slider').value = barGap;
-        document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
-        
-        document.getElementById('font-size-slider').value = chartFontSize;
-        document.getElementById('font-size-val').innerText = chartFontSize;
-        document.documentElement.style.setProperty('--chart-label-size', chartFontSize + 'px');
+            document.getElementById('gap-slider').value = barGap;
+            document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
+            
+            document.getElementById('font-size-slider').value = chartFontSize;
+            document.getElementById('font-size-val').innerText = chartFontSize;
+            document.documentElement.style.setProperty('--chart-label-size', chartFontSize + 'px');
 
-        document.getElementById('toggle-pattern').checked = showPattern;
-        document.getElementById('bg-opacity').value = overlayOpacity;
-        document.getElementById('opacity-val').innerText = overlayOpacity;
-        
-        if(isDarkMode) document.body.classList.add('dark-mode');
-        if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
-        if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
+            document.getElementById('toggle-pattern').checked = showPattern;
+            document.getElementById('bg-opacity').value = overlayOpacity;
+            document.getElementById('opacity-val').innerText = overlayOpacity;
+            
+            if(isDarkMode) document.body.classList.add('dark-mode');
+            if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
+            if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
+
+            renderCompanyList();
+        }
+        initUI();
 
         // --- RELOJ EN VIVO ---
         function updateClock() {
@@ -579,9 +626,15 @@
             if(num === null || num === undefined || num === '') return '';
             return '$' + Number(num).toLocaleString('es-AR');
         }
+        function getCostStr(num) {
+            if(num === null || num === undefined || num === '') return '';
+            let n = Number(num);
+            if(n === 0) return '$0';
+            return '-$' + Math.abs(n).toLocaleString('es-AR');
+        }
         function parseCurrency(str) {
             if(!str) return '';
-            let num = str.toString().replace(/\D/g, '');
+            let num = str.toString().replace(/[^\d-]/g, ''); // Permitir menos para costos
             return num ? parseInt(num, 10) : '';
         }
         function getPercentStr(num, decimals) {
@@ -607,11 +660,37 @@
         }
         function getContrastColor(hexcolor) {
             if(!hexcolor) return '#ffffff';
+            // Si el color es un nombre o formato inválido, retornar blanco
+            if(hexcolor.indexOf('#') !== 0) return '#ffffff';
             let r = parseInt(hexcolor.substr(1, 2), 16);
             let g = parseInt(hexcolor.substr(3, 2), 16);
             let b = parseInt(hexcolor.substr(5, 2), 16);
             let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             return (yiq >= 128) ? '#000000' : '#ffffff';
+        }
+
+        function getModColor(mod) {
+            if(mod === 'Examen') return colores.modExamen;
+            if(mod === 'Capital propio') return colores.modPropio;
+            if(mod === 'Mixto') return colores.modMixto;
+            return '#ffffff';
+        }
+
+        function getAccountColor(cuenta) {
+            const isPropio = cuenta.modality === 'Capital propio';
+            let displayValue = Number(cuenta.actual) || 0;
+            let color = colores.pos;
+
+            if (cuenta.status.includes('Desaprobado') && !isPropio) {
+                color = colores.failed;
+            } else if (cuenta.status.includes('Aprobado') && !isPropio) {
+                color = colores.passed;
+            } else if (isPropio) {
+                color = displayValue >= 0 ? colores.ownPos : colores.ownNeg;
+            } else {
+                color = displayValue >= 0 ? colores.pos : colores.neg;
+            }
+            return color;
         }
 
         // --- RENDERIZADO ---
@@ -662,19 +741,29 @@
                             td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked)">`;
                             break;
                         case 'name':
-                            td.innerHTML = `<input type="text" class="in-name" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)">`;
+                            // Generar opciones de empresas
+                            let optionsHTML = empresas.map(e => `<option value="${e.name}" ${cuenta.name === e.name ? 'selected' : ''}>${e.name}</option>`).join('');
+                            // Si la empresa actual no está en la lista (por datos viejos), agregarla
+                            if(!empresas.find(e => e.name === cuenta.name)) {
+                                optionsHTML += `<option value="${cuenta.name}" selected>${cuenta.name}</option>`;
+                            }
+                            const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'transparent';
+                            td.innerHTML = `<select class="in-name" style="background-color: ${empColor}; color: ${getContrastColor(empColor)};" onchange="actualizarDato(${index}, 'name', this.value)">${optionsHTML}</select>`;
                             break;
                         case 'capital':
                             td.innerHTML = `<input type="text" class="in-cap" value="${getCurrencyStr(cuenta.capital)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCurrencyStr(parseCurrency(this.value)); actualizarDato(${index}, 'capital', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'cost':
-                            td.innerHTML = `<input type="text" class="in-cost" value="${getCurrencyStr(cuenta.cost)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCurrencyStr(parseCurrency(this.value)); actualizarDato(${index}, 'cost', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-$">`;
+                            td.innerHTML = `<input type="text" class="in-cost" value="${getCostStr(cuenta.cost)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCostStr(parseCurrency(this.value)); actualizarDato(${index}, 'cost', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-$">`;
                             break;
                         case 'startDate':
-                            td.innerHTML = `<input type="text" class="in-date" value="${cuenta.startDate}" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
+                            const dateBg = isDarkMode ? '#e2e8f0' : '#2d3748';
+                            const dateColor = isDarkMode ? '#1a202c' : '#f7fafc';
+                            td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
-                            td.innerHTML = `<select class="in-mod" onchange="cambiarModalidad(${index}, this.value)">
+                            const modBg = getModColor(cuenta.modality);
+                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">
                                 <option value="Examen" ${cuenta.modality === 'Examen' ? 'selected' : ''}>Examen</option>
                                 <option value="Capital propio" ${cuenta.modality === 'Capital propio' ? 'selected' : ''}>Capital propio</option>
                                 <option value="Mixto" ${cuenta.modality === 'Mixto' ? 'selected' : ''}>Mixto</option>
@@ -688,7 +777,9 @@
                             </select>`;
                             break;
                         case 'actual':
-                            td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            const actBg = getAccountColor(cuenta);
+                            const actColor = getContrastColor(actBg);
+                            td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
                             td.innerHTML = `<input type="text" class="in-num" value="${isPropio ? '' : getPercentStr(cuenta.min, 0)}" ${isPropio ? 'disabled placeholder="N/A"' : ''} onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
@@ -829,19 +920,7 @@
                 const isPropio = cuenta.modality === 'Capital propio';
                 
                 let displayValue = Number(cuenta.actual) || 0;
-                let color = colores.pos;
-                
-                if (cuenta.status.includes('Desaprobado') && !isPropio) {
-                    displayValue = Number(cuenta.min);
-                    color = colores.failed;
-                } else if (cuenta.status.includes('Aprobado') && !isPropio) {
-                    displayValue = Number(cuenta.max);
-                    color = colores.passed;
-                } else if (isPropio) {
-                    color = displayValue >= 0 ? colores.ownPos : colores.ownNeg;
-                } else {
-                    color = displayValue >= 0 ? colores.pos : colores.neg;
-                }
+                let color = getAccountColor(cuenta);
                 
                 const textColor = getContrastColor(color);
                 let textoValor = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
@@ -860,10 +939,13 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                // Textos sin el emoji en el enlace de auditoría
                 let labelsHTML = '';
-                if (chartLabels.name) labelsHTML += `<div class="name-text">${cuenta.name}</div>`;
+                if (chartLabels.name) {
+                    const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
+                    labelsHTML += `<div class="name-text" style="color: ${empColor};">${cuenta.name}</div>`;
+                }
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
+                if (chartLabels.cost && cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
                 if (chartLabels.date) labelsHTML += `<div class="date-text">${cuenta.startDate || ''}</div>`;
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
@@ -895,7 +977,12 @@
             colores.failed = document.getElementById('color-failed').value;
             colores.ownPos = document.getElementById('color-own-pos').value;
             colores.ownNeg = document.getElementById('color-own-neg').value;
+            colores.modExamen = document.getElementById('color-mod-examen').value;
+            colores.modPropio = document.getElementById('color-mod-propio').value;
+            colores.modMixto = document.getElementById('color-mod-mixto').value;
+            
             localStorage.setItem('misColores', JSON.stringify(colores));
+            renderTabla();
             renderGrafico();
         }
 
@@ -939,6 +1026,7 @@
             isDarkMode = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
             updateBackground();
+            renderTabla(); // Re-render para actualizar colores de fecha
         }
 
         function togglePattern(isChecked) {
@@ -988,7 +1076,9 @@
         function agregarFila() {
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
-            cuentas.push({ visible: true, name: "Nueva", capital: "", cost: "", startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
+            // Usar la primera empresa de la lista por defecto
+            const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
+            cuentas.push({ visible: true, name: defaultCompany, capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
             guardarYRenderizar();
         }
 
@@ -996,6 +1086,46 @@
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla();
             renderGrafico();
+        }
+
+        // --- GESTIÓN DE EMPRESAS ---
+        function renderCompanyList() {
+            const list = document.getElementById('company-list');
+            list.innerHTML = '';
+            empresas.forEach((emp, index) => {
+                const row = document.createElement('div');
+                row.className = 'company-row';
+                row.innerHTML = `
+                    <span>${emp.name}</span>
+                    <input type="color" value="${emp.color}" onchange="cambiarColorEmpresa(${index}, this.value)">
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function cambiarColorEmpresa(index, nuevoColor) {
+            empresas[index].color = nuevoColor;
+            localStorage.setItem('misEmpresas', JSON.stringify(empresas));
+            renderTabla();
+            renderGrafico();
+        }
+
+        function agregarEmpresa() {
+            const nameInput = document.getElementById('new-company-name');
+            const colorInput = document.getElementById('new-company-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if(name && !empresas.find(e => e.name.toLowerCase() === name.toLowerCase())) {
+                empresas.push({ name: name, color: color });
+                localStorage.setItem('misEmpresas', JSON.stringify(empresas));
+                nameInput.value = '';
+                renderCompanyList();
+                renderTabla();
+                renderGrafico();
+            } else if(name) {
+                alert("La empresa ya existe.");
+            }
         }
 
         // Navegación con TAB
