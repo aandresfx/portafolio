@@ -17,77 +17,84 @@
             background: var(--bg-gradient);
             color: var(--text-main);
             margin: 0;
-            padding: 40px 20px;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             justify-content: center;
         }
 
         .container {
-            max-width: 1500px;
+            max-width: 1600px; /* Más ancho para abarcar más */
             width: 100%;
             display: flex;
-            gap: 30px;
+            gap: 20px;
             align-items: flex-start;
             flex-wrap: wrap;
         }
 
-        /* --- TABLA --- */
+        /* --- TABLA COMPRIMIDA --- */
         .panel-tabla {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            flex: 1.2;
-            min-width: 700px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            flex: 1.4;
+            min-width: 750px;
             overflow-x: auto;
         }
-        h2 { margin-top: 0; font-size: 20px; color: #1a202c; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-        th { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        h2 { margin: 0 0 10px 0; font-size: 18px; color: #1a202c; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        th { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        
         input, textarea {
-            padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px;
-            font-family: inherit; font-size: 13px; box-sizing: border-box; transition: border-color 0.2s;
+            padding: 6px; border: 1px solid #cbd5e0; border-radius: 5px;
+            font-family: inherit; font-size: 12px; box-sizing: border-box; transition: border-color 0.2s;
         }
         input:focus, textarea:focus { border-color: #4299e1; outline: none; }
-        .in-name { width: 130px; }
-        .in-date { width: 135px; }
-        .in-num { width: 65px; text-align: center; }
-        .in-notes { width: 180px; min-height: 70px; resize: vertical; font-size: 12px; }
+        
+        /* Anchos más ajustados */
+        .in-name { width: 110px; }
+        .in-date { width: 90px; }
+        .in-cap { width: 80px; }
+        .in-num { width: 50px; text-align: center; }
+        .in-notes { width: 150px; min-height: 50px; resize: vertical; font-size: 11px; }
+        
         .btn-add {
-            background: #4299e1; color: white; border: none; padding: 12px 15px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 25px;
-            transition: background 0.2s; width: 100%; font-size: 14px;
+            background: #4299e1; color: white; border: none; padding: 10px 15px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px;
+            transition: background 0.2s; width: 100%; font-size: 13px;
         }
         .btn-add:hover { background: #3182ce; }
 
-        /* --- GRÁFICO --- */
+        /* --- GRÁFICO COMPRIMIDO --- */
         .panel-grafico {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             flex: 1;
             min-width: 450px;
             overflow-x: auto;
         }
+        
         .color-picker-container {
-            display: flex; gap: 15px; margin-bottom: 20px; font-size: 13px; align-items: center;
+            display: flex; gap: 15px; margin-bottom: 10px; font-size: 12px; align-items: center;
         }
-        input[type="color"] { width: 30px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer; }
+        input[type="color"] { width: 25px; height: 25px; padding: 0; border: none; border-radius: 4px; cursor: pointer; }
 
         .chart-layout {
             display: flex;
-            height: 450px; /* Altura del área de dibujo */
+            height: 400px; /* Altura total */
             position: relative;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
-        /* Eje Y con escala */
+        /* Eje Y */
         .y-axis {
             position: relative;
-            width: 45px;
+            width: 40px;
+            height: 300px; /* Altura de las barras */
             border-right: 1px solid #cbd5e0;
             margin-right: 15px;
         }
@@ -95,28 +102,21 @@
             position: absolute;
             right: 5px;
             transform: translateY(-50%);
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             font-weight: 600;
         }
         .y-tick::after {
-            content: '';
-            position: absolute;
-            right: -16px;
-            top: 50%;
-            width: 10px;
-            height: 1px;
-            background: #cbd5e0;
+            content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: #cbd5e0;
         }
 
         /* Contenedor de las barras */
         .charts-wrapper {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             flex-grow: 1;
             position: relative;
-            overflow-x: auto;
-            padding-bottom: 60px; /* Espacio para textos debajo */
+            height: 300px; /* Altura exacta para los cálculos */
         }
 
         /* Línea base global del 0% */
@@ -131,49 +131,48 @@
 
         .chart-column {
             position: relative;
-            width: 60px;
+            width: 45px;
             height: 100%;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
         }
 
-        /* La barra gris que marca el rango específico (Mín a Máx) */
         .bar-range-bg {
             position: absolute;
-            width: 40px;
+            width: 100%;
             background-color: #edf2f7;
-            border-radius: 6px;
+            border-radius: 4px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
             z-index: 1;
-            /* top y height calculados por JS */
+            /* bottom y height calculados por JS */
         }
 
-        /* El relleno (Verde o Rojo) */
         .bar-fill {
             position: absolute;
-            width: 40px;
-            border-radius: 6px;
+            width: 100%;
+            border-radius: 4px;
             z-index: 2;
-            transition: all 0.4s ease;
-            /* top, height y color calculados por JS */
+            transition: all 0.3s ease;
+            /* bottom, height y color calculados por JS */
         }
 
         /* Textos debajo de la barra */
         .labels-area {
             position: absolute;
-            top: 100%; /* Justo debajo del gráfico */
-            width: 100px; /* Más ancho que la barra para que el texto no se corte */
+            top: 100%; /* Justo debajo de los 300px */
+            width: 90px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            padding-top: 10px;
+            padding-top: 8px;
         }
 
-        .val-text { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
-        .name-text { font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; word-wrap: break-word; }
-        .date-text { font-size: 10px; color: var(--text-muted); margin-bottom: 5px; }
-        .notes-text { font-size: 10px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.2;}
+        .val-text { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+        .name-text { font-size: 11px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; word-wrap: break-word; }
+        .cap-text { font-size: 10px; color: #3182ce; font-weight: bold; margin-bottom: 2px; }
+        .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
+        .notes-text { font-size: 9px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.1;}
 
     </style>
 </head>
@@ -186,6 +185,7 @@
                 <thead>
                     <tr>
                         <th>Cuenta</th>
+                        <th>Capital</th>
                         <th>Inicio</th>
                         <th>Actual</th>
                         <th>Mín</th>
@@ -196,13 +196,14 @@
                 <tbody></tbody>
             </table>
             <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
+            <p style="font-size: 10px; color: #a0aec0; margin-top: 10px; text-align: center;">Formato de fecha recomendado: AAAA-MM-DD</p>
         </div>
 
         <div class="panel-grafico">
             <h2>Progreso Visual</h2>
             <div class="color-picker-container">
-                <label>Color Positivo: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
-                <label>Color Negativo: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
+                <label>Color Pos: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
+                <label>Color Neg: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
             </div>
 
             <div class="chart-layout">
@@ -215,10 +216,11 @@
     </div>
 
     <script>
+        // --- DATOS INICIALES (Agregada la propiedad 'capital') ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { name: "FTMO 100k", startDate: "2026-08-01", actual: -9.4, min: -10, max: 10, notes: "Costo: $510\nFase 1/2" },
-            { name: "FTMO 25k", startDate: "2026-09-15", actual: -10.0, min: -10, max: 12, notes: "Costo: $250\nFase 1/2" },
-            { name: "Bullfy", startDate: "2026-10-10", actual: 6.0, min: -4, max: 8, notes: "Costo: $100\nFase Única" }
+            { name: "FTMO 100k", capital: "100k", startDate: "2026-08-01", actual: -9.4, min: -10, max: 10, notes: "Costo: $510\nFase 1/2" },
+            { name: "FTMO 25k", capital: "25k", startDate: "2026-09-15", actual: -10.0, min: -10, max: 12, notes: "Costo: $250\nFase 1/2" },
+            { name: "Bullfy", capital: "5k", startDate: "2026-10-10", actual: 6.0, min: -4, max: 8, notes: "Costo: $100\nFase Única" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
@@ -230,9 +232,11 @@
             tbody.innerHTML = '';
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
+                // Cambiamos type="date" a type="text" para permitir escribir fluido
                 tr.innerHTML = `
                     <td><input type="text" class="in-name" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)"></td>
-                    <td><input type="date" class="in-date" value="${cuenta.startDate}" onchange="actualizarDato(${index}, 'startDate', this.value)"></td>
+                    <td><input type="text" class="in-cap" value="${cuenta.capital || ''}" onchange="actualizarDato(${index}, 'capital', this.value)"></td>
+                    <td><input type="text" class="in-date" value="${cuenta.startDate}" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="AAAA-MM-DD"></td>
                     <td><input type="number" step="0.1" class="in-num" value="${cuenta.actual}" onchange="actualizarDato(${index}, 'actual', parseFloat(this.value))"></td>
                     <td><input type="number" step="1" class="in-num" value="${cuenta.min}" onchange="actualizarDato(${index}, 'min', parseFloat(this.value))"></td>
                     <td><input type="number" step="1" class="in-num" value="${cuenta.max}" onchange="actualizarDato(${index}, 'max', parseFloat(this.value))"></td>
@@ -246,14 +250,12 @@
             const chartArea = document.getElementById('chart-area');
             const yAxis = document.getElementById('y-axis');
             
-            // Limpiar manteniendo la línea cero global
             chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
-            // Ordenar por fecha
             cuentas.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-            // 1. Encontrar límites globales
+            // 1. Límites Globales
             let globalMin = 0;
             let globalMax = 0;
             cuentas.forEach(c => {
@@ -261,21 +263,23 @@
                 if (c.max > globalMax) globalMax = c.max;
             });
 
-            // Redondear los límites para que la escala sea limpia (ej. de 5 en 5)
             globalMin = Math.floor(globalMin / 5) * 5;
             globalMax = Math.ceil(globalMax / 5) * 5;
-            
-            // Asegurarnos de que el rango cubra el -10 y 10 como mínimo visual
             if (globalMin > -10) globalMin = -10;
             if (globalMax < 10) globalMax = 10;
 
             const rangeGlobal = globalMax - globalMin;
+            
+            // Posición del 0% desde el fondo (0 = abajo, 100 = arriba)
+            const zeroBottomPercent = ((0 - globalMin) / rangeGlobal) * 100;
 
             // 2. Dibujar Eje Y (Ticks)
-            const step = rangeGlobal > 30 ? 10 : 5; // Si el rango es muy grande, saltar de 10 en 10
+            const step = rangeGlobal > 30 ? 10 : 5;
             for (let i = globalMin; i <= globalMax; i += step) {
-                // Calcular la posición desde arriba (0% a 100%)
-                const topPercent = 100 - ((i - globalMin) / rangeGlobal * 100);
+                // Altura desde el fondo hacia arriba
+                const bottomPercent = ((i - globalMin) / rangeGlobal) * 100;
+                const topPercent = 100 - bottomPercent; 
+                
                 const tick = document.createElement('div');
                 tick.className = 'y-tick';
                 tick.style.top = `${topPercent}%`;
@@ -283,52 +287,47 @@
                 yAxis.appendChild(tick);
             }
 
-            // Posicionar la línea cero global
-            const zeroPosPercent = 100 - ((0 - globalMin) / rangeGlobal * 100);
-            document.getElementById('global-zero-line').style.top = `${zeroPosPercent}%`;
+            // Línea cero
+            document.getElementById('global-zero-line').style.bottom = `${zeroBottomPercent}%`;
 
-            // 3. Dibujar las barras
+            // 3. Dibujar las barras (Usando bottom en lugar de top para evitar desajustes)
             cuentas.forEach(cuenta => {
                 const column = document.createElement('div');
                 column.className = 'chart-column';
 
-                // --- Cálculos para el fondo gris (Rango específico) ---
-                // Altura del rango (de su min a su max) respecto al gráfico global
+                // Fondo Gris (Rango de la cuenta)
                 const rangeHeightPercent = ((cuenta.max - cuenta.min) / rangeGlobal) * 100;
-                // Distancia desde el fondo del gráfico hasta el 'min' de esta cuenta
                 const rangeBottomPercent = ((cuenta.min - globalMin) / rangeGlobal) * 100;
-                // El 'top' en CSS
-                const rangeTopPercent = 100 - rangeBottomPercent - rangeHeightPercent;
 
-                // --- Cálculos para el relleno (Progreso actual) ---
-                const fillHeightPercent = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
-                let fillTopPercent = 0;
-                
+                // Relleno (Progreso)
+                let fillHeightPercent = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
+                let fillBottomPercent = zeroBottomPercent;
                 let color = cuenta.actual >= 0 ? colores.pos : colores.neg;
                 let textoValor = cuenta.actual > 0 ? `+${cuenta.actual}%` : `${cuenta.actual}%`;
 
-                if (cuenta.actual >= 0) {
-                    // Si es positivo, va desde el 0 hacia arriba
-                    fillTopPercent = 100 - zeroPosPercent - fillHeightPercent;
-                } else {
-                    // Si es negativo, va desde el 0 hacia abajo
-                    fillTopPercent = 100 - zeroPosPercent;
+                if (cuenta.actual < 0) {
+                    // Si es negativo, el fondo del relleno baja
+                    fillBottomPercent = zeroBottomPercent - fillHeightPercent;
                 }
+                if (cuenta.actual === 0) fillHeightPercent = 0;
 
-                if (cuenta.actual === 0) {
-                    fillHeightPercent = 0; 
+                // Validar fecha
+                let dateStr = "Sin fecha";
+                if(cuenta.startDate) {
+                    const dateObj = new Date(cuenta.startDate + 'T00:00:00');
+                    if(!isNaN(dateObj)) {
+                        dateStr = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                    }
                 }
-
-                const dateObj = new Date(cuenta.startDate + 'T00:00:00');
-                const dateStr = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
 
                 column.innerHTML = `
-                    <div class="bar-range-bg" style="top: ${rangeTopPercent}%; height: ${rangeHeightPercent}%;"></div>
-                    <div class="bar-fill" style="top: ${fillTopPercent}%; height: ${fillHeightPercent}%; background-color: ${color};"></div>
+                    <div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;"></div>
+                    <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};"></div>
                     
                     <div class="labels-area">
                         <div class="val-text" style="color: ${color};">${textoValor}</div>
                         <div class="name-text">${cuenta.name}</div>
+                        <div class="cap-text">${cuenta.capital || ''}</div>
                         <div class="date-text">${dateStr}</div>
                         <div class="notes-text">${cuenta.notes || ''}</div>
                     </div>
@@ -351,7 +350,7 @@
 
         function agregarFila() {
             const hoy = new Date().toISOString().split('T')[0];
-            cuentas.push({ name: "Nueva Cuenta", startDate: hoy, actual: 0, min: -10, max: 10, notes: "" });
+            cuentas.push({ name: "Nueva", capital: "", startDate: hoy, actual: 0, min: -10, max: 10, notes: "" });
             guardarYRenderizar();
         }
 
