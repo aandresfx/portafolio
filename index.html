@@ -111,7 +111,6 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            /* Se eliminó overflow: hidden para que los textos del gráfico no se corten */
         }
 
         .panel-header {
@@ -137,7 +136,6 @@
         .btn-toggle-left { right: 0; }
         .btn-toggle-chart { right: 0; }
 
-        /* Botón flotante cuando el panel izquierdo está colapsado */
         .btn-float-open {
             position: fixed;
             left: 10px;
@@ -158,7 +156,6 @@
         }
         .container.collapsed ~ .btn-float-open { display: flex; }
 
-        /* Menú de configuración del gráfico */
         .chart-settings-menu {
             position: absolute;
             top: 35px;
@@ -218,14 +215,13 @@
             display: flex; 
             position: relative; 
             margin-top: 20px; 
-            height: 350px; /* Altura exacta de las barras */
-            margin-bottom: 140px; /* Espacio para que los textos no se corten y el panel se expanda */
+            padding-bottom: 10px;
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 100%; 
+            height: 300px; /* Altura exacta de las barras */
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px;
             flex-shrink: 0;
@@ -241,24 +237,31 @@
             gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            height: 100%; /* Igual a los 350px del layout */
+            align-items: flex-start; /* Evita que las barras se estiren verticalmente */
             overflow-x: auto;
-            overflow-y: visible; 
+            overflow-y: hidden;
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
-            transform: translateY(-50%); /* Centrado perfecto con el eje */
+            transform: translateY(-50%);
+            /* El top se calcula con JS */
         }
 
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 100%; 
             flex-shrink: 0; 
             display: flex; 
-            justify-content: center; 
+            flex-direction: column;
+            align-items: center; 
+        }
+
+        .bar-container {
+            position: relative;
+            width: 100%;
+            height: 300px; /* Misma altura que el eje Y */
         }
 
         .bar-range-bg {
@@ -279,11 +282,7 @@
         .val-text { font-size: 10px; font-weight: bold; }
 
         .labels-area {
-            position: absolute; 
-            top: 100%; 
             width: 110px; 
-            left: 50%; 
-            transform: translateX(-50%);
             text-align: center; 
             padding-top: 10px;
             z-index: 10;
@@ -660,22 +659,21 @@
             const cuentasVisibles = cuentas.filter(c => c.visible !== false);
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
-            let globalMin = 0;
-            let globalMax = 0;
+            // Hacer el eje Y simétrico para que el 0% siempre esté centrado
+            let maxAbs = 10; // Mínimo valor por defecto para el rango
             cuentasVisibles.forEach(c => {
                 if(c.modality !== 'Capital propio') {
-                    if (Number(c.min) < globalMin) globalMin = Number(c.min);
-                    if (Number(c.max) > globalMax) globalMax = Number(c.max);
+                    const valMin = Math.abs(Number(c.min) || 0);
+                    const valMax = Math.abs(Number(c.max) || 0);
+                    if (valMin > maxAbs) maxAbs = valMin;
+                    if (valMax > maxAbs) maxAbs = valMax;
                 }
             });
 
-            globalMin = Math.floor(globalMin / 5) * 5;
-            globalMax = Math.ceil(globalMax / 5) * 5;
-            if (globalMin > -10) globalMin = -10;
-            if (globalMax < 10) globalMax = 10;
-
+            const globalMax = Math.ceil(maxAbs / 5) * 5;
+            const globalMin = -globalMax;
             const rangeGlobal = globalMax - globalMin;
-            const zeroBottomPercent = ((0 - globalMin) / rangeGlobal) * 100;
+            const zeroBottomPercent = 50; // Siempre 50% porque es simétrico
 
             const step = rangeGlobal > 30 ? 10 : 5;
             for (let i = globalMin; i <= globalMax; i += step) {
@@ -687,8 +685,9 @@
                 yAxis.appendChild(tick);
             }
 
-            // Alinear la línea 0% con los ticks usando top y transform
-            document.getElementById('global-zero-line').style.top = `${100 - zeroBottomPercent}%`;
+            // Posicionar la línea 0% en base a los 300px del contenedor
+            const zeroLineTop = 300 - (300 * (zeroBottomPercent / 100));
+            document.getElementById('global-zero-line').style.top = `${zeroLineTop}px`;
 
             cuentasVisibles.forEach(cuenta => {
                 const column = document.createElement('div');
@@ -736,9 +735,11 @@
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
                 column.innerHTML = `
-                    ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
-                    <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
-                        <span class="val-text" style="color: ${textColor};">${textoValor}</span>
+                    <div class="bar-container">
+                        ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
+                        <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
+                            <span class="val-text" style="color: ${textColor};">${textoValor}</span>
+                        </div>
                     </div>
                     <div class="labels-area">${labelsHTML}</div>
                 `;
