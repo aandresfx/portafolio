@@ -24,7 +24,7 @@
         }
 
         .container {
-            max-width: 1500px; /* Panel mucho más ancho */
+            max-width: 1500px;
             width: 100%;
             display: flex;
             gap: 30px;
@@ -32,41 +32,29 @@
             flex-wrap: wrap;
         }
 
-        /* --- ESTILOS DE LA TABLA --- */
+        /* --- TABLA --- */
         .panel-tabla {
             background: var(--card-bg);
             padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            flex: 1.2; /* Toma más espacio que el gráfico si es necesario */
-            min-width: 700px; /* Obliga a la tabla a tener buen ancho */
+            flex: 1.2;
+            min-width: 700px;
             overflow-x: auto;
         }
-
         h2 { margin-top: 0; font-size: 20px; color: #1a202c; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
         th { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        
-        /* Estilos de los inputs de la tabla */
         input, textarea {
-            padding: 8px;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 13px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
+            padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px;
+            font-family: inherit; font-size: 13px; box-sizing: border-box; transition: border-color 0.2s;
         }
         input:focus, textarea:focus { border-color: #4299e1; outline: none; }
-
-        /* Anchos específicos para que no se aplasten */
         .in-name { width: 130px; }
         .in-date { width: 135px; }
         .in-num { width: 65px; text-align: center; }
         .in-notes { width: 180px; min-height: 70px; resize: vertical; font-size: 12px; }
-
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 12px 15px;
             border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 25px;
@@ -74,106 +62,124 @@
         }
         .btn-add:hover { background: #3182ce; }
 
-        /* --- ESTILOS DEL GRÁFICO --- */
+        /* --- GRÁFICO --- */
         .panel-grafico {
             background: var(--card-bg);
             padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            flex: 1; 
+            flex: 1;
             min-width: 450px;
             overflow-x: auto;
         }
-
         .color-picker-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            align-items: center;
+            display: flex; gap: 15px; margin-bottom: 20px; font-size: 13px; align-items: center;
         }
-        input[type="color"] {
-            width: 30px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer;
-        }
+        input[type="color"] { width: 30px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer; }
 
         .chart-layout {
             display: flex;
-            height: 420px;
+            height: 450px; /* Altura del área de dibujo */
             position: relative;
+            margin-top: 20px;
         }
 
+        /* Eje Y con escala */
         .y-axis {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-right: 15px;
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: bold;
+            position: relative;
+            width: 45px;
             border-right: 1px solid #cbd5e0;
+            margin-right: 15px;
+        }
+        .y-tick {
+            position: absolute;
+            right: 5px;
+            transform: translateY(-50%);
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .y-tick::after {
+            content: '';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            width: 10px;
+            height: 1px;
+            background: #cbd5e0;
         }
 
+        /* Contenedor de las barras */
         .charts-wrapper {
             display: flex;
-            gap: 20px;
-            align-items: flex-end;
+            gap: 30px;
             flex-grow: 1;
-            padding-left: 20px;
+            position: relative;
             overflow-x: auto;
+            padding-bottom: 60px; /* Espacio para textos debajo */
+        }
+
+        /* Línea base global del 0% */
+        .global-zero-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background-color: #a0aec0;
+            z-index: 0;
+            border-bottom: 1px dashed #cbd5e0;
         }
 
         .chart-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 90px;
-            height: 100%;
-            justify-content: flex-end;
-        }
-
-        .bar-background {
-            width: 45px;
-            height: 300px;
-            background-color: #edf2f7;
-            border-radius: 8px;
             position: relative;
-            margin-bottom: 10px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            width: 60px;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
         }
 
-        .zero-line {
+        /* La barra gris que marca el rango específico (Mín a Máx) */
+        .bar-range-bg {
             position: absolute;
-            width: 100%;
-            height: 2px;
-            background-color: #a0aec0;
-            z-index: 2;
+            width: 40px;
+            background-color: #edf2f7;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 1;
+            /* top y height calculados por JS */
         }
 
+        /* El relleno (Verde o Rojo) */
         .bar-fill {
             position: absolute;
-            width: 100%;
+            width: 40px;
             border-radius: 6px;
-            z-index: 1;
+            z-index: 2;
             transition: all 0.4s ease;
+            /* top, height y color calculados por JS */
         }
 
+        /* Textos debajo de la barra */
         .labels-area {
+            position: absolute;
+            top: 100%; /* Justo debajo del gráfico */
+            width: 100px; /* Más ancho que la barra para que el texto no se corte */
+            left: 50%;
+            transform: translateX(-50%);
             text-align: center;
-            width: 100%;
+            padding-top: 10px;
         }
 
-        .val-text { font-size: 15px; font-weight: bold; margin-bottom: 5px; }
-        .name-text { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; word-wrap: break-word; }
-        .date-text { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
-        .notes-text { font-size: 11px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.2;}
+        .val-text { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
+        .name-text { font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; word-wrap: break-word; }
+        .date-text { font-size: 10px; color: var(--text-muted); margin-bottom: 5px; }
+        .notes-text { font-size: 10px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.2;}
 
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Panel de Tabla -->
         <div class="panel-tabla">
             <h2>Gestión de Cuentas</h2>
             <table id="tabla-datos">
@@ -187,20 +193,13 @@
                         <th>Notas</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Filas generadas por JS -->
-                </tbody>
+                <tbody></tbody>
             </table>
             <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
-            <p style="font-size: 11px; color: #a0aec0; margin-top: 15px; text-align: center;">
-                Los datos se guardan localmente en tu navegador.
-            </p>
         </div>
 
-        <!-- Panel de Gráfico -->
         <div class="panel-grafico">
             <h2>Progreso Visual</h2>
-            
             <div class="color-picker-container">
                 <label>Color Positivo: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
                 <label>Color Negativo: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
@@ -208,29 +207,27 @@
 
             <div class="chart-layout">
                 <div class="y-axis" id="y-axis"></div>
-                <div class="charts-wrapper" id="chart-area"></div>
+                <div class="charts-wrapper" id="chart-area">
+                    <div class="global-zero-line" id="global-zero-line"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DATOS INICIALES ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { name: "FTMO 100k", startDate: "2026-08-01", actual: 4.5, min: -10, max: 10, notes: "Costo: $510\nFase 1/2" },
-            { name: "FTMO 25k", startDate: "2026-09-15", actual: -2.5, min: -10, max: 10, notes: "Costo: $250\nFase 1/2" },
-            { name: "Bullfy", startDate: "2026-10-10", actual: 6.0, min: -8, max: 8, notes: "Costo: $100\nFase Única" }
+            { name: "FTMO 100k", startDate: "2026-08-01", actual: -9.4, min: -10, max: 10, notes: "Costo: $510\nFase 1/2" },
+            { name: "FTMO 25k", startDate: "2026-09-15", actual: -10.0, min: -10, max: 12, notes: "Costo: $250\nFase 1/2" },
+            { name: "Bullfy", startDate: "2026-10-10", actual: 6.0, min: -4, max: 8, notes: "Costo: $100\nFase Única" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
-
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
 
-        // --- LÓGICA DE LA TABLA ---
         function renderTabla() {
             const tbody = document.querySelector('#tabla-datos tbody');
             tbody.innerHTML = '';
-            
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -245,66 +242,92 @@
             });
         }
 
-        // --- LÓGICA DEL GRÁFICO ---
         function renderGrafico() {
             const chartArea = document.getElementById('chart-area');
             const yAxis = document.getElementById('y-axis');
-            chartArea.innerHTML = '';
+            
+            // Limpiar manteniendo la línea cero global
+            chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
+            // Ordenar por fecha
             cuentas.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
+            // 1. Encontrar límites globales
             let globalMin = 0;
             let globalMax = 0;
             cuentas.forEach(c => {
-                if(c.min < globalMin) globalMin = c.min;
-                if(c.max > globalMax) globalMax = c.max;
+                if (c.min < globalMin) globalMin = c.min;
+                if (c.max > globalMax) globalMax = c.max;
             });
+
+            // Redondear los límites para que la escala sea limpia (ej. de 5 en 5)
+            globalMin = Math.floor(globalMin / 5) * 5;
+            globalMax = Math.ceil(globalMax / 5) * 5;
             
-            globalMin = Math.floor(globalMin * 1.2);
-            globalMax = Math.ceil(globalMax * 1.2);
+            // Asegurarnos de que el rango cubra el -10 y 10 como mínimo visual
+            if (globalMin > -10) globalMin = -10;
+            if (globalMax < 10) globalMax = 10;
 
             const rangeGlobal = globalMax - globalMin;
-            const zeroPosGlobal = (Math.abs(globalMin) / rangeGlobal) * 100;
 
-            const yMaxLabel = document.createElement('span'); yMaxLabel.innerText = globalMax + "%";
-            const yMinLabel = document.createElement('span'); yMinLabel.innerText = globalMin + "%";
-            
-            const zeroContainer = document.createElement('div');
-            zeroContainer.style.position = 'absolute';
-            zeroContainer.style.top = `${100 - zeroPosGlobal}%`;
-            zeroContainer.style.right = '15px';
-            zeroContainer.style.transform = 'translateY(-50%)';
-            zeroContainer.innerText = "0%";
-            
-            yAxis.appendChild(yMaxLabel);
-            yAxis.appendChild(zeroContainer);
-            yAxis.appendChild(yMinLabel);
+            // 2. Dibujar Eje Y (Ticks)
+            const step = rangeGlobal > 30 ? 10 : 5; // Si el rango es muy grande, saltar de 10 en 10
+            for (let i = globalMin; i <= globalMax; i += step) {
+                // Calcular la posición desde arriba (0% a 100%)
+                const topPercent = 100 - ((i - globalMin) / rangeGlobal * 100);
+                const tick = document.createElement('div');
+                tick.className = 'y-tick';
+                tick.style.top = `${topPercent}%`;
+                tick.innerText = `${i}%`;
+                yAxis.appendChild(tick);
+            }
 
+            // Posicionar la línea cero global
+            const zeroPosPercent = 100 - ((0 - globalMin) / rangeGlobal * 100);
+            document.getElementById('global-zero-line').style.top = `${zeroPosPercent}%`;
+
+            // 3. Dibujar las barras
             cuentas.forEach(cuenta => {
-                const barZeroPos = zeroPosGlobal;
-                const fillHeight = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
-                let bottomFill = barZeroPos;
+                const column = document.createElement('div');
+                column.className = 'chart-column';
+
+                // --- Cálculos para el fondo gris (Rango específico) ---
+                // Altura del rango (de su min a su max) respecto al gráfico global
+                const rangeHeightPercent = ((cuenta.max - cuenta.min) / rangeGlobal) * 100;
+                // Distancia desde el fondo del gráfico hasta el 'min' de esta cuenta
+                const rangeBottomPercent = ((cuenta.min - globalMin) / rangeGlobal) * 100;
+                // El 'top' en CSS
+                const rangeTopPercent = 100 - rangeBottomPercent - rangeHeightPercent;
+
+                // --- Cálculos para el relleno (Progreso actual) ---
+                const fillHeightPercent = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
+                let fillTopPercent = 0;
+                
                 let color = cuenta.actual >= 0 ? colores.pos : colores.neg;
                 let textoValor = cuenta.actual > 0 ? `+${cuenta.actual}%` : `${cuenta.actual}%`;
 
-                if (cuenta.actual < 0) {
-                    bottomFill = barZeroPos - fillHeight;
+                if (cuenta.actual >= 0) {
+                    // Si es positivo, va desde el 0 hacia arriba
+                    fillTopPercent = 100 - zeroPosPercent - fillHeightPercent;
+                } else {
+                    // Si es negativo, va desde el 0 hacia abajo
+                    fillTopPercent = 100 - zeroPosPercent;
                 }
 
-                const column = document.createElement('div');
-                column.className = 'chart-column';
-                
+                if (cuenta.actual === 0) {
+                    fillHeightPercent = 0; 
+                }
+
                 const dateObj = new Date(cuenta.startDate + 'T00:00:00');
                 const dateStr = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
 
                 column.innerHTML = `
+                    <div class="bar-range-bg" style="top: ${rangeTopPercent}%; height: ${rangeHeightPercent}%;"></div>
+                    <div class="bar-fill" style="top: ${fillTopPercent}%; height: ${fillHeightPercent}%; background-color: ${color};"></div>
+                    
                     <div class="labels-area">
                         <div class="val-text" style="color: ${color};">${textoValor}</div>
-                        <div class="bar-background">
-                            <div class="zero-line" style="top: ${100 - barZeroPos}%;"></div>
-                            <div class="bar-fill" style="height: ${fillHeight}%; bottom: ${bottomFill}%; background-color: ${color};"></div>
-                        </div>
                         <div class="name-text">${cuenta.name}</div>
                         <div class="date-text">${dateStr}</div>
                         <div class="notes-text">${cuenta.notes || ''}</div>
@@ -314,7 +337,6 @@
             });
         }
 
-        // --- FUNCIONES DE ACTUALIZACIÓN ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
             guardarYRenderizar();
