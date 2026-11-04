@@ -183,7 +183,6 @@
         
         th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; cursor: grab; user-select: none; }
         th:active { cursor: grabbing; }
-        th::after { content: ' ⇅'; font-size: 8px; opacity: 0.5; }
         
         input, select {
             padding: 5px; border: 1px solid var(--input-border); border-radius: 4px;
@@ -203,6 +202,12 @@
         .in-notes { width: 80px; }
         .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
         
+        .btn-delete {
+            background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; 
+            transition: transform 0.2s;
+        }
+        .btn-delete:hover { transform: scale(1.2); }
+
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 10px 15px;
             border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px;
@@ -221,7 +226,7 @@
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 300px; /* Altura exacta de las barras */
+            height: 300px; 
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px;
             flex-shrink: 0;
@@ -237,7 +242,7 @@
             gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            align-items: flex-start; /* Evita que las barras se estiren verticalmente */
+            align-items: flex-start; 
             overflow-x: auto;
             overflow-y: hidden;
         }
@@ -246,7 +251,6 @@
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
             transform: translateY(-50%);
-            /* El top se calcula con JS */
         }
 
         .chart-column { 
@@ -261,7 +265,7 @@
         .bar-container {
             position: relative;
             width: 100%;
-            height: 300px; /* Misma altura que el eje Y */
+            height: 300px; 
         }
 
         .bar-range-bg {
@@ -330,6 +334,28 @@
         .toggle-btn:hover { opacity: 0.9; }
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
+
+        /* Marca de agua */
+        .watermark {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            font-size: 13px;
+            color: var(--text-muted);
+            opacity: 0.7;
+            z-index: 100;
+            font-weight: 500;
+            pointer-events: auto;
+        }
+        .watermark a {
+            color: inherit;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .watermark a:hover {
+            text-decoration: underline;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -420,6 +446,11 @@
         <button class="toggle-btn secondary" onclick="quitarFondo()">Quitar Imagen de Fondo</button>
     </div>
 
+    <!-- Marca de agua -->
+    <div class="watermark">
+        creado por <a href="https://www.instagram.com/aandresfx/" target="_blank">aandres.fx</a>
+    </div>
+
     <script>
         // --- COLUMNAS ---
         const columnasDef = [
@@ -434,10 +465,11 @@
             { key: 'min', label: 'Mín' },
             { key: 'max', label: 'Obj' },
             { key: 'url', label: 'URL' },
-            { key: 'notes', label: 'Notas' }
+            { key: 'notes', label: 'Notas' },
+            { key: 'actions', label: '' } // Nueva columna para eliminar
         ];
 
-        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes'];
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
 
@@ -464,6 +496,10 @@
         let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
         let barGap = parseInt(localStorage.getItem('barGap') || 25);
+        
+        // Estado para la ordenación
+        let currentSort = { key: null, dir: 'asc' };
+        let isDraggingColumn = false;
 
         // Inicializar UI
         document.getElementById('color-pos').value = colores.pos;
@@ -551,11 +587,28 @@
                 const colDef = columnasDef.find(c => c.key === key);
                 const th = document.createElement('th');
                 th.dataset.key = key;
+
+                let sortIcon = '';
+                if (currentSort.key === key) {
+                    sortIcon = currentSort.dir === 'asc' ? ' ⬆' : ' ⬇';
+                } else {
+                    sortIcon = ' ⇅';
+                }
+
                 if (key === 'visible') {
                     const isAllVisible = cuentas.every(c => c.visible !== false);
                     th.innerHTML = `<input type="checkbox" class="in-check" ${isAllVisible ? 'checked' : ''} onchange="toggleAllVisibility(this.checked)" title="Mostrar/Ocultar todas">`;
+                } else if (key === 'actions') {
+                    th.innerText = '';
                 } else {
-                    th.innerText = colDef.label;
+                    th.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; width:100%; pointer-events:none;">
+                        ${colDef.label} <span style="font-size: 8px; opacity: 0.5;">${sortIcon}</span>
+                    </div>`;
+                    th.onclick = (e) => {
+                        if (!isDraggingColumn && e.target.tagName !== 'INPUT') {
+                            sortTable(key);
+                        }
+                    };
                 }
                 theadTr.appendChild(th);
             });
@@ -612,6 +665,9 @@
                         case 'notes':
                             td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
+                        case 'actions':
+                            td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
+                            break;
                     }
                     tr.appendChild(td);
                 });
@@ -621,14 +677,58 @@
             if(!window.sortableInitialized) {
                 new Sortable(theadTr, {
                     animation: 150,
+                    onStart: function() { isDraggingColumn = true; },
                     onEnd: function (evt) {
                         const newOrder = Array.from(theadTr.children).map(th => th.dataset.key);
                         columnOrder = newOrder;
                         localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
                         renderTabla(); 
+                        // Pequeño delay para evitar que el clic se dispare al soltar
+                        setTimeout(() => { isDraggingColumn = false; }, 100);
                     }
                 });
                 window.sortableInitialized = true;
+            }
+        }
+
+        function sortTable(key) {
+            if (currentSort.key === key) {
+                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.key = key;
+                currentSort.dir = 'asc';
+            }
+
+            cuentas.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (valA === null || valA === undefined) valA = '';
+                if (valB === null || valB === undefined) valB = '';
+
+                if (['capital', 'cost', 'actual', 'min', 'max'].includes(key)) {
+                    valA = Number(valA) || 0;
+                    valB = Number(valB) || 0;
+                } else if (key === 'startDate') {
+                    valA = parseDate(valA);
+                    valB = parseDate(valB);
+                } else {
+                    valA = valA.toString().toLowerCase();
+                    valB = valB.toString().toLowerCase();
+                }
+
+                if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTabla();
+        }
+
+        function eliminarCuenta(index) {
+            if(confirm("¿Seguro que deseas eliminar esta cuenta?")) {
+                cuentas.splice(index, 1);
+                guardarYRenderizar();
             }
         }
 
@@ -659,8 +759,7 @@
             const cuentasVisibles = cuentas.filter(c => c.visible !== false);
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
-            // Hacer el eje Y simétrico para que el 0% siempre esté centrado
-            let maxAbs = 10; // Mínimo valor por defecto para el rango
+            let maxAbs = 10; 
             cuentasVisibles.forEach(c => {
                 if(c.modality !== 'Capital propio') {
                     const valMin = Math.abs(Number(c.min) || 0);
@@ -673,7 +772,7 @@
             const globalMax = Math.ceil(maxAbs / 5) * 5;
             const globalMin = -globalMax;
             const rangeGlobal = globalMax - globalMin;
-            const zeroBottomPercent = 50; // Siempre 50% porque es simétrico
+            const zeroBottomPercent = 50; 
 
             const step = rangeGlobal > 30 ? 10 : 5;
             for (let i = globalMin; i <= globalMax; i += step) {
@@ -685,7 +784,6 @@
                 yAxis.appendChild(tick);
             }
 
-            // Posicionar la línea 0% en base a los 300px del contenedor
             const zeroLineTop = 300 - (300 * (zeroBottomPercent / 100));
             document.getElementById('global-zero-line').style.top = `${zeroLineTop}px`;
 
