@@ -25,7 +25,6 @@
             --bar-gap: 25px;
             --chart-label-size: 11px;
             
-            /* Colores por defecto de las empresas */
             --company-FTMO: #3182ce;
             --company-Darwinex: #4a5568;
             --company-Axi: #e53e3e;
@@ -78,22 +77,43 @@
             display: var(--pattern-display);
         }
 
+        /* --- LAYOUTS --- */
         .container {
             max-width: 1800px;
             width: 100%;
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 20px;
             align-items: start; 
             z-index: 1;
-            transition: grid-template-columns 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        .container.collapsed {
+        /* 1. Lado a Lado (Default) */
+        .container.layout-side {
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas: "table chart";
+        }
+        /* 2. Tabla Abajo */
+        .container.layout-bottom {
+            grid-template-columns: 1fr;
+            grid-template-areas: 
+                "chart"
+                "table";
+        }
+        /* 3. Tabla Arriba */
+        .container.layout-top {
+            grid-template-columns: 1fr;
+            grid-template-areas: 
+                "table"
+                "chart";
+        }
+        /* 4. Minimizada (Solo gráfico) */
+        .container.layout-hidden {
             grid-template-columns: 0fr 1fr;
+            grid-template-areas: "table chart";
             gap: 0;
         }
-        .container.collapsed .panel-tabla {
+        .container.layout-hidden .panel-tabla {
             opacity: 0;
             pointer-events: none;
             padding: 0;
@@ -102,9 +122,11 @@
         }
 
         @media (max-width: 1200px) {
-            .container { grid-template-columns: 1fr; }
-            .container.collapsed { grid-template-columns: 0fr 1fr; }
+            .container.layout-side { grid-template-columns: 1fr; grid-template-areas: "table" "chart"; }
         }
+
+        .panel-tabla { grid-area: table; }
+        .panel-grafico { grid-area: chart; }
 
         .glass-panel {
             background: var(--card-bg);
@@ -122,26 +144,32 @@
 
         .panel-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             position: relative;
             margin-bottom: 15px;
+            padding: 0 10px;
         }
-        h2 { margin: 0; font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { margin: 0; font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; flex-grow: 1; }
         
-        .panel-btn {
-            position: absolute;
+        /* Botones de la cabecera */
+        .header-tools {
+            display: flex;
+            gap: 5px;
+        }
+        .icon-btn {
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
         }
-        .panel-btn:hover { color: var(--text-main); }
-        .btn-toggle-left { right: 0; }
-        .btn-toggle-chart { right: 0; }
+        .icon-btn:hover { color: var(--text-main); background: rgba(0,0,0,0.05); }
+        body.dark-mode .icon-btn:hover { background: rgba(255,255,255,0.1); }
+        .icon-btn.active { color: #4299e1; background: rgba(66, 153, 225, 0.1); }
 
         .datetime-display {
             position: absolute;
@@ -172,12 +200,12 @@
             color: var(--text-main);
             backdrop-filter: blur(10px);
         }
-        .container.collapsed ~ .btn-float-open { display: flex; }
+        .container.layout-hidden ~ .btn-float-open { display: flex; }
 
-        .chart-settings-menu {
+        /* Menús de configuración */
+        .dropdown-menu {
             position: absolute;
             top: 35px;
-            right: 0;
             background: var(--card-bg);
             border: var(--glass-border);
             border-radius: 8px;
@@ -189,11 +217,14 @@
             gap: 8px;
             font-size: 12px;
             backdrop-filter: blur(10px);
-            width: 220px;
+            width: 200px;
         }
-        .chart-settings-menu.active { display: flex; }
-        .chart-settings-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .chart-settings-menu hr { width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0; }
+        .dropdown-menu.active { display: flex; }
+        .dropdown-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .dropdown-menu hr { width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0; }
+        
+        #chart-settings-menu { right: 10px; }
+        #table-settings-menu { left: 10px; }
 
         .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
@@ -383,12 +414,24 @@
 </head>
 <body>
 
-    <div class="container" id="main-container">
+    <div class="container layout-side" id="main-container">
         <!-- Panel Tabla -->
         <div class="panel-tabla glass-panel" id="panel-tabla">
             <div class="panel-header">
+                <div class="header-tools">
+                    <button class="icon-btn" onclick="setLayout('side')" title="Lado a lado">↔️</button>
+                    <button class="icon-btn" onclick="setLayout('bottom')" title="Tabla abajo">⬇️</button>
+                    <button class="icon-btn" onclick="setLayout('top')" title="Tabla arriba">⬆️</button>
+                    <button class="icon-btn" onclick="setLayout('hidden')" title="Ocultar tabla">▶️</button>
+                    <button class="icon-btn" onclick="toggleTableSettings()" title="Configurar columnas">⚙️</button>
+                </div>
                 <h2>Empresas</h2>
-                <button class="panel-btn btn-toggle-left" onclick="toggleLeftPanel()" title="Ocultar Panel">⬅️</button>
+                
+                <!-- Menú de opciones de la tabla -->
+                <div class="dropdown-menu" id="table-settings-menu">
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>
+                    <!-- Se genera con JS -->
+                </div>
             </div>
             <div class="table-container">
                 <table id="tabla-datos">
@@ -407,11 +450,14 @@
             <div class="datetime-display" id="datetime-display"></div>
 
             <div class="panel-header">
+                <div style="width: 120px;"></div> <!-- Spacer para centrar el título -->
                 <h2>Gráfico</h2>
-                <button class="panel-btn btn-toggle-chart" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
+                <div class="header-tools">
+                    <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
+                </div>
                 
                 <!-- Menú de opciones del gráfico -->
-                <div class="chart-settings-menu" id="chart-settings-menu">
+                <div class="dropdown-menu" id="chart-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
@@ -442,7 +488,7 @@
     </div>
 
     <!-- Botón flotante para recuperar panel izquierdo -->
-    <button class="btn-float-open" onclick="toggleLeftPanel()" title="Mostrar Panel">➡️</button>
+    <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
 
     <!-- Configuración Flotante Global -->
     <button class="settings-btn" onclick="toggleGlobalSettings()">⚙️</button>
@@ -524,6 +570,9 @@
         let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
+        
+        // Visibilidad de columnas
+        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
@@ -560,6 +609,7 @@
         
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
+        let currentLayout = localStorage.getItem('layoutState') || 'side';
 
         // Inicializar UI
         function initUI() {
@@ -596,9 +646,18 @@
             if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
             if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
 
+            setLayout(currentLayout);
             renderCompanyList();
+            renderTableSettings();
         }
         initUI();
+
+        // --- LAYOUTS ---
+        function setLayout(mode) {
+            currentLayout = mode;
+            document.getElementById('main-container').className = `container layout-${mode}`;
+            localStorage.setItem('layoutState', mode);
+        }
 
         // --- RELOJ EN VIVO ---
         function updateClock() {
@@ -634,7 +693,7 @@
         }
         function parseCurrency(str) {
             if(!str) return '';
-            let num = str.toString().replace(/[^\d-]/g, ''); // Permitir menos para costos
+            let num = str.toString().replace(/[^\d-]/g, '');
             return num ? parseInt(num, 10) : '';
         }
         function getPercentStr(num, decimals) {
@@ -660,7 +719,6 @@
         }
         function getContrastColor(hexcolor) {
             if(!hexcolor) return '#ffffff';
-            // Si el color es un nombre o formato inválido, retornar blanco
             if(hexcolor.indexOf('#') !== 0) return '#ffffff';
             let r = parseInt(hexcolor.substr(1, 2), 16);
             let g = parseInt(hexcolor.substr(3, 2), 16);
@@ -699,7 +757,10 @@
             const tbody = document.querySelector('#tabla-datos tbody');
             theadTr.innerHTML = '';
             
-            columnOrder.forEach(key => {
+            // Filtrar columnas visibles
+            const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
+            
+            activeColumns.forEach(key => {
                 const colDef = columnasDef.find(c => c.key === key);
                 const th = document.createElement('th');
                 th.dataset.key = key;
@@ -732,7 +793,7 @@
             tbody.innerHTML = '';
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
-                columnOrder.forEach(key => {
+                activeColumns.forEach(key => {
                     const td = document.createElement('td');
                     const isPropio = cuenta.modality === 'Capital propio';
 
@@ -741,9 +802,7 @@
                             td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked)">`;
                             break;
                         case 'name':
-                            // Generar opciones de empresas
                             let optionsHTML = empresas.map(e => `<option value="${e.name}" ${cuenta.name === e.name ? 'selected' : ''}>${e.name}</option>`).join('');
-                            // Si la empresa actual no está en la lista (por datos viejos), agregarla
                             if(!empresas.find(e => e.name === cuenta.name)) {
                                 optionsHTML += `<option value="${cuenta.name}" selected>${cuenta.name}</option>`;
                             }
@@ -782,10 +841,21 @@
                             td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
-                            td.innerHTML = `<input type="text" class="in-num" value="${isPropio ? '' : getPercentStr(cuenta.min, 0)}" ${isPropio ? 'disabled placeholder="N/A"' : ''} onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            // Celdas vacías para Capital propio
+                            if (isPropio) {
+                                td.innerHTML = '';
+                                td.style.borderBottom = '1px solid transparent'; // Ocultar borde si es necesario
+                            } else {
+                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            }
                             break;
                         case 'max':
-                            td.innerHTML = `<input type="text" class="in-num" value="${isPropio ? '' : getPercentStr(cuenta.max, 0)}" ${isPropio ? 'disabled placeholder="N/A"' : ''} onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            if (isPropio) {
+                                td.innerHTML = '';
+                                td.style.borderBottom = '1px solid transparent';
+                            } else {
+                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.max, 0)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            }
                             break;
                         case 'url':
                             td.innerHTML = `<input type="url" class="in-url" value="${cuenta.url || ''}" onchange="actualizarDato(${index}, 'url', this.value)" placeholder="https://...">`;
@@ -808,7 +878,10 @@
                     onStart: function() { isDraggingColumn = true; },
                     onEnd: function (evt) {
                         const newOrder = Array.from(theadTr.children).map(th => th.dataset.key);
-                        columnOrder = newOrder;
+                        // Mover las columnas reordenadas al array principal
+                        const hiddenCols = columnOrder.filter(k => !newOrder.includes(k));
+                        columnOrder = [...newOrder, ...hiddenCols];
+                        
                         localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
                         renderTabla(); 
                         setTimeout(() => { isDraggingColumn = false; }, 100);
@@ -1007,26 +1080,28 @@
 
         function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
+        function toggleTableSettings() { document.getElementById('table-settings-menu').classList.toggle('active'); }
 
         document.addEventListener('click', function(event) {
-            const menu = document.getElementById('chart-settings-menu');
-            const btn = document.querySelector('.btn-toggle-chart');
-            if (menu.classList.contains('active') && !menu.contains(event.target) && !btn.contains(event.target)) {
-                menu.classList.remove('active');
+            const cMenu = document.getElementById('chart-settings-menu');
+            const cBtn = cMenu.previousElementSibling.querySelector('button');
+            if (cMenu.classList.contains('active') && !cMenu.contains(event.target) && !cBtn.contains(event.target)) {
+                cMenu.classList.remove('active');
+            }
+
+            const tMenu = document.getElementById('table-settings-menu');
+            const tBtn = document.querySelector('[onclick="toggleTableSettings()"]');
+            if (tMenu.classList.contains('active') && !tMenu.contains(event.target) && !tBtn.contains(event.target)) {
+                tMenu.classList.remove('active');
             }
         });
-
-        function toggleLeftPanel() {
-            const container = document.getElementById('main-container');
-            container.classList.toggle('collapsed');
-        }
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             isDarkMode = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
             updateBackground();
-            renderTabla(); // Re-render para actualizar colores de fecha
+            renderTabla();
         }
 
         function togglePattern(isChecked) {
@@ -1076,7 +1151,6 @@
         function agregarFila() {
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
-            // Usar la primera empresa de la lista por defecto
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
             cuentas.push({ visible: true, name: defaultCompany, capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
             guardarYRenderizar();
@@ -1126,6 +1200,33 @@
             } else if(name) {
                 alert("La empresa ya existe.");
             }
+        }
+
+        // --- COLUMNAS VISIBLES ---
+        function renderTableSettings() {
+            const menu = document.getElementById('table-settings-menu');
+            // Limpiar opciones manteniendo el título
+            menu.innerHTML = '<span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>';
+            
+            columnOrder.forEach(key => {
+                const colDef = columnasDef.find(c => c.key === key);
+                if (key === 'visible' || key === 'actions') return; // No permitir ocultar estos
+
+                const label = document.createElement('label');
+                const isChecked = visibleCols.includes(key);
+                label.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleColumn('${key}', this.checked)"> ${colDef.label}`;
+                menu.appendChild(label);
+            });
+        }
+
+        function toggleColumn(key, isChecked) {
+            if(isChecked) {
+                if(!visibleCols.includes(key)) visibleCols.push(key);
+            } else {
+                visibleCols = visibleCols.filter(k => k !== key);
+            }
+            localStorage.setItem('visibleCols', JSON.stringify(visibleCols));
+            renderTabla();
         }
 
         // Navegación con TAB
