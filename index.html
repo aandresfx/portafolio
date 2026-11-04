@@ -3,70 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Panel de Cuentas</title>
+    <title>Dashboard Pro - Gestión de Cuentas</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-        
-        /* Estilos de la Tabla */
-        .panel-tabla { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); flex: 1; min-width: 300px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
-        th { font-size: 13px; color: #666; text-transform: uppercase; }
-        input { width: 90%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
-        input[type="number"] { width: 60px; }
-        button { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 15px; font-weight: bold; }
-        button:hover { background: #0056b3; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #2d3748;
+            --text-muted: #718096;
+        }
 
-        /* Estilos del Gráfico */
-        .panel-grafico { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); flex: 1.5; min-width: 400px; overflow-x: auto; }
-        .charts-wrapper { display: flex; gap: 15px; align-items: flex-end; height: 350px; padding-top: 20px; border-bottom: 2px solid #eee; }
-        .chart-column { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
-        .bar-background { width: 40px; height: 250px; background-color: #e9ecef; border-radius: 6px; position: relative; margin-bottom: 10px; }
-        .zero-line { position: absolute; width: 100%; height: 2px; background-color: #adb5bd; z-index: 2; }
-        .bar-fill { position: absolute; width: 100%; border-radius: 4px; z-index: 1; transition: all 0.3s ease; }
-        .label { font-size: 11px; text-align: center; font-weight: 600; color: #555; word-break: break-all; }
-        .value-text { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* --- ESTILOS DE LA TABLA --- */
+        .panel-tabla {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        h2 { margin-top: 0; font-size: 20px; color: #1a202c; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top;}
+        th { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus { border-color: #4299e1; outline: none; }
+        input[type="number"] { width: 100%; }
+        textarea { resize: vertical; min-height: 40px; font-size: 12px; }
+
+        .btn-add {
+            background: #4299e1; color: white; border: none; padding: 10px 15px;
+            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px;
+            transition: background 0.2s; width: 100%;
+        }
+        .btn-add:hover { background: #3182ce; }
+
+        /* --- ESTILOS DEL GRÁFICO --- */
+        .panel-grafico {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            flex: 1.5;
+            min-width: 500px;
+            overflow-x: auto;
+        }
+
+        .color-picker-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            align-items: center;
+        }
+        input[type="color"] {
+            width: 30px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer;
+        }
+
+        .chart-layout {
+            display: flex;
+            height: 400px; /* Altura fija del gráfico */
+            position: relative;
+        }
+
+        /* Eje Y */
+        .y-axis {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-right: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: bold;
+            border-right: 1px solid #cbd5e0;
+        }
+
+        /* Contenedor de Barras */
+        .charts-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-grow: 1;
+            padding-left: 20px;
+            overflow-x: auto;
+        }
+
+        .chart-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        /* Fondo de la barra (Mín a Máx) */
+        .bar-background {
+            width: 45px;
+            height: 300px; /* Altura de la barra */
+            background-color: #edf2f7;
+            border-radius: 8px;
+            position: relative;
+            margin-bottom: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .zero-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: #a0aec0;
+            z-index: 2;
+        }
+
+        .bar-fill {
+            position: absolute;
+            width: 100%;
+            border-radius: 6px;
+            z-index: 1;
+            transition: all 0.4s ease;
+        }
+
+        /* Etiquetas debajo de la barra */
+        .labels-area {
+            text-align: center;
+            width: 100%;
+        }
+
+        .val-text { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+        .name-text { font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; word-wrap: break-word; }
+        .date-text { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+        .notes-text { font-size: 10px; color: #a0aec0; font-style: italic; word-wrap: break-word; white-space: pre-wrap;}
+
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Tabla Editable -->
+        <!-- Panel de Tabla -->
         <div class="panel-tabla">
-            <h2>Mis Cuentas</h2>
+            <h2>Gestión de Cuentas</h2>
             <table id="tabla-datos">
                 <thead>
                     <tr>
                         <th>Cuenta</th>
-                        <th>% Actual</th>
+                        <th>Inicio</th>
+                        <th>Actual</th>
                         <th>Mín</th>
                         <th>Máx</th>
+                        <th>Notas</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Las filas se generan aquí -->
+                    <!-- Filas generadas por JS -->
                 </tbody>
             </table>
-            <button onclick="agregarFila()">+ Añadir Cuenta</button>
-            <p style="font-size: 11px; color: #888; margin-top: 15px;">Los datos se guardan automáticamente en tu navegador.</p>
+            <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
+            <p style="font-size: 11px; color: #a0aec0; margin-top: 15px; text-align: center;">
+                Los datos se guardan localmente en tu navegador.
+            </p>
         </div>
 
-        <!-- Gráfico Visual -->
+        <!-- Panel de Gráfico -->
         <div class="panel-grafico">
             <h2>Progreso Visual</h2>
-            <div class="charts-wrapper" id="chart-area"></div>
+            
+            <div class="color-picker-container">
+                <label>Color Positivo: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
+                <label>Color Negativo: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
+            </div>
+
+            <div class="chart-layout">
+                <!-- Eje Y Dinámico -->
+                <div class="y-axis" id="y-axis">
+                    <!-- Se llena con JS -->
+                </div>
+                
+                <!-- Barras -->
+                <div class="charts-wrapper" id="chart-area">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Datos por defecto si está vacío
-        let cuentas = JSON.parse(localStorage.getItem('misCuentas')) || [
-            { name: "FTMO 100k", actual: 4.5, min: -10, max: 10 },
-            { name: "FTMO 25k", actual: -2.5, min: -10, max: 10 }
+        // --- DATOS INICIALES ---
+        let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
+            { name: "FTMO 100k", startDate: "2026-08-01", actual: 4.5, min: -10, max: 10, notes: "Costo: $510\nFase 1/2" },
+            { name: "FTMO 25k", startDate: "2026-09-15", actual: -2.5, min: -10, max: 10, notes: "Costo: $250\nFase 1/2" },
+            { name: "Bullfy", startDate: "2026-10-10", actual: 6.0, min: -8, max: 8, notes: "Costo: $100\nFase Única" }
         ];
 
-        // 1. Renderizar la Tabla
+        let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
+
+        // Inicializar inputs de color
+        document.getElementById('color-pos').value = colores.pos;
+        document.getElementById('color-neg').value = colores.neg;
+
+        // --- LÓGICA DE LA TABLA ---
         function renderTabla() {
             const tbody = document.querySelector('#tabla-datos tbody');
             tbody.innerHTML = '';
@@ -75,70 +244,130 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="text" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)"></td>
+                    <td><input type="date" value="${cuenta.startDate}" onchange="actualizarDato(${index}, 'startDate', this.value)"></td>
                     <td><input type="number" step="0.1" value="${cuenta.actual}" onchange="actualizarDato(${index}, 'actual', parseFloat(this.value))"></td>
                     <td><input type="number" step="1" value="${cuenta.min}" onchange="actualizarDato(${index}, 'min', parseFloat(this.value))"></td>
                     <td><input type="number" step="1" value="${cuenta.max}" onchange="actualizarDato(${index}, 'max', parseFloat(this.value))"></td>
+                    <td><textarea onchange="actualizarDato(${index}, 'notes', this.value)">${cuenta.notes || ''}</textarea></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 2. Renderizar el Gráfico (Bullet Chart)
+        // --- LÓGICA DEL GRÁFICO ---
         function renderGrafico() {
             const chartArea = document.getElementById('chart-area');
+            const yAxis = document.getElementById('y-axis');
             chartArea.innerHTML = '';
+            yAxis.innerHTML = '';
 
+            // 1. Ordenar cronológicamente (Eje X de tiempo)
+            cuentas.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+            // 2. Calcular límites globales para el Eje Y
+            let globalMin = 0;
+            let globalMax = 0;
+            cuentas.forEach(c => {
+                if(c.min < globalMin) globalMin = c.min;
+                if(c.max > globalMax) globalMax = c.max;
+            });
+            
+            // Dar un poco de margen al eje Y
+            globalMin = Math.floor(globalMin * 1.2);
+            globalMax = Math.ceil(globalMax * 1.2);
+
+            // 3. Dibujar Eje Y
+            const yMaxLabel = document.createElement('span'); yMaxLabel.innerText = globalMax + "%";
+            const yZeroLabel = document.createElement('span'); yZeroLabel.innerText = "0%";
+            const yMinLabel = document.createElement('span'); yMinLabel.innerText = globalMin + "%";
+            
+            // Posicionar el 0% proporcionalmente
+            const rangeGlobal = globalMax - globalMin;
+            const zeroPosGlobal = (Math.abs(globalMin) / rangeGlobal) * 100;
+
+            yAxis.appendChild(yMaxLabel);
+            // Contenedor flexible para el 0
+            const zeroContainer = document.createElement('div');
+            zeroContainer.style.position = 'absolute';
+            zeroContainer.style.top = `${100 - zeroPosGlobal}%`;
+            zeroContainer.style.right = '15px';
+            zeroContainer.style.transform = 'translateY(-50%)';
+            zeroContainer.innerText = "0%";
+            yAxis.appendChild(zeroContainer);
+            yAxis.appendChild(yMinLabel);
+
+            // 4. Dibujar Barras
             cuentas.forEach(cuenta => {
-                const rangoTotal = cuenta.max - cuenta.min;
-                if (rangoTotal <= 0) return; // Evitar errores de división
-
-                const posicionCero = (Math.abs(cuenta.min) / rangoTotal) * 100;
-                const alturaRelleno = (Math.abs(cuenta.actual) / rangoTotal) * 100;
+                // Altura de la barra respecto a su propio rango (Fondo gris)
+                // Usamos el rango global para que todas las barras sean comparables visualmente
+                const alturaBarra = 100; 
                 
-                let bottomRelleno = posicionCero;
-                let color = '#28a745'; // Verde
-                let textoValor = `+${cuenta.actual}%`;
+                // Posición del 0 en la barra específica
+                // Para simplificar, usamos el rango global para el fondo, así el 0 siempre está a la misma altura
+                const barZeroPos = zeroPosGlobal;
+                
+                // Calcular relleno
+                const fillHeight = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
+                let bottomFill = barZeroPos;
+                let color = cuenta.actual >= 0 ? colores.pos : colores.neg;
+                let textoValor = cuenta.actual > 0 ? `+${cuenta.actual}%` : `${cuenta.actual}%`;
 
                 if (cuenta.actual < 0) {
-                    bottomRelleno = posicionCero - alturaRelleno;
-                    color = '#dc3545'; // Rojo
-                    textoValor = `${cuenta.actual}%`;
+                    bottomFill = barZeroPos - fillHeight;
                 } else if (cuenta.actual === 0) {
-                    alturaRelleno = 0;
-                    textoValor = `0%`;
+                    // Sin relleno
                 }
 
                 const column = document.createElement('div');
                 column.className = 'chart-column';
+                
+                // Formatear fecha
+                const dateObj = new Date(cuenta.startDate + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+
                 column.innerHTML = `
-                    <div class="value-text" style="color: ${color};">${textoValor}</div>
-                    <div class="bar-background">
-                        <div class="zero-line" style="top: ${100 - posicionCero}%;"></div>
-                        <div class="bar-fill" style="height: ${alturaRelleno}%; bottom: ${bottomRelleno}%; background-color: ${color};"></div>
+                    <div class="labels-area">
+                        <div class="val-text" style="color: ${color};">${textoValor}</div>
+                        <div class="bar-background">
+                            <div class="zero-line" style="top: ${100 - barZeroPos}%;"></div>
+                            <div class="bar-fill" style="height: ${fillHeight}%; bottom: ${bottomFill}%; background-color: ${color};"></div>
+                        </div>
+                        <div class="name-text">${cuenta.name}</div>
+                        <div class="date-text">${dateStr}</div>
+                        <div class="notes-text">${cuenta.notes || ''}</div>
                     </div>
-                    <div class="label">${cuenta.name}</div>
                 `;
                 chartArea.appendChild(column);
             });
         }
 
-        // 3. Lógica para actualizar datos y guardar
+        // --- FUNCIONES DE ACTUALIZACIÓN ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
-            localStorage.setItem('misCuentas', JSON.stringify(cuentas)); // Guardar en el navegador
-            renderGrafico(); // Actualizar gráfico al instante
+            guardarYRenderizar();
+        }
+
+        function guardarColores() {
+            colores.pos = document.getElementById('color-pos').value;
+            colores.neg = document.getElementById('color-neg').value;
+            localStorage.setItem('misColores', JSON.stringify(colores));
+            renderGrafico();
         }
 
         function agregarFila() {
-            cuentas.push({ name: "Nueva Cuenta", actual: 0, min: -10, max: 10 });
-            localStorage.setItem('misCuentas', JSON.stringify(cuentas));
+            const hoy = new Date().toISOString().split('T')[0];
+            cuentas.push({ name: "Nueva Cuenta", startDate: hoy, actual: 0, min: -10, max: 10, notes: "" });
+            guardarYRenderizar();
+        }
+
+        function guardarYRenderizar() {
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla();
             renderGrafico();
         }
 
-        // Inicializar
-        renderTabla();
-        renderGrafico();
+        // Inicialización
+        guardarYRenderizar();
     </script>
 </body>
 </html>
