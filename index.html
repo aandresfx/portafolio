@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pro - Gestión de Cuentas</title>
+    <title>💼 Portafolio</title>
     <style>
         :root {
             /* Variables Modo Claro */
             --bg-color: #e0e5ec;
-            --bg-image: none; /* Aquí se inyecta la imagen */
-            --bg-overlay: rgba(255, 255, 255, 0.85); /* Transparencia sobre la imagen */
+            --bg-image: none;
+            --bg-overlay-color: 255, 255, 255; /* RGB para permitir opacidad dinámica */
+            --bg-overlay-opacity: 0.85;
             --pattern-color: rgba(255, 255, 255, 0.4);
-            --pattern-display: block; /* Controla si se ve la textura */
+            --pattern-display: block;
             
             --card-bg: rgba(255, 255, 255, 0.75);
             --text-main: #2d3748;
@@ -29,7 +30,7 @@
         body.dark-mode {
             /* Variables Modo Oscuro */
             --bg-color: #1a202c;
-            --bg-overlay: rgba(26, 32, 44, 0.88); /* Capa oscura sobre la imagen */
+            --bg-overlay-color: 26, 32, 44; /* RGB oscuro */
             --pattern-color: rgba(255, 255, 255, 0.03);
             
             --card-bg: rgba(45, 55, 72, 0.75);
@@ -48,11 +49,13 @@
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            /* La magia: Imagen de fondo + Capa de color semitransparente */
-            background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), var(--bg-image);
+            /* La capa de superposición usa la variable de opacidad */
+            background-image: 
+                linear-gradient(rgba(var(--bg-overlay-color), var(--bg-overlay-opacity)), rgba(var(--bg-overlay-color), var(--bg-overlay-opacity))), 
+                var(--bg-image);
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* La imagen no se mueve al hacer scroll */
+            background-attachment: fixed;
             
             color: var(--text-main);
             margin: 0;
@@ -65,7 +68,7 @@
             overflow-x: hidden;
         }
 
-        /* Textura Geométrica de Fondo (Se puede ocultar) */
+        /* Textura Geométrica de Fondo */
         body::before {
             content: "";
             position: fixed;
@@ -76,20 +79,25 @@
             background-size: 60px 60px;
             z-index: -1;
             pointer-events: none;
-            display: var(--pattern-display); /* Se controla desde Configuración */
+            display: var(--pattern-display);
         }
 
+        /* Layout 50/50 */
         .container {
-            max-width: 1700px;
+            max-width: 1800px;
             width: 100%;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
             gap: 20px;
-            align-items: flex-start;
-            flex-wrap: wrap;
+            align-items: start;
             z-index: 1;
         }
 
-        /* --- ESTILO CRISTAL (Glassmorphism) --- */
+        @media (max-width: 1200px) {
+            .container { grid-template-columns: 1fr; } /* En pantallas chicas, una columna */
+        }
+
+        /* --- ESTILO CRISTAL --- */
         .glass-panel {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
@@ -97,21 +105,20 @@
             border: var(--glass-border);
             border-radius: 12px;
             box-shadow: var(--shadow);
-            padding: 15px 20px;
+            padding: 15px;
             transition: background 0.3s ease;
+            overflow-x: auto; /* Scroll horizontal si la tabla es muy ancha */
         }
 
-        .panel-tabla { flex: 1.5; min-width: 850px; overflow-x: auto; }
-        .panel-grafico { flex: 1; min-width: 450px; overflow-x: auto; }
-
         h2 { margin: 0 0 10px 0; font-size: 18px; }
+        
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        th { font-size: 11px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+        th, td { padding: 5px 3px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
         
         input, select {
-            padding: 6px; border: 1px solid var(--input-border); border-radius: 5px;
-            font-family: inherit; font-size: 12px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main);
+            padding: 5px; border: 1px solid var(--input-border); border-radius: 4px;
+            font-family: inherit; font-size: 11px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main);
             transition: border-color 0.2s;
         }
         input:focus, select:focus { border-color: #4299e1; outline: none; }
@@ -120,14 +127,16 @@
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
-        .in-name { width: 90px; }
-        .in-cap { width: 75px; text-align: right; }
-        .in-cost { width: 65px; text-align: right; }
-        .in-date { width: 85px; text-align: center; }
-        .in-mod { width: 100px; }
-        .in-status { width: 105px; }
-        .in-num { width: 55px; text-align: center; }
-        .in-notes { width: 120px; }
+        /* Anchos de columnas ajustados para el 50% */
+        .in-name { width: 75px; }
+        .in-cap { width: 65px; text-align: right; }
+        .in-cost { width: 55px; text-align: right; }
+        .in-date { width: 75px; text-align: center; }
+        .in-mod { width: 85px; }
+        .in-status { width: 95px; }
+        .in-num { width: 45px; text-align: center; }
+        .in-url { width: 60px; font-size: 10px; }
+        .in-notes { width: 80px; }
         
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 10px 15px;
@@ -140,8 +149,8 @@
         .chart-layout { display: flex; height: 400px; position: relative; margin-top: 10px; }
 
         .y-axis {
-            position: relative; width: 40px; height: 300px;
-            border-right: 1px solid var(--axis-line); margin-right: 15px;
+            position: relative; width: 35px; height: 300px;
+            border-right: 1px solid var(--axis-line); margin-right: 10px;
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
@@ -149,7 +158,7 @@
         }
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
-        .charts-wrapper { display: flex; gap: 25px; flex-grow: 1; position: relative; height: 300px; }
+        .charts-wrapper { display: flex; gap: 15px; flex-grow: 1; position: relative; height: 300px; padding-bottom: 60px; overflow-x: auto;}
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
@@ -173,10 +182,10 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        .val-text { font-size: 11px; font-weight: bold; }
+        .val-text { font-size: 10px; font-weight: bold; }
 
         .labels-area {
-            position: absolute; top: 100%; width: 90px;
+            position: absolute; top: 100%; width: 80px;
             left: 50%; transform: translateX(-50%);
             text-align: center; padding-top: 8px;
         }
@@ -184,7 +193,9 @@
         .name-text { font-size: 11px; font-weight: 600; margin-bottom: 2px; word-wrap: break-word; }
         .cap-text { font-size: 10px; color: #3182ce; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: 10px; margin-bottom: 2px; }
-        .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
+        .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+        .audit-link { font-size: 10px; color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px;}
+        .audit-link:hover { text-decoration: underline; }
         .notes-text { font-size: 9px; color: var(--text-muted); font-style: italic; word-wrap: break-word; line-height: 1.1;}
 
         /* --- CONFIGURACIÓN FLOTANTE --- */
@@ -204,14 +215,13 @@
             background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 280px;
             box-shadow: var(--shadow); z-index: 100;
-            display: none; flex-direction: column; gap: 15px; backdrop-filter: blur(10px);
+            display: none; flex-direction: column; gap: 12px; backdrop-filter: blur(10px);
         }
         .settings-panel.active { display: flex; }
         
         .settings-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; }
         
-        /* Inputs del panel de configuración */
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
         .toggle-btn {
@@ -222,6 +232,9 @@
         .toggle-btn:hover { opacity: 0.9; }
 
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        
+        /* Slider de transparencia */
+        input[type="range"] { width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -229,7 +242,7 @@
     <div class="container">
         <!-- Panel Tabla -->
         <div class="panel-tabla glass-panel">
-            <h2>Gestión de Cuentas</h2>
+            <h2>Cuentas</h2>
             <table id="tabla-datos">
                 <thead>
                     <tr>
@@ -240,8 +253,9 @@
                         <th>Modalidad</th>
                         <th>Estado</th>
                         <th>Actual</th>
-                        <th>Mínimo</th>
-                        <th>Objetivo</th>
+                        <th>Mín</th>
+                        <th>Obj</th>
+                        <th>URL</th>
                         <th>Notas</th>
                     </tr>
                 </thead>
@@ -252,7 +266,7 @@
 
         <!-- Panel Gráfico -->
         <div class="panel-grafico glass-panel">
-            <h2>Progreso Visual</h2>
+            <h2>Gráfico</h2>
             <div class="chart-layout">
                 <div class="y-axis" id="y-axis"></div>
                 <div class="charts-wrapper" id="chart-area">
@@ -276,6 +290,11 @@
             <label style="font-size:11px; color:var(--text-muted); margin-top:5px; display:block;">O sube un archivo:</label>
             <input type="file" id="bg-file-input" class="settings-input" accept="image/*" onchange="cargarImagenLocal(event)">
         </div>
+
+        <div>
+            <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa:</label>
+            <input type="range" id="bg-opacity" min="0" max="100" value="85" oninput="cambiarOpacidad(this.value)">
+        </div>
         
         <label class="checkbox-label">
             <input type="checkbox" id="toggle-pattern" checked onchange="togglePattern(this.checked)"> 
@@ -287,27 +306,30 @@
     </div>
 
     <script>
-        // --- DATOS INICIALES ---
+        // --- DATOS INICIALES (Añadido el campo url) ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2" },
-            { name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2" },
-            { name: "Bullfy", capital: 5000, cost: 100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: 6.0, min: -4, max: 8, notes: "Fase Única" },
-            { name: "Personal", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros" }
+            { name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
+            { name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
+            { name: "Bullfy", capital: 5000, cost: 100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: 6.0, min: -4, max: 8, notes: "Fase Única", url: "" },
+            { name: "Personal", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
         let showPattern = localStorage.getItem('showPattern') !== 'false';
+        let overlayOpacity = localStorage.getItem('overlayOpacity') || 85;
 
+        // Inicializar UI
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
         document.getElementById('toggle-pattern').checked = showPattern;
+        document.getElementById('bg-opacity').value = overlayOpacity;
         
         if(isDarkMode) document.body.classList.add('dark-mode');
         if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
-        
-        // Aplicar imagen guardada al cargar
+        document.documentElement.style.setProperty('--bg-overlay-opacity', overlayOpacity / 100);
+
         if(savedBgImage !== 'none') {
             document.documentElement.style.setProperty('--bg-image', `url('${savedBgImage}')`);
             document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
@@ -412,6 +434,8 @@
                         onfocus="this.value = parsePercent(this.value) || ''" 
                         onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))"
                         onkeydown="if(event.key==='Enter') this.blur()"></td>
+
+                    <td><input type="url" class="in-url" value="${cuenta.url || ''}" onchange="actualizarDato(${index}, 'url', this.value)" placeholder="https://..."></td>
                     
                     <td><input type="text" class="in-notes" value="${cuenta.notes || ''}" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="..."></td>
                 `;
@@ -498,6 +522,9 @@
                 if (actualNum === 0) fillHeightPercent = 0;
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
+                
+                // Generar enlace de auditoría si existe la URL
+                let auditHTML = (cuenta.url && cuenta.url.trim() !== '') ? `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Ver Auditoría</a>` : '';
 
                 column.innerHTML = `
                     ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
@@ -510,6 +537,7 @@
                         <div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>
                         <div class="status-text">${cuenta.status || ''}</div>
                         <div class="date-text">${cuenta.startDate || ''}</div>
+                        ${auditHTML}
                         <div class="notes-text">${cuenta.notes || ''}</div>
                     </div>
                 `;
@@ -546,18 +574,23 @@
             localStorage.setItem('showPattern', isChecked);
         }
 
+        function cambiarOpacidad(val) {
+            overlayOpacity = val;
+            document.documentElement.style.setProperty('--bg-overlay-opacity', val / 100);
+            localStorage.setItem('overlayOpacity', val);
+        }
+
         function cambiarFondo(url) {
             if(url.trim() === '') {
                 quitarFondo();
                 return;
             }
-            // Si no tiene http o data:, le agregamos https para que intente cargar
             if(!url.startsWith('http') && !url.startsWith('data:')) {
                 url = 'https://' + url;
             }
             document.documentElement.style.setProperty('--bg-image', `url('${url}')`);
             localStorage.setItem('bgImage', url);
-            document.getElementById('bg-file-input').value = ''; // Limpiar input file
+            document.getElementById('bg-file-input').value = '';
         }
 
         function cargarImagenLocal(event) {
@@ -584,7 +617,7 @@
         function agregarFila() {
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
-            cuentas.push({ name: "Nueva", capital: "", cost: "", startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "" });
+            cuentas.push({ name: "Nueva", capital: "", cost: "", startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
             guardarYRenderizar();
         }
 
