@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💼 Portafolio</title>
-    <!-- Librería para reordenar columnas -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
-            /* Variables Modo Claro */
             --bg-color: #e0e5ec;
             --pattern-color: rgba(255, 255, 255, 0.4);
             --pattern-display: block;
@@ -27,10 +25,8 @@
         }
 
         body.dark-mode {
-            /* Variables Modo Oscuro */
             --bg-color: #1a202c;
             --pattern-color: rgba(255, 255, 255, 0.03);
-            
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
@@ -80,12 +76,12 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            align-items: stretch; /* Obliga a ambos paneles a tener la misma altura */
+            align-items: stretch; /* Clave: hace que ambos paneles midan lo mismo verticalmente */
             z-index: 1;
         }
 
         @media (max-width: 1200px) {
-            .container { grid-template-columns: 1fr; }
+            .container { grid-template-columns: 1fr; align-items: start; }
         }
 
         .glass-panel {
@@ -97,12 +93,12 @@
             box-shadow: var(--shadow);
             padding: 15px;
             transition: background 0.3s ease;
-            overflow: hidden; 
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Permite que los hijos usen flex-grow */
+            overflow: hidden; 
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 18px; }
+        h2 { margin: 0 0 10px 0; font-size: 18px; flex-shrink: 0; }
         
         .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
@@ -138,6 +134,7 @@
             background: #4299e1; color: white; border: none; padding: 10px 15px;
             border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px;
             width: 100%; font-size: 13px; transition: background 0.2s;
+            flex-shrink: 0;
         }
         .btn-add:hover { background: #3182ce; }
 
@@ -145,16 +142,16 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            flex-grow: 1; /* Crece para llenar el espacio vertical */
+            flex-grow: 1; /* Hace que el gráfico se expanda verticalmente */
             min-height: 350px;
             padding-top: 20px;
-            padding-bottom: 130px; /* Espacio para los textos de abajo */
+            padding-bottom: 110px; /* Reserva espacio fijo para los textos de abajo */
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 100%; /* Toma toda la altura disponible */
+            height: calc(100% - 110px); /* Ajusta la altura para no chocar con los textos */
             border-right: 1px solid var(--axis-line); 
             margin-right: 10px;
             flex-shrink: 0;
@@ -170,9 +167,9 @@
             gap: 12px; 
             flex-grow: 1; 
             position: relative; 
-            height: 100%; /* Las barras ocupan toda la altura */
+            height: calc(100% - 110px); /* Misma altura que el eje Y */
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: visible; /* Permite que los textos salgan del contenedor sin cortarse */
         }
 
         .global-zero-line {
@@ -183,7 +180,7 @@
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 100%; /* Se estira */
+            height: 100%; /* Se estira al 100% del wrapper */
             flex-shrink: 0; 
             display: flex; 
             justify-content: center; 
@@ -208,7 +205,7 @@
 
         .labels-area {
             position: absolute; 
-            top: 100%; /* Anclado al fondo de las barras */
+            top: 100%; /* Se ancla justo debajo de las barras */
             width: 95px; 
             left: 50%; 
             transform: translateX(-50%);
@@ -338,17 +335,14 @@
             { key: 'notes', label: 'Notas' }
         ];
 
-        // Obtener orden guardado y forzar que 'visible' sea el primero
+        // Forzar que 'visible' esté siempre al principio
         let savedOrder = JSON.parse(localStorage.getItem('columnOrder'));
         let columnOrder = [];
         
         if (savedOrder && Array.isArray(savedOrder)) {
-            // Filtramos claves válidas y quitamos duplicados
             columnOrder = savedOrder.filter((v, i, a) => a.indexOf(v) === i && columnasDef.find(c => c.key === v));
-            // Aseguramos que 'visible' esté, y lo movemos al principio
             columnOrder = columnOrder.filter(k => k !== 'visible');
-            columnOrder.unshift('visible');
-            // Añadimos las columnas que falten
+            columnOrder.unshift('visible'); // Forzar primera posición
             columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
         } else {
             columnOrder = columnasDef.map(c => c.key);
