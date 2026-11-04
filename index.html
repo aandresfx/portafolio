@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💼 Portafolio</title>
-    <!-- Librería para reordenar columnas -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
@@ -80,12 +79,27 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            align-items: start;
+            align-items: start; 
             z-index: 1;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        /* Clase para cuando el panel izquierdo se oculta */
+        .container.collapsed {
+            grid-template-columns: 0fr 1fr;
+            gap: 0;
+        }
+        .container.collapsed .panel-tabla {
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
         }
 
         @media (max-width: 1200px) {
             .container { grid-template-columns: 1fr; }
+            .container.collapsed { grid-template-columns: 0fr 1fr; }
         }
 
         .glass-panel {
@@ -96,18 +110,61 @@
             border-radius: 12px;
             box-shadow: var(--shadow);
             padding: 15px;
-            transition: background 0.3s ease;
-            overflow: hidden; /* Evita que elementos internos se salgan */
+            transition: background 0.3s ease, opacity 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: visible; /* Permitir que sobresalgan tooltips/menús */
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 18px; }
+        /* Cabeceras centradas y con flex para botones */
+        .panel-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        h2 { margin: 0; font-size: 18px; text-align: center; }
         
-        /* La tabla ahora ocupa todo el ancho disponible sin scroll si las columnas son pocas */
-        .table-container { width: 100%; overflow-x: auto; }
+        /* Botones de los paneles */
+        .panel-btn {
+            position: absolute;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+        .panel-btn:hover { color: var(--text-main); }
+        .btn-toggle-left { right: 0; }
+        .btn-toggle-chart { right: 0; }
+
+        /* Menú de configuración del gráfico */
+        .chart-settings-menu {
+            position: absolute;
+            top: 35px;
+            right: 0;
+            background: var(--card-bg);
+            border: var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: var(--shadow);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .chart-settings-menu.active { display: flex; }
+        .chart-settings-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 3px; }
+
+        .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 5px 3px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
         
-        /* Encabezados reordenables */
         th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; cursor: grab; user-select: none; }
         th:active { cursor: grabbing; }
         th::after { content: ' ⇅'; font-size: 8px; opacity: 0.5; }
@@ -118,12 +175,7 @@
             transition: border-color 0.2s;
         }
         input:focus, select:focus { border-color: #4299e1; outline: none; }
-
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
         
-        /* Ajuste de anchos */
         .in-name { width: 75px; }
         .in-cap { width: 65px; text-align: right; }
         .in-cost { width: 55px; text-align: right; }
@@ -133,7 +185,7 @@
         .in-num { width: 45px; text-align: center; }
         .in-url { width: 60px; font-size: 10px; }
         .in-notes { width: 80px; }
-        .in-check { width: 20px; cursor: pointer; }
+        .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
         
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 10px 15px;
@@ -143,24 +195,19 @@
         .btn-add:hover { background: #3182ce; }
 
         /* --- GRÁFICO --- */
-        .panel-grafico {
-            /* Permitimos que el panel crezca según el contenido */
-            height: auto;
-        }
-
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 10px; 
-            padding-bottom: 10px;
+            height: 350px; /* Altura fija para evitar desajustes del 0% */
+            margin-top: 20px; 
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 300px; /* Altura fija para las barras */
+            height: 100%; /* Ocupa exactamente lo mismo que las barras */
             border-right: 1px solid var(--axis-line); 
-            margin-right: 10px;
+            margin-right: 15px;
             flex-shrink: 0;
         }
         .y-tick {
@@ -171,14 +218,12 @@
 
         .charts-wrapper { 
             display: flex; 
-            gap: 12px; 
+            gap: 35px; /* Aumentado para separar las columnas */
             flex-grow: 1; 
             position: relative; 
-            height: 300px; /* Altura fija para las barras */
+            height: 100%; /* Ocupa exactamente lo mismo que el eje Y */
             overflow-x: auto;
-            overflow-y: hidden;
-            /* El padding permite que los textos de abajo tengan espacio sin cortarse */
-            padding-bottom: 120px; 
+            overflow-y: visible;
         }
 
         .global-zero-line {
@@ -189,7 +234,7 @@
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 300px; 
+            height: 100%; 
             flex-shrink: 0; 
             display: flex; 
             justify-content: center; 
@@ -215,11 +260,11 @@
         .labels-area {
             position: absolute; 
             top: 100%; 
-            width: 95px; 
+            width: 110px; /* Más ancho para evitar cortes */
             left: 50%; 
             transform: translateX(-50%);
             text-align: center; 
-            padding-top: 8px;
+            padding-top: 10px;
             z-index: 10;
         }
 
@@ -231,7 +276,7 @@
         .audit-link:hover { text-decoration: underline; }
         .notes-text { font-size: 9px; color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
-        /* --- CONFIGURACIÓN FLOTANTE --- */
+        /* --- CONFIGURACIÓN FLOTANTE GLOBAL --- */
         .settings-btn {
             position: fixed; bottom: 20px; left: 20px;
             background: var(--card-bg); color: var(--text-main);
@@ -248,13 +293,13 @@
             background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 280px;
             box-shadow: var(--shadow); z-index: 100;
-            display: none; flex-direction: column; gap: 12px; backdrop-filter: blur(10px);
+            display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
+            max-height: 80vh; overflow-y: auto;
         }
         .settings-panel.active { display: flex; }
         
         .settings-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; }
-        
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
         .toggle-btn {
@@ -263,24 +308,23 @@
         }
         .toggle-btn.secondary { background: #718096; }
         .toggle-btn:hover { opacity: 0.9; }
-
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        
         input[type="range"] { width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="main-container">
         <!-- Panel Tabla -->
-        <div class="panel-tabla glass-panel">
-            <h2>Cuentas</h2>
+        <div class="panel-tabla glass-panel" id="panel-tabla">
+            <div class="panel-header">
+                <h2>Cuentas</h2>
+                <button class="panel-btn btn-toggle-left" onclick="toggleLeftPanel()" title="Ocultar/Mostrar Panel">⬅️</button>
+            </div>
             <div class="table-container">
                 <table id="tabla-datos">
                     <thead>
-                        <tr id="table-headers">
-                            <!-- Los encabezados se generan dinámicamente con JS -->
-                        </tr>
+                        <tr id="table-headers"></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -290,7 +334,21 @@
 
         <!-- Panel Gráfico -->
         <div class="panel-grafico glass-panel">
-            <h2>Gráfico</h2>
+            <div class="panel-header">
+                <h2>Gráfico</h2>
+                <button class="panel-btn btn-toggle-chart" onclick="toggleChartSettings()" title="Configurar Textos">⚙️</button>
+                
+                <!-- Menú de opciones del gráfico -->
+                <div class="chart-settings-menu" id="chart-settings-menu">
+                    <span style="font-weight:bold; margin-bottom:5px; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
+                    <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Cuenta</label>
+                    <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
+                    <label><input type="checkbox" id="chk-status" checked onchange="toggleChartLabel('status', this.checked)"> Estado</label>
+                    <label><input type="checkbox" id="chk-date" checked onchange="toggleChartLabel('date', this.checked)"> Fecha</label>
+                    <label><input type="checkbox" id="chk-url" checked onchange="toggleChartLabel('url', this.checked)"> URL</label>
+                    <label><input type="checkbox" id="chk-notes" checked onchange="toggleChartLabel('notes', this.checked)"> Notas</label>
+                </div>
+            </div>
             <div class="chart-layout">
                 <div class="y-axis" id="y-axis"></div>
                 <div class="charts-wrapper" id="chart-area">
@@ -300,11 +358,15 @@
         </div>
     </div>
 
-    <!-- Configuración Flotante -->
-    <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
-    <div class="settings-panel" id="settings-panel">
-        <label>Color Positivo: <input type="color" id="color-pos" value="#38a169" onchange="guardarColores()"></label>
-        <label>Color Negativo: <input type="color" id="color-neg" value="#e53e3e" onchange="guardarColores()"></label>
+    <!-- Configuración Flotante Global -->
+    <button class="settings-btn" onclick="toggleGlobalSettings()">⚙️</button>
+    <div class="settings-panel" id="global-settings-panel">
+        <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
+        <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
+        <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
+        <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
+        <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
+        <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
         
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
@@ -330,7 +392,7 @@
     </div>
 
     <script>
-        // --- DEFINICIÓN DE COLUMNAS ---
+        // --- COLUMNAS ---
         const columnasDef = [
             { key: 'visible', label: '👁' },
             { key: 'name', label: 'Cuenta' },
@@ -346,10 +408,7 @@
             { key: 'notes', label: 'Notas' }
         ];
 
-        // El orden inicial o el guardado por el usuario
         let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes'];
-        
-        // Validar que todas las columnas existan en el orden (por si se añaden nuevas en el futuro)
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
 
@@ -357,18 +416,43 @@
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
             { visible: true, name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
             { visible: true, name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
-            { visible: true, name: "Bullfy", capital: 5000, cost: 100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: 6.0, min: -4, max: 8, notes: "Fase Única", url: "" },
+            { visible: true, name: "Bullfy", capital: 5000, cost: 100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
             { visible: true, name: "Personal", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
         ];
 
-        let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
+        // Colores por defecto
+        let colores = JSON.parse(localStorage.getItem('misColores')) || { 
+            pos: "#38a169", neg: "#e53e3e", 
+            passed: "#a3e635", failed: "#7f1d1d",
+            ownPos: "#3b82f6", ownNeg: "#ec4899"
+        };
+
+        // Configuración de textos en el gráfico
+        let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
+            name: true, capital: true, status: true, date: true, url: true, notes: true
+        };
+
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
         let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
 
+        // Inicializar Inputs de color
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
+        document.getElementById('color-passed').value = colores.passed;
+        document.getElementById('color-failed').value = colores.failed;
+        document.getElementById('color-own-pos').value = colores.ownPos;
+        document.getElementById('color-own-neg').value = colores.ownNeg;
+
+        // Inicializar Checkboxes de textos
+        document.getElementById('chk-name').checked = chartLabels.name;
+        document.getElementById('chk-capital').checked = chartLabels.capital;
+        document.getElementById('chk-status').checked = chartLabels.status;
+        document.getElementById('chk-date').checked = chartLabels.date;
+        document.getElementById('chk-url').checked = chartLabels.url;
+        document.getElementById('chk-notes').checked = chartLabels.notes;
+
         document.getElementById('toggle-pattern').checked = showPattern;
         document.getElementById('bg-opacity').value = overlayOpacity;
         document.getElementById('opacity-val').innerText = overlayOpacity;
@@ -432,14 +516,21 @@
         function renderTabla() {
             const theadTr = document.getElementById('table-headers');
             const tbody = document.querySelector('#tabla-datos tbody');
+            theadTr.innerHTML = '';
             
             // Generar Headers
-            theadTr.innerHTML = '';
             columnOrder.forEach(key => {
                 const colDef = columnasDef.find(c => c.key === key);
                 const th = document.createElement('th');
-                th.innerText = colDef.label;
                 th.dataset.key = key;
+
+                if (key === 'visible') {
+                    // Check maestro (Select All)
+                    const isAllVisible = cuentas.every(c => c.visible !== false);
+                    th.innerHTML = `<input type="checkbox" class="in-check" ${isAllVisible ? 'checked' : ''} onchange="toggleAllVisibility(this.checked)" title="Mostrar/Ocultar todas">`;
+                } else {
+                    th.innerText = colDef.label;
+                }
                 theadTr.appendChild(th);
             });
 
@@ -452,7 +543,6 @@
                     const td = document.createElement('td');
                     const isPropio = cuenta.modality === 'Capital propio';
 
-                    // Generar el input según la columna
                     switch(key) {
                         case 'visible':
                             td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked)">`;
@@ -504,12 +594,11 @@
                 tbody.appendChild(tr);
             });
 
-            // Inicializar Sortable solo una vez
+            // Inicializar Sortable
             if(!window.sortableInitialized) {
                 new Sortable(theadTr, {
                     animation: 150,
                     onEnd: function (evt) {
-                        // Guardar el nuevo orden
                         const newOrder = Array.from(theadTr.children).map(th => th.dataset.key);
                         columnOrder = newOrder;
                         localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
@@ -518,6 +607,11 @@
                 });
                 window.sortableInitialized = true;
             }
+        }
+
+        function toggleAllVisibility(isChecked) {
+            cuentas.forEach(c => c.visible = isChecked);
+            guardarYRenderizar();
         }
 
         function cambiarModalidad(index, valor) {
@@ -540,7 +634,6 @@
             chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
-            // Filtrar solo las visibles
             const cuentasVisibles = cuentas.filter(c => c.visible !== false);
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
@@ -578,6 +671,27 @@
                 column.className = 'chart-column';
                 const isPropio = cuenta.modality === 'Capital propio';
                 
+                // 1. Determinar el valor a graficar y el color según el estado
+                let displayValue = Number(cuenta.actual) || 0;
+                let color = colores.pos;
+                let textColor = '#ffffff';
+                
+                if (cuenta.status.includes('Desaprobado') && !isPropio) {
+                    displayValue = Number(cuenta.min);
+                    color = colores.failed;
+                } else if (cuenta.status.includes('Aprobado') && !isPropio) {
+                    displayValue = Number(cuenta.max);
+                    color = colores.passed;
+                } else if (isPropio) {
+                    color = displayValue >= 0 ? colores.ownPos : colores.ownNeg;
+                } else {
+                    color = displayValue >= 0 ? colores.pos : colores.neg;
+                }
+                
+                textColor = getContrastColor(color);
+                let textoValor = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
+
+                // 2. Dibujar Fondo y Relleno
                 let rangeHeightPercent = 0;
                 let rangeBottomPercent = 0;
                 if(!isPropio && cuenta.min !== '' && cuenta.max !== '') {
@@ -585,21 +699,23 @@
                     rangeBottomPercent = ((Number(cuenta.min) - globalMin) / rangeGlobal) * 100;
                 }
 
-                let actualNum = Number(cuenta.actual) || 0;
-                let fillHeightPercent = (Math.abs(actualNum) / rangeGlobal) * 100;
+                let fillHeightPercent = (Math.abs(displayValue) / rangeGlobal) * 100;
                 let fillBottomPercent = zeroBottomPercent;
-                
-                let color = actualNum >= 0 ? colores.pos : colores.neg;
-                let textColor = getContrastColor(color);
-                let textoValor = actualNum > 0 ? `+${actualNum.toFixed(1)}%` : `${actualNum.toFixed(1)}%`;
-
-                if (actualNum < 0) {
-                    fillBottomPercent = zeroBottomPercent - fillHeightPercent;
-                }
-                if (actualNum === 0) fillHeightPercent = 0;
+                if (displayValue < 0) fillBottomPercent = zeroBottomPercent - fillHeightPercent;
+                if (displayValue === 0) fillHeightPercent = 0;
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
-                let auditHTML = (cuenta.url && cuenta.url.trim() !== '') ? `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>` : '';
+                
+                // 3. Generar los textos inferiores según la selección del usuario
+                let labelsHTML = '';
+                if (chartLabels.name) labelsHTML += `<div class="name-text">${cuenta.name}</div>`;
+                if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
+                if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
+                if (chartLabels.date) labelsHTML += `<div class="date-text">${cuenta.startDate || ''}</div>`;
+                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') {
+                    labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>`;
+                }
+                if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
                 column.innerHTML = `
                     ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
@@ -608,19 +724,14 @@
                     </div>
                     
                     <div class="labels-area">
-                        <div class="name-text">${cuenta.name}</div>
-                        <div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>
-                        <div class="status-text">${cuenta.status || ''}</div>
-                        <div class="date-text">${cuenta.startDate || ''}</div>
-                        ${auditHTML}
-                        <div class="notes-text">${cuenta.notes || ''}</div>
+                        ${labelsHTML}
                     </div>
                 `;
                 chartArea.appendChild(column);
             });
         }
 
-        // --- ACCIONES ---
+        // --- ACCIONES Y CONFIGURACIÓN ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
             guardarYRenderizar();
@@ -629,12 +740,48 @@
         function guardarColores() {
             colores.pos = document.getElementById('color-pos').value;
             colores.neg = document.getElementById('color-neg').value;
+            colores.passed = document.getElementById('color-passed').value;
+            colores.failed = document.getElementById('color-failed').value;
+            colores.ownPos = document.getElementById('color-own-pos').value;
+            colores.ownNeg = document.getElementById('color-own-neg').value;
             localStorage.setItem('misColores', JSON.stringify(colores));
             renderGrafico();
         }
 
-        function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('active');
+        function toggleChartLabel(key, isChecked) {
+            chartLabels[key] = isChecked;
+            localStorage.setItem('chartLabels', JSON.stringify(chartLabels));
+            renderGrafico();
+        }
+
+        function toggleGlobalSettings() {
+            document.getElementById('global-settings-panel').classList.toggle('active');
+        }
+
+        function toggleChartSettings() {
+            document.getElementById('chart-settings-menu').classList.toggle('active');
+        }
+
+        // Cerrar menú de gráfico si se hace clic afuera
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('chart-settings-menu');
+            const btn = document.querySelector('.btn-toggle-chart');
+            if (menu.classList.contains('active') && !menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.classList.remove('active');
+            }
+        });
+
+        function toggleLeftPanel() {
+            const container = document.getElementById('main-container');
+            const btn = document.querySelector('.btn-toggle-left');
+            container.classList.toggle('collapsed');
+            if (container.classList.contains('collapsed')) {
+                btn.innerText = '➡️';
+                btn.style.right = '-30px'; // Mover botón para que sea visible
+            } else {
+                btn.innerText = '⬅️';
+                btn.style.right = '0';
+            }
         }
 
         function toggleDarkMode() {
@@ -658,13 +805,8 @@
         }
 
         function cambiarFondo(url) {
-            if(url.trim() === '') {
-                quitarFondo();
-                return;
-            }
-            if(!url.startsWith('http') && !url.startsWith('data:')) {
-                url = 'https://' + url;
-            }
+            if(url.trim() === '') { quitarFondo(); return; }
+            if(!url.startsWith('http') && !url.startsWith('data:')) url = 'https://' + url;
             savedBgImage = url;
             localStorage.setItem('bgImage', url);
             document.getElementById('bg-file-input').value = '';
@@ -705,6 +847,37 @@
             renderTabla();
             renderGrafico();
         }
+
+        // --- NAVEGACIÓN CON TAB (Como Excel) ---
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled);
+                const current = document.activeElement;
+                
+                // Si estamos en un input de la tabla
+                if (inputs.includes(current)) {
+                    e.preventDefault(); // Evitar salto por defecto
+                    const index = inputs.indexOf(current);
+                    const isShift = e.shiftKey;
+                    
+                    let nextIndex = isShift ? index - 1 : index + 1;
+                    
+                    // Si llegamos al final, volver al principio o al botón de agregar
+                    if (nextIndex >= inputs.length) {
+                        document.querySelector('.btn-add').focus();
+                    } else if (nextIndex < 0) {
+                        inputs[inputs.length - 1].focus();
+                    } else {
+                        inputs[nextIndex].focus();
+                        inputs[nextIndex].select(); // Seleccionar texto para escribir rápido
+                    }
+                } else if (current.classList.contains('btn-add') && !e.shiftKey) {
+                    e.preventDefault();
+                    inputs[0].focus();
+                    inputs[0].select();
+                }
+            }
+        });
 
         guardarYRenderizar();
     </script>
