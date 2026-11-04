@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.98);
             --text-main: #2d3748;
             --text-muted: #718096;
         }
@@ -24,7 +24,7 @@
         }
 
         .container {
-            max-width: 1300px;
+            max-width: 1500px; /* Panel mucho más ancho */
             width: 100%;
             display: flex;
             gap: 30px;
@@ -38,20 +38,19 @@
             padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            flex: 1;
-            min-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
+            flex: 1.2; /* Toma más espacio que el gráfico si es necesario */
+            min-width: 700px; /* Obliga a la tabla a tener buen ancho */
+            overflow-x: auto;
         }
 
         h2 { margin-top: 0; font-size: 20px; color: #1a202c; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top;}
-        th { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: auto; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        th { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         
+        /* Estilos de los inputs de la tabla */
         input, textarea {
-            width: 100%;
             padding: 8px;
             border: 1px solid #cbd5e0;
             border-radius: 6px;
@@ -61,13 +60,17 @@
             transition: border-color 0.2s;
         }
         input:focus, textarea:focus { border-color: #4299e1; outline: none; }
-        input[type="number"] { width: 100%; }
-        textarea { resize: vertical; min-height: 40px; font-size: 12px; }
+
+        /* Anchos específicos para que no se aplasten */
+        .in-name { width: 130px; }
+        .in-date { width: 135px; }
+        .in-num { width: 65px; text-align: center; }
+        .in-notes { width: 180px; min-height: 70px; resize: vertical; font-size: 12px; }
 
         .btn-add {
-            background: #4299e1; color: white; border: none; padding: 10px 15px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px;
-            transition: background 0.2s; width: 100%;
+            background: #4299e1; color: white; border: none; padding: 12px 15px;
+            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 25px;
+            transition: background 0.2s; width: 100%; font-size: 14px;
         }
         .btn-add:hover { background: #3182ce; }
 
@@ -77,8 +80,8 @@
             padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            flex: 1.5;
-            min-width: 500px;
+            flex: 1; 
+            min-width: 450px;
             overflow-x: auto;
         }
 
@@ -95,11 +98,10 @@
 
         .chart-layout {
             display: flex;
-            height: 400px; /* Altura fija del gráfico */
+            height: 420px;
             position: relative;
         }
 
-        /* Eje Y */
         .y-axis {
             display: flex;
             flex-direction: column;
@@ -112,7 +114,6 @@
             border-right: 1px solid #cbd5e0;
         }
 
-        /* Contenedor de Barras */
         .charts-wrapper {
             display: flex;
             gap: 20px;
@@ -126,15 +127,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 80px;
+            min-width: 90px;
             height: 100%;
             justify-content: flex-end;
         }
 
-        /* Fondo de la barra (Mín a Máx) */
         .bar-background {
             width: 45px;
-            height: 300px; /* Altura de la barra */
+            height: 300px;
             background-color: #edf2f7;
             border-radius: 8px;
             position: relative;
@@ -158,16 +158,15 @@
             transition: all 0.4s ease;
         }
 
-        /* Etiquetas debajo de la barra */
         .labels-area {
             text-align: center;
             width: 100%;
         }
 
-        .val-text { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
-        .name-text { font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; word-wrap: break-word; }
-        .date-text { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
-        .notes-text { font-size: 10px; color: #a0aec0; font-style: italic; word-wrap: break-word; white-space: pre-wrap;}
+        .val-text { font-size: 15px; font-weight: bold; margin-bottom: 5px; }
+        .name-text { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; word-wrap: break-word; }
+        .date-text { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+        .notes-text { font-size: 11px; color: #718096; font-style: italic; word-wrap: break-word; white-space: pre-wrap; line-height: 1.2;}
 
     </style>
 </head>
@@ -208,15 +207,8 @@
             </div>
 
             <div class="chart-layout">
-                <!-- Eje Y Dinámico -->
-                <div class="y-axis" id="y-axis">
-                    <!-- Se llena con JS -->
-                </div>
-                
-                <!-- Barras -->
-                <div class="charts-wrapper" id="chart-area">
-                    <!-- Se llena con JS -->
-                </div>
+                <div class="y-axis" id="y-axis"></div>
+                <div class="charts-wrapper" id="chart-area"></div>
             </div>
         </div>
     </div>
@@ -231,7 +223,6 @@
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { pos: "#38a169", neg: "#e53e3e" };
 
-        // Inicializar inputs de color
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
 
@@ -243,12 +234,12 @@
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><input type="text" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)"></td>
-                    <td><input type="date" value="${cuenta.startDate}" onchange="actualizarDato(${index}, 'startDate', this.value)"></td>
-                    <td><input type="number" step="0.1" value="${cuenta.actual}" onchange="actualizarDato(${index}, 'actual', parseFloat(this.value))"></td>
-                    <td><input type="number" step="1" value="${cuenta.min}" onchange="actualizarDato(${index}, 'min', parseFloat(this.value))"></td>
-                    <td><input type="number" step="1" value="${cuenta.max}" onchange="actualizarDato(${index}, 'max', parseFloat(this.value))"></td>
-                    <td><textarea onchange="actualizarDato(${index}, 'notes', this.value)">${cuenta.notes || ''}</textarea></td>
+                    <td><input type="text" class="in-name" value="${cuenta.name}" onchange="actualizarDato(${index}, 'name', this.value)"></td>
+                    <td><input type="date" class="in-date" value="${cuenta.startDate}" onchange="actualizarDato(${index}, 'startDate', this.value)"></td>
+                    <td><input type="number" step="0.1" class="in-num" value="${cuenta.actual}" onchange="actualizarDato(${index}, 'actual', parseFloat(this.value))"></td>
+                    <td><input type="number" step="1" class="in-num" value="${cuenta.min}" onchange="actualizarDato(${index}, 'min', parseFloat(this.value))"></td>
+                    <td><input type="number" step="1" class="in-num" value="${cuenta.max}" onchange="actualizarDato(${index}, 'max', parseFloat(this.value))"></td>
+                    <td><textarea class="in-notes" onchange="actualizarDato(${index}, 'notes', this.value)">${cuenta.notes || ''}</textarea></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -261,10 +252,8 @@
             chartArea.innerHTML = '';
             yAxis.innerHTML = '';
 
-            // 1. Ordenar cronológicamente (Eje X de tiempo)
             cuentas.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-            // 2. Calcular límites globales para el Eje Y
             let globalMin = 0;
             let globalMax = 0;
             cuentas.forEach(c => {
@@ -272,41 +261,28 @@
                 if(c.max > globalMax) globalMax = c.max;
             });
             
-            // Dar un poco de margen al eje Y
             globalMin = Math.floor(globalMin * 1.2);
             globalMax = Math.ceil(globalMax * 1.2);
 
-            // 3. Dibujar Eje Y
-            const yMaxLabel = document.createElement('span'); yMaxLabel.innerText = globalMax + "%";
-            const yZeroLabel = document.createElement('span'); yZeroLabel.innerText = "0%";
-            const yMinLabel = document.createElement('span'); yMinLabel.innerText = globalMin + "%";
-            
-            // Posicionar el 0% proporcionalmente
             const rangeGlobal = globalMax - globalMin;
             const zeroPosGlobal = (Math.abs(globalMin) / rangeGlobal) * 100;
 
-            yAxis.appendChild(yMaxLabel);
-            // Contenedor flexible para el 0
+            const yMaxLabel = document.createElement('span'); yMaxLabel.innerText = globalMax + "%";
+            const yMinLabel = document.createElement('span'); yMinLabel.innerText = globalMin + "%";
+            
             const zeroContainer = document.createElement('div');
             zeroContainer.style.position = 'absolute';
             zeroContainer.style.top = `${100 - zeroPosGlobal}%`;
             zeroContainer.style.right = '15px';
             zeroContainer.style.transform = 'translateY(-50%)';
             zeroContainer.innerText = "0%";
+            
+            yAxis.appendChild(yMaxLabel);
             yAxis.appendChild(zeroContainer);
             yAxis.appendChild(yMinLabel);
 
-            // 4. Dibujar Barras
             cuentas.forEach(cuenta => {
-                // Altura de la barra respecto a su propio rango (Fondo gris)
-                // Usamos el rango global para que todas las barras sean comparables visualmente
-                const alturaBarra = 100; 
-                
-                // Posición del 0 en la barra específica
-                // Para simplificar, usamos el rango global para el fondo, así el 0 siempre está a la misma altura
                 const barZeroPos = zeroPosGlobal;
-                
-                // Calcular relleno
                 const fillHeight = (Math.abs(cuenta.actual) / rangeGlobal) * 100;
                 let bottomFill = barZeroPos;
                 let color = cuenta.actual >= 0 ? colores.pos : colores.neg;
@@ -314,14 +290,11 @@
 
                 if (cuenta.actual < 0) {
                     bottomFill = barZeroPos - fillHeight;
-                } else if (cuenta.actual === 0) {
-                    // Sin relleno
                 }
 
                 const column = document.createElement('div');
                 column.className = 'chart-column';
                 
-                // Formatear fecha
                 const dateObj = new Date(cuenta.startDate + 'T00:00:00');
                 const dateStr = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
 
@@ -366,7 +339,6 @@
             renderGrafico();
         }
 
-        // Inicialización
         guardarYRenderizar();
     </script>
 </body>
