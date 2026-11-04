@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
-            /* Variables Modo Claro */
             --bg-color: #e0e5ec;
             --pattern-color: rgba(255, 255, 255, 0.4);
             --pattern-display: block;
@@ -23,13 +22,12 @@
             --axis-line: #cbd5e0;
             --shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --bar-gap: 25px; /* Variable para el espacio entre barras */
         }
 
         body.dark-mode {
-            /* Variables Modo Oscuro */
             --bg-color: #1a202c;
             --pattern-color: rgba(255, 255, 255, 0.03);
-            
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
@@ -84,7 +82,6 @@
             transition: grid-template-columns 0.3s ease;
         }
 
-        /* Clase para cuando el panel izquierdo se oculta */
         .container.collapsed {
             grid-template-columns: 0fr 1fr;
             gap: 0;
@@ -113,10 +110,9 @@
             transition: background 0.3s ease, opacity 0.3s ease;
             display: flex;
             flex-direction: column;
-            overflow: visible; /* Permitir que sobresalgan tooltips/menús */
+            position: relative;
         }
 
-        /* Cabeceras centradas y con flex para botones */
         .panel-header {
             display: flex;
             justify-content: center;
@@ -126,7 +122,6 @@
         }
         h2 { margin: 0; font-size: 18px; text-align: center; }
         
-        /* Botones de los paneles */
         .panel-btn {
             position: absolute;
             background: transparent;
@@ -141,6 +136,27 @@
         .btn-toggle-left { right: 0; }
         .btn-toggle-chart { right: 0; }
 
+        /* Botón flotante cuando el panel está colapsado */
+        .btn-float-open {
+            position: fixed;
+            left: 10px;
+            top: 20px;
+            background: var(--card-bg);
+            border: var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 200;
+            color: var(--text-main);
+            backdrop-filter: blur(10px);
+        }
+        .container.collapsed ~ .btn-float-open { display: flex; }
+
         /* Menú de configuración del gráfico */
         .chart-settings-menu {
             position: absolute;
@@ -149,17 +165,19 @@
             background: var(--card-bg);
             border: var(--glass-border);
             border-radius: 8px;
-            padding: 10px;
+            padding: 15px;
             box-shadow: var(--shadow);
             z-index: 50;
             display: none;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
             font-size: 12px;
             backdrop-filter: blur(10px);
+            width: 200px;
         }
         .chart-settings-menu.active { display: flex; }
-        .chart-settings-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 3px; }
+        .chart-settings-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .chart-settings-menu hr { width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0; }
 
         .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
@@ -198,14 +216,14 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            height: 350px; /* Altura fija para evitar desajustes del 0% */
             margin-top: 20px; 
+            padding-bottom: 10px;
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 100%; /* Ocupa exactamente lo mismo que las barras */
+            height: 350px; /* Altura fija para las barras */
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px;
             flex-shrink: 0;
@@ -218,12 +236,13 @@
 
         .charts-wrapper { 
             display: flex; 
-            gap: 35px; /* Aumentado para separar las columnas */
+            gap: var(--bar-gap); /* Utiliza la variable CSS */
             flex-grow: 1; 
             position: relative; 
-            height: 100%; /* Ocupa exactamente lo mismo que el eje Y */
+            height: 350px; /* Igual a la altura del eje Y */
             overflow-x: auto;
-            overflow-y: visible;
+            overflow-y: hidden;
+            padding-bottom: 100px; /* Espacio para los textos flotantes */
         }
 
         .global-zero-line {
@@ -260,7 +279,7 @@
         .labels-area {
             position: absolute; 
             top: 100%; 
-            width: 110px; /* Más ancho para evitar cortes */
+            width: 110px; 
             left: 50%; 
             transform: translateX(-50%);
             text-align: center; 
@@ -319,7 +338,7 @@
         <div class="panel-tabla glass-panel" id="panel-tabla">
             <div class="panel-header">
                 <h2>Cuentas</h2>
-                <button class="panel-btn btn-toggle-left" onclick="toggleLeftPanel()" title="Ocultar/Mostrar Panel">⬅️</button>
+                <button class="panel-btn btn-toggle-left" onclick="toggleLeftPanel()" title="Ocultar Panel">⬅️</button>
             </div>
             <div class="table-container">
                 <table id="tabla-datos">
@@ -336,17 +355,23 @@
         <div class="panel-grafico glass-panel">
             <div class="panel-header">
                 <h2>Gráfico</h2>
-                <button class="panel-btn btn-toggle-chart" onclick="toggleChartSettings()" title="Configurar Textos">⚙️</button>
+                <button class="panel-btn btn-toggle-chart" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
                 
                 <!-- Menú de opciones del gráfico -->
                 <div class="chart-settings-menu" id="chart-settings-menu">
-                    <span style="font-weight:bold; margin-bottom:5px; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Cuenta</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
                     <label><input type="checkbox" id="chk-status" checked onchange="toggleChartLabel('status', this.checked)"> Estado</label>
                     <label><input type="checkbox" id="chk-date" checked onchange="toggleChartLabel('date', this.checked)"> Fecha</label>
                     <label><input type="checkbox" id="chk-url" checked onchange="toggleChartLabel('url', this.checked)"> URL</label>
                     <label><input type="checkbox" id="chk-notes" checked onchange="toggleChartLabel('notes', this.checked)"> Notas</label>
+                    
+                    <hr>
+                    <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                        <span>Separación de barras:</span>
+                        <input type="range" id="gap-slider" min="5" max="80" value="25" oninput="cambiarGapBarras(this.value)">
+                    </label>
                 </div>
             </div>
             <div class="chart-layout">
@@ -357,6 +382,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Botón flotante para recuperar panel izquierdo -->
+    <button class="btn-float-open" onclick="toggleLeftPanel()" title="Mostrar Panel">➡️</button>
 
     <!-- Configuración Flotante Global -->
     <button class="settings-btn" onclick="toggleGlobalSettings()">⚙️</button>
@@ -412,7 +440,7 @@
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
 
-        // --- DATOS INICIALES ---
+        // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
             { visible: true, name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
             { visible: true, name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
@@ -420,14 +448,12 @@
             { visible: true, name: "Personal", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
         ];
 
-        // Colores por defecto
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
             passed: "#a3e635", failed: "#7f1d1d",
             ownPos: "#3b82f6", ownNeg: "#ec4899"
         };
 
-        // Configuración de textos en el gráfico
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
             name: true, capital: true, status: true, date: true, url: true, notes: true
         };
@@ -436,8 +462,9 @@
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
         let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
+        let barGap = parseInt(localStorage.getItem('barGap') || 25);
 
-        // Inicializar Inputs de color
+        // Inicializar UI
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
         document.getElementById('color-passed').value = colores.passed;
@@ -445,13 +472,15 @@
         document.getElementById('color-own-pos').value = colores.ownPos;
         document.getElementById('color-own-neg').value = colores.ownNeg;
 
-        // Inicializar Checkboxes de textos
         document.getElementById('chk-name').checked = chartLabels.name;
         document.getElementById('chk-capital').checked = chartLabels.capital;
         document.getElementById('chk-status').checked = chartLabels.status;
         document.getElementById('chk-date').checked = chartLabels.date;
         document.getElementById('chk-url').checked = chartLabels.url;
         document.getElementById('chk-notes').checked = chartLabels.notes;
+
+        document.getElementById('gap-slider').value = barGap;
+        document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
 
         document.getElementById('toggle-pattern').checked = showPattern;
         document.getElementById('bg-opacity').value = overlayOpacity;
@@ -465,7 +494,6 @@
             let rgb = isDarkMode ? '26, 32, 44' : '255, 255, 255';
             let op = overlayOpacity / 100;
             let url = savedBgImage === 'none' ? 'none' : `url('${savedBgImage}')`;
-
             if (savedBgImage === 'none') document.body.style.backgroundImage = 'none';
             else document.body.style.backgroundImage = `linear-gradient(rgba(${rgb}, ${op}), rgba(${rgb}, ${op})), ${url}`;
             document.body.style.backgroundColor = isDarkMode ? '#1a202c' : '#e0e5ec';
@@ -512,20 +540,17 @@
             return (yiq >= 128) ? '#000000' : '#ffffff';
         }
 
-        // --- RENDERIZADO TABLA ---
+        // --- RENDERIZADO ---
         function renderTabla() {
             const theadTr = document.getElementById('table-headers');
             const tbody = document.querySelector('#tabla-datos tbody');
             theadTr.innerHTML = '';
             
-            // Generar Headers
             columnOrder.forEach(key => {
                 const colDef = columnasDef.find(c => c.key === key);
                 const th = document.createElement('th');
                 th.dataset.key = key;
-
                 if (key === 'visible') {
-                    // Check maestro (Select All)
                     const isAllVisible = cuentas.every(c => c.visible !== false);
                     th.innerHTML = `<input type="checkbox" class="in-check" ${isAllVisible ? 'checked' : ''} onchange="toggleAllVisibility(this.checked)" title="Mostrar/Ocultar todas">`;
                 } else {
@@ -534,11 +559,9 @@
                 theadTr.appendChild(th);
             });
 
-            // Generar Filas
             tbody.innerHTML = '';
             cuentas.forEach((cuenta, index) => {
                 const tr = document.createElement('tr');
-                
                 columnOrder.forEach(key => {
                     const td = document.createElement('td');
                     const isPropio = cuenta.modality === 'Capital propio';
@@ -594,7 +617,6 @@
                 tbody.appendChild(tr);
             });
 
-            // Inicializar Sortable
             if(!window.sortableInitialized) {
                 new Sortable(theadTr, {
                     animation: 150,
@@ -626,7 +648,6 @@
             guardarYRenderizar();
         }
 
-        // --- RENDERIZADO GRÁFICO ---
         function renderGrafico() {
             const chartArea = document.getElementById('chart-area');
             const yAxis = document.getElementById('y-axis');
@@ -671,10 +692,8 @@
                 column.className = 'chart-column';
                 const isPropio = cuenta.modality === 'Capital propio';
                 
-                // 1. Determinar el valor a graficar y el color según el estado
                 let displayValue = Number(cuenta.actual) || 0;
                 let color = colores.pos;
-                let textColor = '#ffffff';
                 
                 if (cuenta.status.includes('Desaprobado') && !isPropio) {
                     displayValue = Number(cuenta.min);
@@ -688,10 +707,9 @@
                     color = displayValue >= 0 ? colores.pos : colores.neg;
                 }
                 
-                textColor = getContrastColor(color);
+                const textColor = getContrastColor(color);
                 let textoValor = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
 
-                // 2. Dibujar Fondo y Relleno
                 let rangeHeightPercent = 0;
                 let rangeBottomPercent = 0;
                 if(!isPropio && cuenta.min !== '' && cuenta.max !== '') {
@@ -706,15 +724,12 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                // 3. Generar los textos inferiores según la selección del usuario
                 let labelsHTML = '';
                 if (chartLabels.name) labelsHTML += `<div class="name-text">${cuenta.name}</div>`;
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
                 if (chartLabels.date) labelsHTML += `<div class="date-text">${cuenta.startDate || ''}</div>`;
-                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') {
-                    labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>`;
-                }
+                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
                 column.innerHTML = `
@@ -722,16 +737,13 @@
                     <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
                         <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                     </div>
-                    
-                    <div class="labels-area">
-                        ${labelsHTML}
-                    </div>
+                    <div class="labels-area">${labelsHTML}</div>
                 `;
                 chartArea.appendChild(column);
             });
         }
 
-        // --- ACCIONES Y CONFIGURACIÓN ---
+        // --- ACCIONES ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
             guardarYRenderizar();
@@ -754,15 +766,15 @@
             renderGrafico();
         }
 
-        function toggleGlobalSettings() {
-            document.getElementById('global-settings-panel').classList.toggle('active');
+        function cambiarGapBarras(val) {
+            barGap = parseInt(val);
+            document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
+            localStorage.setItem('barGap', barGap);
         }
 
-        function toggleChartSettings() {
-            document.getElementById('chart-settings-menu').classList.toggle('active');
-        }
+        function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
+        function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
 
-        // Cerrar menú de gráfico si se hace clic afuera
         document.addEventListener('click', function(event) {
             const menu = document.getElementById('chart-settings-menu');
             const btn = document.querySelector('.btn-toggle-chart');
@@ -773,15 +785,7 @@
 
         function toggleLeftPanel() {
             const container = document.getElementById('main-container');
-            const btn = document.querySelector('.btn-toggle-left');
             container.classList.toggle('collapsed');
-            if (container.classList.contains('collapsed')) {
-                btn.innerText = '➡️';
-                btn.style.right = '-30px'; // Mover botón para que sea visible
-            } else {
-                btn.innerText = '⬅️';
-                btn.style.right = '0';
-            }
         }
 
         function toggleDarkMode() {
@@ -848,28 +852,23 @@
             renderGrafico();
         }
 
-        // --- NAVEGACIÓN CON TAB (Como Excel) ---
+        // Navegación con TAB
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Tab') {
                 const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled);
                 const current = document.activeElement;
-                
-                // Si estamos en un input de la tabla
                 if (inputs.includes(current)) {
-                    e.preventDefault(); // Evitar salto por defecto
+                    e.preventDefault();
                     const index = inputs.indexOf(current);
                     const isShift = e.shiftKey;
-                    
                     let nextIndex = isShift ? index - 1 : index + 1;
-                    
-                    // Si llegamos al final, volver al principio o al botón de agregar
                     if (nextIndex >= inputs.length) {
                         document.querySelector('.btn-add').focus();
                     } else if (nextIndex < 0) {
                         inputs[inputs.length - 1].focus();
                     } else {
                         inputs[nextIndex].focus();
-                        inputs[nextIndex].select(); // Seleccionar texto para escribir rápido
+                        inputs[nextIndex].select();
                     }
                 } else if (current.classList.contains('btn-add') && !e.shiftKey) {
                     e.preventDefault();
