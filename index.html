@@ -8,9 +8,6 @@
         :root {
             /* Variables Modo Claro */
             --bg-color: #e0e5ec;
-            --bg-image: none;
-            --bg-overlay-color: 255, 255, 255; /* RGB para permitir opacidad dinámica */
-            --bg-overlay-opacity: 0.85;
             --pattern-color: rgba(255, 255, 255, 0.4);
             --pattern-display: block;
             
@@ -30,7 +27,6 @@
         body.dark-mode {
             /* Variables Modo Oscuro */
             --bg-color: #1a202c;
-            --bg-overlay-color: 26, 32, 44; /* RGB oscuro */
             --pattern-color: rgba(255, 255, 255, 0.03);
             
             --card-bg: rgba(45, 55, 72, 0.75);
@@ -49,10 +45,7 @@
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            /* La capa de superposición usa la variable de opacidad */
-            background-image: 
-                linear-gradient(rgba(var(--bg-overlay-color), var(--bg-overlay-opacity)), rgba(var(--bg-overlay-color), var(--bg-overlay-opacity))), 
-                var(--bg-image);
+            /* El fondo se maneja por JavaScript para permitir la transparencia dinámica */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -107,7 +100,7 @@
             box-shadow: var(--shadow);
             padding: 15px;
             transition: background 0.3s ease;
-            overflow-x: auto; /* Scroll horizontal si la tabla es muy ancha */
+            overflow-x: auto;
         }
 
         h2 { margin: 0 0 10px 0; font-size: 18px; }
@@ -127,7 +120,6 @@
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
-        /* Anchos de columnas ajustados para el 50% */
         .in-name { width: 75px; }
         .in-cap { width: 65px; text-align: right; }
         .in-cost { width: 55px; text-align: right; }
@@ -146,7 +138,16 @@
         .btn-add:hover { background: #3182ce; }
 
         /* --- GRÁFICO --- */
-        .chart-layout { display: flex; height: 400px; position: relative; margin-top: 10px; }
+        .panel-grafico {
+            min-height: 520px; /* Forzar altura para que quepan los textos */
+        }
+
+        .chart-layout { 
+            display: flex; 
+            height: 500px; /* Aumentado de 400 a 500 */
+            position: relative; 
+            margin-top: 10px; 
+        }
 
         .y-axis {
             position: relative; width: 35px; height: 300px;
@@ -158,7 +159,14 @@
         }
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
-        .charts-wrapper { display: flex; gap: 15px; flex-grow: 1; position: relative; height: 300px; padding-bottom: 60px; overflow-x: auto;}
+        .charts-wrapper { 
+            display: flex; 
+            gap: 12px; 
+            flex-grow: 1; 
+            position: relative; 
+            height: 300px; 
+            overflow-x: auto;
+        }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
@@ -185,16 +193,21 @@
         .val-text { font-size: 10px; font-weight: bold; }
 
         .labels-area {
-            position: absolute; top: 100%; width: 80px;
-            left: 50%; transform: translateX(-50%);
-            text-align: center; padding-top: 8px;
+            position: absolute; 
+            top: 100%; 
+            width: 95px; /* Un poco más ancho para evitar cortes */
+            left: 50%; 
+            transform: translateX(-50%);
+            text-align: center; 
+            padding-top: 8px;
+            z-index: 10;
         }
 
         .name-text { font-size: 11px; font-weight: 600; margin-bottom: 2px; word-wrap: break-word; }
         .cap-text { font-size: 10px; color: #3182ce; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: 10px; margin-bottom: 2px; }
         .date-text { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
-        .audit-link { font-size: 10px; color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px;}
+        .audit-link { font-size: 10px; color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
         .audit-link:hover { text-decoration: underline; }
         .notes-text { font-size: 9px; color: var(--text-muted); font-style: italic; word-wrap: break-word; line-height: 1.1;}
 
@@ -292,8 +305,8 @@
         </div>
 
         <div>
-            <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa:</label>
-            <input type="range" id="bg-opacity" min="0" max="100" value="85" oninput="cambiarOpacidad(this.value)">
+            <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa: <span id="opacity-val">50</span>%</label>
+            <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="cambiarOpacidad(this.value)">
         </div>
         
         <label class="checkbox-label">
@@ -306,7 +319,7 @@
     </div>
 
     <script>
-        // --- DATOS INICIALES (Añadido el campo url) ---
+        // --- DATOS INICIALES ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
             { name: "FTMO 100k", capital: 100000, cost: 510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
             { name: "FTMO 25k", capital: 25000, cost: 250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
@@ -318,22 +331,38 @@
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
         let showPattern = localStorage.getItem('showPattern') !== 'false';
-        let overlayOpacity = localStorage.getItem('overlayOpacity') || 85;
+        let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50); // 50% por defecto
 
         // Inicializar UI
         document.getElementById('color-pos').value = colores.pos;
         document.getElementById('color-neg').value = colores.neg;
         document.getElementById('toggle-pattern').checked = showPattern;
         document.getElementById('bg-opacity').value = overlayOpacity;
+        document.getElementById('opacity-val').innerText = overlayOpacity;
         
         if(isDarkMode) document.body.classList.add('dark-mode');
         if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
-        document.documentElement.style.setProperty('--bg-overlay-opacity', overlayOpacity / 100);
-
+        
         if(savedBgImage !== 'none') {
-            document.documentElement.style.setProperty('--bg-image', `url('${savedBgImage}')`);
             document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
         }
+
+        // Función para actualizar el fondo y su opacidad
+        function updateBackground() {
+            let rgb = isDarkMode ? '26, 32, 44' : '255, 255, 255';
+            let op = overlayOpacity / 100;
+            let url = savedBgImage === 'none' ? 'none' : `url('${savedBgImage}')`;
+
+            if (savedBgImage === 'none') {
+                document.body.style.backgroundImage = 'none';
+            } else {
+                document.body.style.backgroundImage = `linear-gradient(rgba(${rgb}, ${op}), rgba(${rgb}, ${op})), ${url}`;
+            }
+            document.body.style.backgroundColor = isDarkMode ? '#1a202c' : '#e0e5ec';
+        }
+        
+        // Llamar al inicio
+        updateBackground();
 
         // --- UTILIDADES DE FORMATO ---
         function getCurrencyStr(num) {
@@ -524,7 +553,7 @@
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
                 // Generar enlace de auditoría si existe la URL
-                let auditHTML = (cuenta.url && cuenta.url.trim() !== '') ? `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Ver Auditoría</a>` : '';
+                let auditHTML = (cuenta.url && cuenta.url.trim() !== '') ? `<a href="${cuenta.url}" target="_blank" class="audit-link">🔗 Auditoría</a>` : '';
 
                 column.innerHTML = `
                     ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
@@ -566,6 +595,7 @@
             document.body.classList.toggle('dark-mode');
             isDarkMode = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
+            updateBackground(); // Actualizar el color de la capa
         }
 
         function togglePattern(isChecked) {
@@ -575,9 +605,10 @@
         }
 
         function cambiarOpacidad(val) {
-            overlayOpacity = val;
-            document.documentElement.style.setProperty('--bg-overlay-opacity', val / 100);
+            overlayOpacity = parseInt(val);
+            document.getElementById('opacity-val').innerText = val;
             localStorage.setItem('overlayOpacity', val);
+            updateBackground(); // Actualizar la opacidad en vivo
         }
 
         function cambiarFondo(url) {
@@ -588,9 +619,10 @@
             if(!url.startsWith('http') && !url.startsWith('data:')) {
                 url = 'https://' + url;
             }
-            document.documentElement.style.setProperty('--bg-image', `url('${url}')`);
+            savedBgImage = url;
             localStorage.setItem('bgImage', url);
             document.getElementById('bg-file-input').value = '';
+            updateBackground();
         }
 
         function cargarImagenLocal(event) {
@@ -598,20 +630,21 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const dataUrl = e.target.result;
-                    document.documentElement.style.setProperty('--bg-image', `url('${dataUrl}')`);
-                    localStorage.setItem('bgImage', dataUrl);
+                    savedBgImage = e.target.result;
+                    localStorage.setItem('bgImage', savedBgImage);
                     document.getElementById('bg-url-input').value = '(Imagen local cargada)';
+                    updateBackground();
                 };
                 reader.readAsDataURL(file);
             }
         }
 
         function quitarFondo() {
-            document.documentElement.style.setProperty('--bg-image', 'none');
+            savedBgImage = 'none';
             localStorage.removeItem('bgImage');
             document.getElementById('bg-url-input').value = '';
             document.getElementById('bg-file-input').value = '';
+            updateBackground();
         }
 
         function agregarFila() {
