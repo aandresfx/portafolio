@@ -80,7 +80,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            align-items: stretch; /* Obliga a ambos paneles a tener la misma altura */
+            align-items: start;
             z-index: 1;
         }
 
@@ -97,17 +97,17 @@
             box-shadow: var(--shadow);
             padding: 15px;
             transition: background 0.3s ease;
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; /* Evita que elementos internos se salgan */
         }
 
         h2 { margin: 0 0 10px 0; font-size: 18px; }
         
-        .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
+        /* La tabla ahora ocupa todo el ancho disponible sin scroll si las columnas son pocas */
+        .table-container { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 5px 3px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; white-space: nowrap; }
         
+        /* Encabezados reordenables */
         th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; cursor: grab; user-select: none; }
         th:active { cursor: grabbing; }
         th::after { content: ' ⇅'; font-size: 8px; opacity: 0.5; }
@@ -123,6 +123,7 @@
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
+        /* Ajuste de anchos */
         .in-name { width: 75px; }
         .in-cap { width: 65px; text-align: right; }
         .in-cost { width: 55px; text-align: right; }
@@ -132,7 +133,7 @@
         .in-num { width: 45px; text-align: center; }
         .in-url { width: 60px; font-size: 10px; }
         .in-notes { width: 80px; }
-        .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
+        .in-check { width: 20px; cursor: pointer; }
         
         .btn-add {
             background: #4299e1; color: white; border: none; padding: 10px 15px;
@@ -142,19 +143,22 @@
         .btn-add:hover { background: #3182ce; }
 
         /* --- GRÁFICO --- */
+        .panel-grafico {
+            /* Permitimos que el panel crezca según el contenido */
+            height: auto;
+        }
+
         .chart-layout { 
             display: flex; 
             position: relative; 
-            flex-grow: 1; /* Crece para llenar el espacio vertical */
-            min-height: 350px;
-            padding-top: 20px;
-            padding-bottom: 130px; /* Espacio para los textos de abajo */
+            margin-top: 10px; 
+            padding-bottom: 10px;
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 100%; /* Toma toda la altura disponible */
+            height: 300px; /* Altura fija para las barras */
             border-right: 1px solid var(--axis-line); 
             margin-right: 10px;
             flex-shrink: 0;
@@ -170,9 +174,11 @@
             gap: 12px; 
             flex-grow: 1; 
             position: relative; 
-            height: 100%; /* Las barras ocupan toda la altura */
+            height: 300px; /* Altura fija para las barras */
             overflow-x: auto;
             overflow-y: hidden;
+            /* El padding permite que los textos de abajo tengan espacio sin cortarse */
+            padding-bottom: 120px; 
         }
 
         .global-zero-line {
@@ -183,7 +189,7 @@
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 100%; /* Se estira */
+            height: 300px; 
             flex-shrink: 0; 
             display: flex; 
             justify-content: center; 
@@ -208,7 +214,7 @@
 
         .labels-area {
             position: absolute; 
-            top: 100%; /* Anclado al fondo de las barras */
+            top: 100%; 
             width: 95px; 
             left: 50%; 
             transform: translateX(-50%);
@@ -272,7 +278,9 @@
             <div class="table-container">
                 <table id="tabla-datos">
                     <thead>
-                        <tr id="table-headers"></tr>
+                        <tr id="table-headers">
+                            <!-- Los encabezados se generan dinámicamente con JS -->
+                        </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -338,21 +346,12 @@
             { key: 'notes', label: 'Notas' }
         ];
 
-        // Obtener orden guardado y forzar que 'visible' sea el primero
-        let savedOrder = JSON.parse(localStorage.getItem('columnOrder'));
-        let columnOrder = [];
+        // El orden inicial o el guardado por el usuario
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes'];
         
-        if (savedOrder && Array.isArray(savedOrder)) {
-            // Filtramos claves válidas y quitamos duplicados
-            columnOrder = savedOrder.filter((v, i, a) => a.indexOf(v) === i && columnasDef.find(c => c.key === v));
-            // Aseguramos que 'visible' esté, y lo movemos al principio
-            columnOrder = columnOrder.filter(k => k !== 'visible');
-            columnOrder.unshift('visible');
-            // Añadimos las columnas que falten
-            columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
-        } else {
-            columnOrder = columnasDef.map(c => c.key);
-        }
+        // Validar que todas las columnas existan en el orden (por si se añaden nuevas en el futuro)
+        columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
+        columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
 
         // --- DATOS INICIALES ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
@@ -453,6 +452,7 @@
                     const td = document.createElement('td');
                     const isPropio = cuenta.modality === 'Capital propio';
 
+                    // Generar el input según la columna
                     switch(key) {
                         case 'visible':
                             td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked)">`;
@@ -504,11 +504,12 @@
                 tbody.appendChild(tr);
             });
 
-            // Inicializar Sortable
+            // Inicializar Sortable solo una vez
             if(!window.sortableInitialized) {
                 new Sortable(theadTr, {
                     animation: 150,
                     onEnd: function (evt) {
+                        // Guardar el nuevo orden
                         const newOrder = Array.from(theadTr.children).map(th => th.dataset.key);
                         columnOrder = newOrder;
                         localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
@@ -539,7 +540,7 @@
             chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
-            // Filtrar visibles y ordenar por fecha
+            // Filtrar solo las visibles
             const cuentasVisibles = cuentas.filter(c => c.visible !== false);
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
