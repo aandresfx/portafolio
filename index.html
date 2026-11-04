@@ -22,7 +22,7 @@
             --axis-line: #cbd5e0;
             --shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-            --bar-gap: 25px; /* Variable para el espacio entre barras */
+            --bar-gap: 25px;
         }
 
         body.dark-mode {
@@ -111,6 +111,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            /* Se eliminó overflow: hidden para que los textos del gráfico no se corten */
         }
 
         .panel-header {
@@ -136,7 +137,7 @@
         .btn-toggle-left { right: 0; }
         .btn-toggle-chart { right: 0; }
 
-        /* Botón flotante cuando el panel está colapsado */
+        /* Botón flotante cuando el panel izquierdo está colapsado */
         .btn-float-open {
             position: fixed;
             left: 10px;
@@ -217,13 +218,14 @@
             display: flex; 
             position: relative; 
             margin-top: 20px; 
-            padding-bottom: 10px;
+            height: 350px; /* Altura exacta de las barras */
+            margin-bottom: 140px; /* Espacio para que los textos no se corten y el panel se expanda */
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 350px; /* Altura fija para las barras */
+            height: 100%; 
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px;
             flex-shrink: 0;
@@ -236,18 +238,18 @@
 
         .charts-wrapper { 
             display: flex; 
-            gap: var(--bar-gap); /* Utiliza la variable CSS */
+            gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            height: 350px; /* Igual a la altura del eje Y */
+            height: 100%; /* Igual a los 350px del layout */
             overflow-x: auto;
-            overflow-y: hidden;
-            padding-bottom: 100px; /* Espacio para los textos flotantes */
+            overflow-y: visible; 
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
+            transform: translateY(-50%); /* Centrado perfecto con el eje */
         }
 
         .chart-column { 
@@ -685,7 +687,8 @@
                 yAxis.appendChild(tick);
             }
 
-            document.getElementById('global-zero-line').style.bottom = `${zeroBottomPercent}%`;
+            // Alinear la línea 0% con los ticks usando top y transform
+            document.getElementById('global-zero-line').style.top = `${100 - zeroBottomPercent}%`;
 
             cuentasVisibles.forEach(cuenta => {
                 const column = document.createElement('div');
