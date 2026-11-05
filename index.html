@@ -161,6 +161,7 @@
         .in-url { width: 60px; font-size: 10px; }
         .in-notes { width: 80px; }
         .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
+        .in-alert { width: 45px; text-align: center; }
         
         .btn-delete {
             background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; transition: transform 0.2s;
@@ -284,6 +285,7 @@
             border-radius: 4px;
         }
 
+        .alert-text { font-size: 14px; margin-bottom: 2px; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: var(--text-main); font-weight: bold; margin-bottom: 2px; }
         .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
@@ -395,6 +397,7 @@
                 <div class="dropdown-menu" id="chart-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
                     <label><input type="checkbox" id="chk-investor" checked onchange="toggleChartLabel('investor', this.checked)"> Inversor (Avatar)</label>
+                    <label><input type="checkbox" id="chk-alert" checked onchange="toggleChartLabel('alert', this.checked)"> Alerta ⏰</label>
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
                     <label><input type="checkbox" id="chk-cost" checked onchange="toggleChartLabel('cost', this.checked)"> Costo</label>
@@ -510,21 +513,22 @@
             { key: 'max', label: 'Obj' },
             { key: 'url', label: 'URL' },
             { key: 'notes', label: 'Notas' },
+            { key: 'alert', label: 'Alerta' }, // NUEVA COLUMNA
             { key: 'actions', label: '' }
         ];
 
-        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
         
-        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
+        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
-            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
-            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
-            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
+            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "" },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰" },
+            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "" },
+            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "" }
         ];
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
@@ -553,7 +557,7 @@
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
-            investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true
+            investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true, alert: true
         };
 
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -580,6 +584,7 @@
             document.getElementById('color-mod-mixto').value = colores.modMixto;
 
             document.getElementById('chk-investor').checked = chartLabels.investor;
+            document.getElementById('chk-alert').checked = chartLabels.alert;
             document.getElementById('chk-name').checked = chartLabels.name;
             document.getElementById('chk-capital').checked = chartLabels.capital;
             document.getElementById('chk-cost').checked = chartLabels.cost;
@@ -838,6 +843,12 @@
                         case 'notes':
                             td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
+                        case 'alert':
+                            td.innerHTML = `<select class="in-alert" onchange="actualizarDato(${index}, 'alert', this.value)">
+                                <option value="" ${!cuenta.alert ? 'selected' : ''}>--</option>
+                                <option value="⏰" ${cuenta.alert === '⏰' ? 'selected' : ''}>⏰</option>
+                            </select>`;
+                            break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
                             break;
@@ -902,13 +913,13 @@
         function eliminarCuenta(index) {
             if(confirm("¿Seguro que deseas eliminar esta cuenta?")) {
                 cuentas.splice(index, 1);
-                guardarYRenderizar(); // Re-renderiza tabla y gráfico
+                guardarYRenderizar(); 
             }
         }
 
         function toggleAllVisibility(isChecked) {
             cuentas.forEach(c => c.visible = isChecked);
-            guardarYRenderizar(); // Re-renderiza para actualizar todos los checkboxes
+            guardarYRenderizar(); 
         }
 
         function cambiarModalidad(index, valor) {
@@ -920,7 +931,7 @@
                 cuentas[index].min = -10;
                 cuentas[index].max = 10;
             }
-            guardarYRenderizar(); // Re-renderiza por el cambio de colores y estado de min/max
+            guardarYRenderizar(); 
         }
 
         function renderGrafico() {
@@ -1002,6 +1013,9 @@
                     const empTextColor = getContrastColor(empColor);
                     labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
                 }
+                if (chartLabels.alert && cuenta.alert) {
+                    labelsHTML += `<div class="alert-text">${cuenta.alert}</div>`;
+                }
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                 if (chartLabels.cost && cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
@@ -1074,7 +1088,6 @@
             cuentas[index][campo] = valor;
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderGrafico();
-            // NOTA: No llamamos a renderTabla() aquí para evitar que la tabla se redibuje y se pierda el foco del clic.
         }
 
         function guardarYRenderizar() {
@@ -1095,7 +1108,7 @@
             colores.modMixto = document.getElementById('color-mod-mixto').value;
             
             localStorage.setItem('misColores', JSON.stringify(colores));
-            renderTabla(); // Re-renderizamos por los colores de los inputs
+            renderTabla();
             renderGrafico();
         }
 
@@ -1123,7 +1136,6 @@
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
         function toggleTableSettings() { document.getElementById('table-settings-menu').classList.toggle('active'); }
 
-        // Evento global para cerrar menús al hacer clic fuera
         document.addEventListener('click', function(event) {
             const cMenu = document.getElementById('chart-settings-menu');
             const cBtn = document.querySelector('[onclick="toggleChartSettings()"]');
@@ -1155,7 +1167,7 @@
             isDarkMode = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
             updateBackground();
-            renderTabla(); // Re-renderizamos por los colores del fondo de la fecha
+            renderTabla();
         }
 
         function cambiarOpacidad(val) {
@@ -1200,8 +1212,8 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
-            guardarYRenderizar(); // Re-renderizamos para añadir la fila visualmente
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            guardarYRenderizar();
         }
 
         // --- GESTIÓN DE EMPRESAS ---
