@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💼 Portafolio</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Librería para exportar a imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-color: #e0e5ec;
@@ -175,20 +177,13 @@
 
         /* --- GRÁFICO --- */
         .chart-layout { 
-            display: flex; 
-            position: relative; 
-            margin-top: 10px;
-            padding-bottom: 10px;
+            display: flex; position: relative; margin-top: 10px; padding-bottom: 10px;
         }
 
         .y-axis {
-            position: relative; 
-            width: 35px; 
-            height: 300px; 
-            border-right: 1px solid var(--axis-line); 
-            margin-right: 15px; 
-            flex-shrink: 0;
-            margin-top: 40px; /* Alinea la escala Y con las barras, dejando espacio para el avatar */
+            position: relative; width: 35px; height: 300px; 
+            border-right: 1px solid var(--axis-line); margin-right: 15px; flex-shrink: 0;
+            margin-top: 40px; /* Alinea con las barras */
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
@@ -197,54 +192,34 @@
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper { 
-            display: flex; 
-            gap: var(--bar-gap); 
-            flex-grow: 1; 
-            position: relative; 
-            height: 480px; /* Altura total para avatar + barra + textos */
+            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; 
+            height: 480px; /* Altura para avatar + barras + textos */
             align-items: flex-start; 
-            overflow-x: auto; 
-            overflow-y: hidden; /* Recorta el excedente, pero el contenido ya cabe */
-            padding-top: 40px; 
-            padding-bottom: 20px;
+            overflow-x: auto; overflow-y: hidden; 
+            padding-top: 40px; padding-bottom: 20px;
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
-            /* El top se calcula con JS */
         }
 
         .chart-column { 
-            position: relative; 
-            width: 45px; 
-            flex-shrink: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            height: 100%;
+            position: relative; width: 45px; flex-shrink: 0; 
+            display: flex; flex-direction: column; align-items: center; height: 100%;
         }
 
         .avatar-container {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--input-bg);
-            border: 2px solid var(--border-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            overflow: hidden;
-            z-index: 5;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--input-bg); border: 2px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); overflow: hidden; z-index: 5;
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; font-weight: bold; color: var(--text-muted);
-            margin-bottom: 10px; /* Separación con la barra */
+            margin-bottom: 10px;
         }
         .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
 
-        .bar-container { 
-            position: relative; 
-            width: 100%; 
-            height: 300px; 
-        }
+        .bar-container { position: relative; width: 100%; height: 300px; }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -262,12 +237,7 @@
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        .labels-area { 
-            width: 110px; 
-            text-align: center; 
-            padding-top: 10px; 
-            z-index: 10; 
-        }
+        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; }
 
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
@@ -355,13 +325,15 @@
         </div>
 
         <!-- Panel Gráfico -->
-        <div class="panel-grafico glass-panel">
+        <div class="panel-grafico glass-panel" id="panel-grafico-export">
             <div class="datetime-display" id="datetime-display"></div>
 
             <div class="panel-header">
                 <div style="width: 120px;"></div>
                 <h2>Gráfico</h2>
                 <div class="header-tools">
+                    <!-- Botón de exportar imagen -->
+                    <button class="icon-btn" onclick="exportChart()" title="Descargar Imagen">📸</button>
                     <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
                 </div>
                 
@@ -908,9 +880,8 @@
                 yAxis.appendChild(tick);
             }
 
-            // La línea 0% se posiciona dentro del .bar-container
             const zeroLineTop = 300 - (300 * (zeroBottomPercent / 100));
-            document.getElementById('global-zero-line').style.top = `${zeroLineTop + 40}px`; // +40px por el padding superior del wrapper (avatar)
+            document.getElementById('global-zero-line').style.top = `${zeroLineTop + 40}px`;
 
             cuentasVisibles.forEach(cuenta => {
                 const column = document.createElement('div');
@@ -947,7 +918,6 @@
                         avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
                     }
                 } else {
-                    // Placeholder invisible para mantener la alineación vertical si no hay avatar
                     avatarHTML = `<div style="height: 38px; width: 28px;"></div>`;
                 }
 
@@ -963,7 +933,6 @@
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
-                // Todo fluye en el orden natural: avatar, barra, textos
                 column.innerHTML = `
                     ${avatarHTML}
                     <div class="bar-container">
@@ -975,6 +944,48 @@
                     <div class="labels-area">${labelsHTML}</div>
                 `;
                 chartArea.appendChild(column);
+            });
+        }
+
+        // --- EXPORTAR IMAGEN ---
+        function exportChart() {
+            const element = document.getElementById('panel-grafico-export');
+            
+            // Guardar estilos originales para restaurarlos luego
+            const originalBackdrop = element.style.backdropFilter;
+            const originalWebkitBackdrop = element.style.webkitBackdropFilter;
+            const originalBg = element.style.backgroundColor;
+
+            // Desactivar el efecto "glass" (blur) porque html2canvas no lo soporta bien
+            element.style.backdropFilter = 'none';
+            element.style.webkitBackdropFilter = 'none';
+            
+            // Forzar un fondo sólido para que la imagen no salga transparente
+            const bgColor = isDarkMode ? '#1a202c' : '#e0e5ec';
+            element.style.backgroundColor = bgColor;
+
+            // Generar la captura
+            html2canvas(element, { 
+                scale: 2, // Calidad alta (Retina)
+                backgroundColor: bgColor,
+                useCORS: true // Permite cargar imágenes externas (como los avatares)
+            }).then(canvas => {
+                // Restaurar estilos
+                element.style.backdropFilter = originalBackdrop;
+                element.style.webkitBackdropFilter = originalWebkitBackdrop;
+                element.style.backgroundColor = originalBg;
+
+                // Descargar archivo
+                const link = document.createElement('a');
+                link.download = `Portafolio_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            }).catch(err => {
+                console.error("Error al exportar:", err);
+                element.style.backdropFilter = originalBackdrop;
+                element.style.webkitBackdropFilter = originalWebkitBackdrop;
+                element.style.backgroundColor = originalBg;
+                alert("Hubo un error al generar la imagen. Revisa la consola.");
             });
         }
 
@@ -1176,7 +1187,6 @@
                 inversores.push({ name: name, avatar: tempAvatarBase64 });
                 localStorage.setItem('misInversores', JSON.stringify(inversores));
                 
-                // Limpiar inputs
                 nameInput.value = '';
                 tempAvatarBase64 = "";
                 const preview = document.getElementById('avatar-preview');
