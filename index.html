@@ -137,8 +137,18 @@
         .dropdown-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-menu hr { width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0; }
         
-        #chart-settings-menu { right: 10px; width: 220px; }
+        #chart-settings-menu { right: 10px; width: 240px; }
         #table-settings-menu { left: 10px; width: 200px; }
+
+        /* Estilos para la lista arrastrable de textos */
+        #chart-labels-list { display: flex; flex-direction: column; gap: 4px; margin-top: 5px; }
+        .drag-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+            background: var(--input-bg); border: 1px solid var(--border-color);
+            border-radius: 6px; cursor: grab; user-select: none;
+        }
+        .drag-item:active { cursor: grabbing; }
+        .drag-handle { color: var(--text-muted); font-size: 14px; font-weight: bold; letter-spacing: -1px;}
 
         .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
@@ -359,7 +369,7 @@
             width: 100%;
             text-align: center;
             color: var(--text-muted);
-            min-height: 26px; /* Para que no se achique cuando está vacío */
+            min-height: 26px;
         }
         .btn-alert.active {
             background: rgba(255, 193, 7, 0.2);
@@ -471,18 +481,10 @@
                         <option value="both">Ambos</option>
                     </select>
 
-                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos debajo:</span>
-                    <label><input type="checkbox" id="chk-investor" checked onchange="toggleChartLabel('investor', this.checked)"> Inversor (Avatar)</label>
-                    <label><input type="checkbox" id="chk-alert" checked onchange="toggleChartLabel('alert', this.checked)"> Alerta ⏰</label>
-                    <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
-                    <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
-                    <label><input type="checkbox" id="chk-cost" checked onchange="toggleChartLabel('cost', this.checked)"> Costo</label>
-                    <label><input type="checkbox" id="chk-risk" checked onchange="toggleChartLabel('risk', this.checked)"> Riesgo (%)</label>
-                    <label><input type="checkbox" id="chk-risk-usd" checked onchange="toggleChartLabel('risk_usd', this.checked)"> Riesgo USD</label>
-                    <label><input type="checkbox" id="chk-status" checked onchange="toggleChartLabel('status', this.checked)"> Estado</label>
-                    <label><input type="checkbox" id="chk-date" checked onchange="toggleChartLabel('date', this.checked)"> Fecha</label>
-                    <label><input type="checkbox" id="chk-url" checked onchange="toggleChartLabel('url', this.checked)"> URL</label>
-                    <label><input type="checkbox" id="chk-notes" checked onchange="toggleChartLabel('notes', this.checked)"> Notas</label>
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Textos debajo (Arrastrar para ordenar):</span>
+                    <div id="chart-labels-list">
+                        <!-- Se genera con JS -->
+                    </div>
                     
                     <hr>
                     <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
@@ -619,6 +621,11 @@
         
         let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'risk_usd', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
 
+        // --- ORDEN DE TEXTOS EN GRÁFICO ---
+        let chartLabelsOrder = JSON.parse(localStorage.getItem('chartLabelsOrder')) || [
+            'investor', 'alert', 'name', 'capital', 'cost', 'risk', 'risk_usd', 'status', 'date', 'url', 'notes'
+        ];
+
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
             { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "" },
@@ -682,18 +689,7 @@
             document.getElementById('color-mod-mixto').value = colores.modMixto;
 
             document.getElementById('bar-val-display').value = barValueDisplay;
-            document.getElementById('chk-investor').checked = chartLabels.investor;
-            document.getElementById('chk-alert').checked = chartLabels.alert;
-            document.getElementById('chk-name').checked = chartLabels.name;
-            document.getElementById('chk-capital').checked = chartLabels.capital;
-            document.getElementById('chk-cost').checked = chartLabels.cost;
-            document.getElementById('chk-risk').checked = chartLabels.risk;
-            document.getElementById('chk-risk-usd').checked = chartLabels.risk_usd;
-            document.getElementById('chk-status').checked = chartLabels.status;
-            document.getElementById('chk-date').checked = chartLabels.date;
-            document.getElementById('chk-url').checked = chartLabels.url;
-            document.getElementById('chk-notes').checked = chartLabels.notes;
-
+            
             document.getElementById('gap-slider').value = barGap;
             document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
             
@@ -711,8 +707,59 @@
             renderCompanyList();
             renderInvestorList();
             renderTableSettings();
+            renderChartLabelsMenu(); // Nueva función
         }
         initUI();
+
+        // --- MENÚ DE ETIQUETAS DEL GRÁFICO ---
+        function renderChartLabelsMenu() {
+            const list = document.getElementById('chart-labels-list');
+            list.innerHTML = '';
+
+            const labelNames = {
+                investor: 'Inversor (Avatar)',
+                alert: 'Alerta ⏰',
+                name: 'Empresa',
+                capital: 'Capital',
+                cost: 'Costo',
+                risk: 'Riesgo (%)',
+                risk_usd: 'Riesgo USD',
+                status: 'Estado',
+                date: 'Fecha',
+                url: 'URL',
+                notes: 'Notas'
+            };
+
+            chartLabelsOrder.forEach(key => {
+                const item = document.createElement('div');
+                item.className = 'drag-item';
+                item.innerHTML = `
+                    <span class="drag-handle">⋮⋮</span>
+                    <input type="checkbox" id="chk-${key}" ${chartLabels[key] ? 'checked' : ''} onchange="toggleChartLabel('${key}', this.checked)" style="cursor:pointer;">
+                    <label for="chk-${key}" style="cursor:pointer; flex-grow:1;">${labelNames[key]}</label>
+                `;
+                list.appendChild(item);
+            });
+
+            // Inicializar Sortable si no está ya inicializado
+            if (!window.chartSortableInitialized) {
+                new Sortable(list, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function (evt) {
+                        // Reconstruir el orden basado en el DOM
+                        const newOrder = Array.from(list.children).map(item => {
+                            const input = item.querySelector('input[type="checkbox"]');
+                            return input.id.replace('chk-', '');
+                        });
+                        chartLabelsOrder = newOrder;
+                        localStorage.setItem('chartLabelsOrder', JSON.stringify(chartLabelsOrder));
+                        renderGrafico(); // Redibujar el gráfico con el nuevo orden
+                    }
+                });
+                window.chartSortableInitialized = true;
+            }
+        }
 
         // --- LAYOUTS ---
         function setLayout(mode) {
@@ -834,7 +881,7 @@
             const backup = {};
             const keys = [
                 'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
-                'chartLabels', 'barValueDisplay', 'darkMode', 'bgImage', 
+                'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
                 'visibleCols', 'layoutState'
             ];
@@ -1170,51 +1217,72 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                let avatarHTML = '';
-                if(chartLabels.investor && cuenta.investor) {
-                    const inv = inversores.find(i => i.name === cuenta.investor);
-                    if (inv && inv.avatar) {
-                        avatarHTML = `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`;
-                    } else {
-                        const initial = cuenta.investor.charAt(0).toUpperCase();
-                        avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
-                    }
-                }
-
+                // Construir etiquetas basadas en el orden del array
                 let labelsHTML = '';
-                if (chartLabels.name) {
-                    const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
-                    const empTextColor = getContrastColor(empColor);
-                    labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
-                }
-                if (chartLabels.alert && cuenta.alert) {
-                    labelsHTML += `<div class="alert-text">${cuenta.alert}</div>`;
-                }
-                if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
-                if (chartLabels.cost && cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
-                
-                if (chartLabels.risk && cuenta.risk) {
-                    labelsHTML += `<div class="risk-text">R: ${getPercentStr(cuenta.risk, 2)}</div>`;
-                }
-                if (chartLabels.risk_usd && cuenta.risk) {
-                    let riskUsdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
-                    labelsHTML += `<div class="risk-text">R: ${getCurrencyStr(riskUsdVal)}</div>`;
-                }
+                chartLabelsOrder.forEach(key => {
+                    if (!chartLabels[key]) return; // Si está desmarcado, no se muestra
 
-                if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
-                if (chartLabels.date) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`; 
-                if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
-                if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
+                    switch(key) {
+                        case 'investor':
+                            if (cuenta.investor) {
+                                const inv = inversores.find(i => i.name === cuenta.investor);
+                                if (inv && inv.avatar) {
+                                    labelsHTML += `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`;
+                                } else {
+                                    const initial = cuenta.investor.charAt(0).toUpperCase();
+                                    labelsHTML += `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
+                                }
+                            }
+                            break;
+                        case 'alert':
+                            if (cuenta.alert) labelsHTML += `<div class="alert-text">${cuenta.alert}</div>`;
+                            break;
+                        case 'name':
+                            const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
+                            const empTextColor = getContrastColor(empColor);
+                            labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
+                            break;
+                        case 'capital':
+                            labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
+                            break;
+                        case 'cost':
+                            if (cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
+                            break;
+                        case 'risk':
+                            if (cuenta.risk) labelsHTML += `<div class="risk-text">R: ${getPercentStr(cuenta.risk, 2)}</div>`;
+                            break;
+                        case 'risk_usd':
+                            if (cuenta.risk) {
+                                let riskUsdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
+                                labelsHTML += `<div class="risk-text">R: ${getCurrencyStr(riskUsdVal)}</div>`;
+                            }
+                            break;
+                        case 'status':
+                            if (cuenta.status) labelsHTML += `<div class="status-text">${cuenta.status}</div>`;
+                            break;
+                        case 'date':
+                            if (cuenta.startDate) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`;
+                            break;
+                        case 'url':
+                            if (cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
+                            break;
+                        case 'notes':
+                            if (cuenta.notes) labelsHTML += `<div class="notes-text">${cuenta.notes}</div>`;
+                            break;
+                    }
+                });
 
                 column.innerHTML = `
                     <div class="bar-container">
-                        ${avatarHTML}
+                        ${labelsHTML.includes('avatar-container') ? labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6) : ''}
                         ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
                         <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                         </div>
                     </div>
-                    <div class="labels-area">${labelsHTML}</div>
+                    <div class="labels-area">
+                        ${labelsHTML.includes('avatar-container') ? labelsHTML.replace(labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6), '') : labelsHTML}
+                    </div>
                 `;
                 chartArea.appendChild(column);
             });
@@ -1290,10 +1358,8 @@
         }
 
         function toggleAlerta(index) {
-            // Si ya tiene reloj, lo vacía; si está vacío, le pone el reloj
             cuentas[index].alert = cuentas[index].alert === '⏰' ? '' : '⏰';
             
-            // Actualizamos el botón visualmente sin recargar toda la tabla
             const btn = document.getElementById(`btn-alert-${index}`);
             if (btn) {
                 btn.innerHTML = cuentas[index].alert || '';
@@ -1304,7 +1370,6 @@
                 }
             }
             
-            // Guardamos y actualizamos el gráfico
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderGrafico();
         }
