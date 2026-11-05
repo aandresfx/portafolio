@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portafolio - Mercados evolutivos</title>
     
-    <!-- 1. FAVICON DE LA PESTAÑA (Reemplaza la URL con tu enlace de GitHub) -->
+    <!-- 1. FAVICON DE LA PESTAÑA -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png">
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -346,6 +346,26 @@
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
         .list-row .avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; flex-shrink: 0;}
 
+        /* --- BOTÓN DE ALERTA --- */
+        .btn-alert {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            padding: 4px 0;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .btn-alert.active {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: #ffc107;
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
         /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
         .brand-container {
             position: fixed; 
@@ -356,7 +376,7 @@
             align-items: flex-end;
             gap: 8px;
             z-index: 100;
-            pointer-events: none; /* Para que no moleste al hacer clic */
+            pointer-events: none;
         }
         
         .brand-logo {
@@ -371,13 +391,12 @@
             backdrop-filter: blur(10px);
         }
 
-        /* 2. ÍCONO FLOTANTE (Reemplaza la URL con tu enlace de GitHub) */
         .brand-logo img {
             width: 26px;
             height: 26px;
             border-radius: 50%;
             object-fit: cover;
-            background-color: var(--input-bg); /* Fondo por si la imagen es transparente */
+            background-color: var(--input-bg);
         }
 
         .brand-logo span {
@@ -560,7 +579,6 @@
     <!-- Marca de agua y Logo Flotante -->
     <div class="brand-container">
         <div class="brand-logo">
-            <!-- 3. LOGO FLOTANTE (Reemplaza la URL con tu enlace de GitHub) -->
             <img src="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png" alt="Logo">
             <span>Mercados Evolutivos</span>
         </div>
@@ -986,10 +1004,7 @@
                             td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
                         case 'alert':
-                            td.innerHTML = `<select class="in-alert" onchange="actualizarDato(${index}, 'alert', this.value)">
-                                <option value="" ${!cuenta.alert ? 'selected' : ''}>--</option>
-                                <option value="⏰" ${cuenta.alert === '⏰' ? 'selected' : ''}>⏰</option>
-                            </select>`;
+                            td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Alerta">${cuenta.alert || '--'}</button>`;
                             break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
@@ -1256,6 +1271,26 @@
                 }
             }
             
+            renderGrafico();
+        }
+
+        function toggleAlerta(index) {
+            // Si ya tiene reloj, lo vacía; si está vacío, le pone el reloj
+            cuentas[index].alert = cuentas[index].alert === '⏰' ? '' : '⏰';
+            
+            // Actualizamos el botón visualmente sin recargar toda la tabla
+            const btn = document.getElementById(`btn-alert-${index}`);
+            if (btn) {
+                btn.innerHTML = cuentas[index].alert || '--';
+                if (cuentas[index].alert) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+            
+            // Guardamos y actualizamos el gráfico
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderGrafico();
         }
 
