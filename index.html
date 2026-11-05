@@ -294,6 +294,7 @@
         .alert-text { font-size: 14px; margin-bottom: 2px; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: var(--text-main); font-weight: bold; margin-bottom: 2px; }
         .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
+        .risk-text { font-size: calc(var(--chart-label-size) - 2px); color: #d97706; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
         .date-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); margin-bottom: 2px; }
         .audit-link { font-size: calc(var(--chart-label-size) - 1px); color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
@@ -358,6 +359,7 @@
             width: 100%;
             text-align: center;
             color: var(--text-muted);
+            min-height: 26px; /* Para que no se achique cuando está vacío */
         }
         .btn-alert.active {
             background: rgba(255, 193, 7, 0.2);
@@ -475,6 +477,8 @@
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
                     <label><input type="checkbox" id="chk-cost" checked onchange="toggleChartLabel('cost', this.checked)"> Costo</label>
+                    <label><input type="checkbox" id="chk-risk" checked onchange="toggleChartLabel('risk', this.checked)"> Riesgo (%)</label>
+                    <label><input type="checkbox" id="chk-risk-usd" checked onchange="toggleChartLabel('risk_usd', this.checked)"> Riesgo USD</label>
                     <label><input type="checkbox" id="chk-status" checked onchange="toggleChartLabel('status', this.checked)"> Estado</label>
                     <label><input type="checkbox" id="chk-date" checked onchange="toggleChartLabel('date', this.checked)"> Fecha</label>
                     <label><input type="checkbox" id="chk-url" checked onchange="toggleChartLabel('url', this.checked)"> URL</label>
@@ -649,7 +653,7 @@
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
-            investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true, alert: true
+            investor: true, name: true, capital: true, cost: true, risk: true, risk_usd: true, status: true, date: true, url: true, notes: true, alert: true
         };
 
         let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; 
@@ -683,6 +687,8 @@
             document.getElementById('chk-name').checked = chartLabels.name;
             document.getElementById('chk-capital').checked = chartLabels.capital;
             document.getElementById('chk-cost').checked = chartLabels.cost;
+            document.getElementById('chk-risk').checked = chartLabels.risk;
+            document.getElementById('chk-risk-usd').checked = chartLabels.risk_usd;
             document.getElementById('chk-status').checked = chartLabels.status;
             document.getElementById('chk-date').checked = chartLabels.date;
             document.getElementById('chk-url').checked = chartLabels.url;
@@ -1004,7 +1010,7 @@
                             td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
                         case 'alert':
-                            td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Alerta">${cuenta.alert || '--'}</button>`;
+                            td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Alerta">${cuenta.alert || ''}</button>`;
                             break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
@@ -1186,6 +1192,15 @@
                 }
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                 if (chartLabels.cost && cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
+                
+                if (chartLabels.risk && cuenta.risk) {
+                    labelsHTML += `<div class="risk-text">R: ${getPercentStr(cuenta.risk, 2)}</div>`;
+                }
+                if (chartLabels.risk_usd && cuenta.risk) {
+                    let riskUsdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
+                    labelsHTML += `<div class="risk-text">R: ${getCurrencyStr(riskUsdVal)}</div>`;
+                }
+
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
                 if (chartLabels.date) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`; 
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
@@ -1281,7 +1296,7 @@
             // Actualizamos el botón visualmente sin recargar toda la tabla
             const btn = document.getElementById(`btn-alert-${index}`);
             if (btn) {
-                btn.innerHTML = cuentas[index].alert || '--';
+                btn.innerHTML = cuentas[index].alert || '';
                 if (cuentas[index].alert) {
                     btn.classList.add('active');
                 } else {
