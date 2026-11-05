@@ -463,6 +463,16 @@
             <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
             <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
         </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
+        <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
+        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
+        <div style="display:flex; gap:5px;">
+            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
+            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
+            <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
+        </div>
     </div>
 
     <!-- Panel de Configuración Visual -->
@@ -514,8 +524,8 @@
             { key: 'investor', label: 'Inversor' },
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
-            { key: 'risk', label: 'Riesgo' }, // NUEVA
-            { key: 'risk_usd', label: 'Riesgo USD' }, // NUEVA
+            { key: 'risk', label: 'Riesgo' }, 
+            { key: 'risk_usd', label: 'Riesgo USD' }, 
             { key: 'startDate', label: 'Inicio' },
             { key: 'modality', label: 'Modalidad' },
             { key: 'status', label: 'Estado' },
@@ -571,7 +581,7 @@
             investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true, alert: true
         };
 
-        let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; // 'pct', 'usd', 'both'
+        let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; 
 
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
@@ -740,6 +750,64 @@
                 color = displayValue >= 0 ? colores.pos : colores.neg;
             }
             return color;
+        }
+
+        // --- BACKUP & RESTORE ---
+        function exportarDatos() {
+            const backup = {};
+            // Lista de todas las claves que usa la app
+            const keys = [
+                'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
+                'chartLabels', 'barValueDisplay', 'darkMode', 'bgImage', 
+                'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
+                'visibleCols', 'layoutState'
+            ];
+
+            keys.forEach(key => {
+                const item = localStorage.getItem(key);
+                if (item !== null) {
+                    backup[key] = item; // Guardamos el string tal cual está
+                }
+            });
+
+            const dataStr = JSON.stringify(backup, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Portafolio_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importarDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Restaurar cada elemento en localStorage
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            localStorage.setItem(key, data[key]);
+                        }
+                    }
+                    
+                    alert("¡Datos importados con éxito! La página se recargará para aplicar los cambios.");
+                    location.reload();
+                    
+                } catch (error) {
+                    console.error(error);
+                    alert("Error al leer el archivo. Asegúrate de que sea un archivo de backup válido (.json).");
+                }
+            };
+            reader.readAsText(file);
         }
 
         // --- RENDERIZADO ---
@@ -1122,7 +1190,6 @@
             cuentas[index][campo] = valor;
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             
-            // Si se modifica el capital o el riesgo, actualizamos la celda de Riesgo USD visualmente
             if (campo === 'capital' || campo === 'risk') {
                 const tr = document.querySelectorAll('#tabla-datos tbody tr')[index];
                 if (tr) {
