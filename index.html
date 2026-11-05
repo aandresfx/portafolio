@@ -44,8 +44,7 @@
             background-color: var(--bg-color);
             background-size: cover;
             background-position: center;
-            /* Eliminamos background-attachment: fixed para que html2canvas pueda capturar el fondo */
-            background-attachment: scroll; 
+            background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
             padding: 20px;
@@ -181,16 +180,15 @@
             position: relative; 
             margin-top: 10px;
             padding-bottom: 10px;
-            align-items: flex-start; /* Evita que el eje Y se estire */
         }
 
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 300px; /* Altura exacta de las barras */
+            height: 300px; 
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px; 
-            margin-top: 40px; /* Baja para alinearse con las barras */
+            margin-top: 40px; /* Baja para alinearse exactamente con el inicio de la barra */
             flex-shrink: 0;
         }
         .y-tick {
@@ -204,50 +202,52 @@
             gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            overflow-x: auto; 
-            overflow-y: hidden; 
-            padding-top: 40px; /* Espacio exacto para el avatar */
-            padding-bottom: 10px;
+            height: 460px; /* Espacio suficiente para textos */
+            overflow-x: auto;
+            overflow-y: hidden; /* El gráfico no hace scroll vertical */
+            padding-top: 40px; /* Espacio superior para que el avatar flote */
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
-            top: 190px; /* 40px (avatar) + 150px (mitad de la barra) */
+            /* top calculado en JS, exactamente a 150px del inicio de la barra (40px padding + 150) */
         }
 
         .chart-column { 
             position: relative; 
             width: 45px; 
+            height: 300px; /* Altura exacta de la barra */
             flex-shrink: 0; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
         }
 
-        /* 1. Área del Avatar (flujo natural) */
-        .avatar-area {
-            height: 40px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .avatar-container {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: var(--input-bg); border: 2px solid var(--border-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold; color: var(--text-muted);
-        }
-        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* 2. Barra */
         .bar-container { 
             position: relative; 
             width: 100%; 
             height: 300px; 
         }
+
+        /* Ahora el avatar está DENTRO de .bar-container, asegurando centrado perfecto */
+        .avatar-container {
+            position: absolute;
+            top: -40px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            overflow: hidden;
+            z-index: 5;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; color: var(--text-muted);
+        }
+        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -265,8 +265,9 @@
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        /* 3. Textos */
         .labels-area { 
+            position: absolute;
+            top: 100%; /* Justo debajo de los 300px de la barra */
             width: 110px; 
             text-align: center; 
             padding-top: 10px; 
@@ -913,6 +914,7 @@
                 yAxis.appendChild(tick);
             }
 
+            // La línea 0% se posiciona exactamente a 150px (centro de 300px) + 40px (padding) = 190px
             document.getElementById('global-zero-line').style.top = `190px`;
 
             cuentasVisibles.forEach(cuenta => {
@@ -963,9 +965,10 @@
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
+                // El avatar se coloca DENTRO del bar-container para un centrado perfecto
                 column.innerHTML = `
-                    <div class="avatar-area">${avatarHTML}</div>
                     <div class="bar-container">
+                        ${avatarHTML}
                         ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
                         <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
@@ -977,38 +980,29 @@
             });
         }
 
-        // --- EXPORTAR IMAGEN (FULL SCREEN) ---
+        // --- EXPORTAR IMAGEN ---
         function exportChart() {
-            const element = document.getElementById('main-container');
-            const body = document.body;
+            const element = document.getElementById('panel-grafico-export');
             
-            // Guardar estilos originales
             const originalBackdrop = element.style.backdropFilter;
             const originalWebkitBackdrop = element.style.webkitBackdropFilter;
-            const originalBgAttachment = body.style.backgroundAttachment;
+            const originalBg = element.style.backgroundColor;
 
-            // Ajustes para exportación
             element.style.backdropFilter = 'none';
             element.style.webkitBackdropFilter = 'none';
             
-            // Desactivar fondo fijo temporalmente para que html2canvas pueda capturar la imagen de fondo
-            body.style.backgroundAttachment = 'scroll'; 
-
             const bgColor = isDarkMode ? '#1a202c' : '#e0e5ec';
+            element.style.backgroundColor = bgColor;
 
-            html2canvas(body, { 
+            html2canvas(element, { 
                 scale: 2,
                 backgroundColor: bgColor,
-                useCORS: true,
-                scrollX: 0,
-                scrollY: 0
+                useCORS: true
             }).then(canvas => {
-                // Restaurar estilos
                 element.style.backdropFilter = originalBackdrop;
                 element.style.webkitBackdropFilter = originalWebkitBackdrop;
-                body.style.backgroundAttachment = originalBgAttachment;
+                element.style.backgroundColor = originalBg;
 
-                // Descargar
                 const link = document.createElement('a');
                 link.download = `Portafolio_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
@@ -1017,7 +1011,7 @@
                 console.error("Error al exportar:", err);
                 element.style.backdropFilter = originalBackdrop;
                 element.style.webkitBackdropFilter = originalWebkitBackdrop;
-                body.style.backgroundAttachment = originalBgAttachment;
+                element.style.backgroundColor = originalBg;
                 alert("Hubo un error al generar la imagen. Revisa la consola.");
             });
         }
