@@ -44,7 +44,7 @@
             background-color: var(--bg-color);
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            background-attachment: fixed; /* Se cambiará temporalmente en la captura */
             color: var(--text-main);
             margin: 0;
             padding: 20px;
@@ -188,7 +188,7 @@
             height: 300px; 
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px; 
-            margin-top: 40px; /* Baja para alinearse exactamente con el inicio de la barra */
+            margin-top: 40px; 
             flex-shrink: 0;
         }
         .y-tick {
@@ -202,22 +202,21 @@
             gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            height: 460px; /* Espacio suficiente para textos */
+            height: 460px; 
             overflow-x: auto;
-            overflow-y: hidden; /* El gráfico no hace scroll vertical */
-            padding-top: 40px; /* Espacio superior para que el avatar flote */
+            overflow-y: hidden; 
+            padding-top: 40px; 
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
-            /* top calculado en JS, exactamente a 150px del inicio de la barra (40px padding + 150) */
         }
 
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 300px; /* Altura exacta de la barra */
+            height: 300px; 
             flex-shrink: 0; 
             display: flex; 
             flex-direction: column; 
@@ -230,7 +229,6 @@
             height: 300px; 
         }
 
-        /* Ahora el avatar está DENTRO de .bar-container, asegurando centrado perfecto */
         .avatar-container {
             position: absolute;
             top: -40px; 
@@ -267,7 +265,7 @@
 
         .labels-area { 
             position: absolute;
-            top: 100%; /* Justo debajo de los 300px de la barra */
+            top: 100%; 
             width: 110px; 
             text-align: center; 
             padding-top: 10px; 
@@ -914,7 +912,6 @@
                 yAxis.appendChild(tick);
             }
 
-            // La línea 0% se posiciona exactamente a 150px (centro de 300px) + 40px (padding) = 190px
             document.getElementById('global-zero-line').style.top = `190px`;
 
             cuentasVisibles.forEach(cuenta => {
@@ -965,7 +962,6 @@
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
-                // El avatar se coloca DENTRO del bar-container para un centrado perfecto
                 column.innerHTML = `
                     <div class="bar-container">
                         ${avatarHTML}
@@ -980,38 +976,55 @@
             });
         }
 
-        // --- EXPORTAR IMAGEN ---
+        // --- EXPORTAR IMAGEN (PANTALLA COMPLETA) ---
         function exportChart() {
-            const element = document.getElementById('panel-grafico-export');
-            
-            const originalBackdrop = element.style.backdropFilter;
-            const originalWebkitBackdrop = element.style.webkitBackdropFilter;
-            const originalBg = element.style.backgroundColor;
+            // Capturamos todo el cuerpo de la página
+            const body = document.body;
+            const panels = document.querySelectorAll('.glass-panel');
 
-            element.style.backdropFilter = 'none';
-            element.style.webkitBackdropFilter = 'none';
+            // Guardar estilos originales que html2canvas no procesa bien
+            const originalBgAttachment = body.style.backgroundAttachment;
+            const originalBackdrops = Array.from(panels).map(p => p.style.backdropFilter);
+            const originalWebkitBackdrops = Array.from(panels).map(p => p.style.webkitBackdropFilter);
+
+            // Desactivar fondo fijo temporalmente para que la imagen de fondo se capture correctamente
+            body.style.backgroundAttachment = 'scroll'; 
             
+            // Quitar el efecto de desenfoque (blur) de las tarjetas de cristal
+            panels.forEach(p => {
+                p.style.backdropFilter = 'none';
+                p.style.webkitBackdropFilter = 'none';
+            });
+
             const bgColor = isDarkMode ? '#1a202c' : '#e0e5ec';
-            element.style.backgroundColor = bgColor;
 
-            html2canvas(element, { 
-                scale: 2,
+            html2canvas(body, { 
+                scale: 2, // Alta resolución
                 backgroundColor: bgColor,
-                useCORS: true
+                useCORS: true,
+                scrollX: 0,
+                scrollY: 0
             }).then(canvas => {
-                element.style.backdropFilter = originalBackdrop;
-                element.style.webkitBackdropFilter = originalWebkitBackdrop;
-                element.style.backgroundColor = originalBg;
+                // Restaurar los estilos originales
+                body.style.backgroundAttachment = originalBgAttachment;
+                panels.forEach((p, i) => {
+                    p.style.backdropFilter = originalBackdrops[i];
+                    p.style.webkitBackdropFilter = originalWebkitBackdrops[i];
+                });
 
+                // Descargar la imagen
                 const link = document.createElement('a');
                 link.download = `Portafolio_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             }).catch(err => {
                 console.error("Error al exportar:", err);
-                element.style.backdropFilter = originalBackdrop;
-                element.style.webkitBackdropFilter = originalWebkitBackdrop;
-                element.style.backgroundColor = originalBg;
+                // Restaurar estilos en caso de error
+                body.style.backgroundAttachment = originalBgAttachment;
+                panels.forEach((p, i) => {
+                    p.style.backdropFilter = originalBackdrops[i];
+                    p.style.webkitBackdropFilter = originalWebkitBackdrops[i];
+                });
                 alert("Hubo un error al generar la imagen. Revisa la consola.");
             });
         }
