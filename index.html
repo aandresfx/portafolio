@@ -224,9 +224,16 @@
             align-items: center; 
         }
 
+        .bar-container { 
+            position: relative; 
+            width: 100%; 
+            height: 300px; 
+        }
+
+        /* Ahora el avatar está DENTRO de .bar-container, asegurando centrado perfecto */
         .avatar-container {
             position: absolute;
-            top: -40px; /* Flota por encima de la barra, sin empujarla */
+            top: -40px; 
             left: 50%;
             transform: translateX(-50%);
             width: 28px;
@@ -241,12 +248,6 @@
             font-size: 12px; font-weight: bold; color: var(--text-muted);
         }
         .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
-
-        .bar-container { 
-            position: relative; 
-            width: 100%; 
-            height: 300px; 
-        }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -950,8 +951,6 @@
                         const initial = cuenta.investor.charAt(0).toUpperCase();
                         avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
                     }
-                } else {
-                    avatarHTML = ''; // Ya no necesitamos placeholder porque flota
                 }
 
                 let labelsHTML = '';
@@ -966,9 +965,10 @@
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
+                // El avatar se coloca DENTRO del bar-container para un centrado perfecto
                 column.innerHTML = `
-                    ${avatarHTML}
                     <div class="bar-container">
+                        ${avatarHTML}
                         ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
                         <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
