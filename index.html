@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💼 Portafolio</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <!-- Librería para exportar a imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -175,15 +174,22 @@
         }
         .btn-add:hover { background: #3182ce; }
 
-        /* --- GRÁFICO --- */
+        /* --- GRÁFICO (ALINEACIÓN PERFECTA) --- */
         .chart-layout { 
-            display: flex; position: relative; margin-top: 10px; padding-bottom: 10px;
+            display: flex; 
+            position: relative; 
+            margin-top: 10px;
+            padding-bottom: 10px;
         }
 
         .y-axis {
-            position: relative; width: 35px; height: 300px; 
-            border-right: 1px solid var(--axis-line); margin-right: 15px; flex-shrink: 0;
-            margin-top: 40px; /* Alinea con las barras */
+            position: relative; 
+            width: 35px; 
+            height: 300px; 
+            border-right: 1px solid var(--axis-line); 
+            margin-right: 15px; 
+            margin-top: 40px; /* Baja para alinearse exactamente con el inicio de la barra */
+            flex-shrink: 0;
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
@@ -192,34 +198,55 @@
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper { 
-            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; 
-            height: 480px; /* Altura para avatar + barras + textos */
-            align-items: flex-start; 
-            overflow-x: auto; overflow-y: hidden; 
-            padding-top: 40px; padding-bottom: 20px;
+            display: flex; 
+            gap: var(--bar-gap); 
+            flex-grow: 1; 
+            position: relative; 
+            height: 460px; /* Espacio suficiente para textos */
+            overflow-x: auto;
+            overflow-y: hidden; /* El gráfico no hace scroll vertical */
+            padding-top: 40px; /* Espacio superior para que el avatar flote */
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
+            /* top calculado en JS, exactamente a 150px del inicio de la barra (40px padding + 150) */
         }
 
         .chart-column { 
-            position: relative; width: 45px; flex-shrink: 0; 
-            display: flex; flex-direction: column; align-items: center; height: 100%;
+            position: relative; 
+            width: 45px; 
+            height: 300px; /* Altura exacta de la barra */
+            flex-shrink: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
         }
 
         .avatar-container {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: var(--input-bg); border: 2px solid var(--border-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); overflow: hidden; z-index: 5;
+            position: absolute;
+            top: -40px; /* Flota por encima de la barra, sin empujarla */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            overflow: hidden;
+            z-index: 5;
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; font-weight: bold; color: var(--text-muted);
-            margin-bottom: 10px;
         }
         .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
 
-        .bar-container { position: relative; width: 100%; height: 300px; }
+        .bar-container { 
+            position: relative; 
+            width: 100%; 
+            height: 300px; 
+        }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -237,7 +264,14 @@
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; }
+        .labels-area { 
+            position: absolute;
+            top: 100%; /* Justo debajo de los 300px de la barra */
+            width: 110px; 
+            text-align: center; 
+            padding-top: 10px; 
+            z-index: 10; 
+        }
 
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
@@ -332,7 +366,6 @@
                 <div style="width: 120px;"></div>
                 <h2>Gráfico</h2>
                 <div class="header-tools">
-                    <!-- Botón de exportar imagen -->
                     <button class="icon-btn" onclick="exportChart()" title="Descargar Imagen">📸</button>
                     <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
                 </div>
@@ -880,8 +913,8 @@
                 yAxis.appendChild(tick);
             }
 
-            const zeroLineTop = 300 - (300 * (zeroBottomPercent / 100));
-            document.getElementById('global-zero-line').style.top = `${zeroLineTop + 40}px`;
+            // La línea 0% se posiciona exactamente a 150px (centro de 300px) + 40px (padding) = 190px
+            document.getElementById('global-zero-line').style.top = `190px`;
 
             cuentasVisibles.forEach(cuenta => {
                 const column = document.createElement('div');
@@ -918,7 +951,7 @@
                         avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
                     }
                 } else {
-                    avatarHTML = `<div style="height: 38px; width: 28px;"></div>`;
+                    avatarHTML = ''; // Ya no necesitamos placeholder porque flota
                 }
 
                 let labelsHTML = '';
@@ -951,31 +984,25 @@
         function exportChart() {
             const element = document.getElementById('panel-grafico-export');
             
-            // Guardar estilos originales para restaurarlos luego
             const originalBackdrop = element.style.backdropFilter;
             const originalWebkitBackdrop = element.style.webkitBackdropFilter;
             const originalBg = element.style.backgroundColor;
 
-            // Desactivar el efecto "glass" (blur) porque html2canvas no lo soporta bien
             element.style.backdropFilter = 'none';
             element.style.webkitBackdropFilter = 'none';
             
-            // Forzar un fondo sólido para que la imagen no salga transparente
             const bgColor = isDarkMode ? '#1a202c' : '#e0e5ec';
             element.style.backgroundColor = bgColor;
 
-            // Generar la captura
             html2canvas(element, { 
-                scale: 2, // Calidad alta (Retina)
+                scale: 2,
                 backgroundColor: bgColor,
-                useCORS: true // Permite cargar imágenes externas (como los avatares)
+                useCORS: true
             }).then(canvas => {
-                // Restaurar estilos
                 element.style.backdropFilter = originalBackdrop;
                 element.style.webkitBackdropFilter = originalWebkitBackdrop;
                 element.style.backgroundColor = originalBg;
 
-                // Descargar archivo
                 const link = document.createElement('a');
                 link.download = `Portafolio_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
