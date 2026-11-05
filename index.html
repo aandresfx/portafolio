@@ -162,6 +162,8 @@
         .in-notes { width: 80px; }
         .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
         .in-alert { width: 45px; text-align: center; }
+        .in-risk { width: 55px; text-align: center; }
+        .in-risk-usd { width: 65px; text-align: right; }
         
         .btn-delete {
             background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; transition: transform 0.2s;
@@ -263,7 +265,7 @@
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
 
-        .val-text { font-size: 10px; font-weight: bold; }
+        .val-text { font-size: 10px; font-weight: bold; text-align: center; line-height: 1.1; }
 
         .labels-area { 
             position: absolute;
@@ -395,7 +397,14 @@
                 
                 <!-- Menú de opciones del gráfico -->
                 <div class="dropdown-menu" id="chart-settings-menu">
-                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar en las barras:</span>
+                    <select id="bar-val-display" onchange="cambiarBarValueDisplay(this.value)" style="width:100%; padding:4px; margin-bottom: 10px;">
+                        <option value="pct">Porcentaje (%)</option>
+                        <option value="usd">Dólares (USD)</option>
+                        <option value="both">Ambos</option>
+                    </select>
+
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos debajo:</span>
                     <label><input type="checkbox" id="chk-investor" checked onchange="toggleChartLabel('investor', this.checked)"> Inversor (Avatar)</label>
                     <label><input type="checkbox" id="chk-alert" checked onchange="toggleChartLabel('alert', this.checked)"> Alerta ⏰</label>
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
@@ -505,6 +514,8 @@
             { key: 'investor', label: 'Inversor' },
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
+            { key: 'risk', label: 'Riesgo' }, // NUEVA
+            { key: 'risk_usd', label: 'Riesgo USD' }, // NUEVA
             { key: 'startDate', label: 'Inicio' },
             { key: 'modality', label: 'Modalidad' },
             { key: 'status', label: 'Estado' },
@@ -513,22 +524,22 @@
             { key: 'max', label: 'Obj' },
             { key: 'url', label: 'URL' },
             { key: 'notes', label: 'Notas' },
-            { key: 'alert', label: 'Alerta' }, // NUEVA COLUMNA
+            { key: 'alert', label: 'Alerta' }, 
             { key: 'actions', label: '' }
         ];
 
-        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'risk_usd', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
         
-        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
+        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'risk_usd', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "" },
-            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰" },
-            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "" },
-            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "" }
+            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "" },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰" },
+            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "" },
+            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "" }
         ];
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
@@ -560,6 +571,8 @@
             investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true, alert: true
         };
 
+        let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; // 'pct', 'usd', 'both'
+
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
@@ -583,6 +596,7 @@
             document.getElementById('color-mod-propio').value = colores.modPropio;
             document.getElementById('color-mod-mixto').value = colores.modMixto;
 
+            document.getElementById('bar-val-display').value = barValueDisplay;
             document.getElementById('chk-investor').checked = chartLabels.investor;
             document.getElementById('chk-alert').checked = chartLabels.alert;
             document.getElementById('chk-name').checked = chartLabels.name;
@@ -644,7 +658,9 @@
         // --- UTILIDADES ---
         function getCurrencyStr(num) {
             if(num === null || num === undefined || num === '') return '';
-            return '$' + Number(num).toLocaleString('es-AR');
+            let n = Number(num);
+            if(n < 0) return '-$' + Math.abs(n).toLocaleString('es-AR', {maximumFractionDigits: 0});
+            return '$' + n.toLocaleString('es-AR', {maximumFractionDigits: 0});
         }
         function getCostStr(num) {
             if(num === null || num === undefined || num === '') return '';
@@ -796,6 +812,13 @@
                         case 'cost':
                             td.innerHTML = `<input type="text" class="in-cost" value="${getCostStr(cuenta.cost)}" onfocus="this.value = parseCurrency(this.value) || ''; this.select()" onblur="this.value = getCostStr(parseCurrency(this.value)); actualizarDato(${index}, 'cost', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-$">`;
                             break;
+                        case 'risk':
+                            td.innerHTML = `<input type="text" class="in-risk" value="${getPercentStr(cuenta.risk, 2)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 2); actualizarDato(${index}, 'risk', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            break;
+                        case 'risk_usd':
+                            let usdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
+                            td.innerHTML = `<input type="text" class="in-risk-usd" style="color:var(--text-muted); font-weight:bold; background:transparent; border:none; box-shadow:none;" readonly value="${getCurrencyStr(usdVal)}">`;
+                            break;
                         case 'startDate':
                             const dateBg = isDarkMode ? '#e2e8f0' : '#2d3748';
                             const dateColor = isDarkMode ? '#1a202c' : '#f7fafc';
@@ -891,7 +914,7 @@
                 if (valA === null || valA === undefined) valA = '';
                 if (valB === null || valB === undefined) valB = '';
 
-                if (['capital', 'cost', 'actual', 'min', 'max'].includes(key)) {
+                if (['capital', 'cost', 'actual', 'min', 'max', 'risk', 'risk_usd'].includes(key)) {
                     valA = Number(valA) || 0;
                     valB = Number(valB) || 0;
                 } else if (key === 'startDate') {
@@ -980,7 +1003,18 @@
                 let color = getAccountColor(cuenta);
                 
                 const textColor = getContrastColor(color);
-                let textoValor = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
+                const pctStr = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
+                const usdVal = ((Number(cuenta.capital) || 0) * displayValue) / 100;
+                const usdStr = getCurrencyStr(usdVal);
+
+                let textoValor = '';
+                if (barValueDisplay === 'pct') {
+                    textoValor = pctStr;
+                } else if (barValueDisplay === 'usd') {
+                    textoValor = usdStr;
+                } else {
+                    textoValor = `${pctStr}<br><span style="font-size:0.85em; opacity:0.8;">${usdStr}</span>`;
+                }
 
                 let rangeHeightPercent = 0;
                 let rangeBottomPercent = 0;
@@ -1087,6 +1121,23 @@
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            
+            // Si se modifica el capital o el riesgo, actualizamos la celda de Riesgo USD visualmente
+            if (campo === 'capital' || campo === 'risk') {
+                const tr = document.querySelectorAll('#tabla-datos tbody tr')[index];
+                if (tr) {
+                    const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
+                    const usdIndex = activeColumns.indexOf('risk_usd');
+                    if (usdIndex > -1) {
+                        const usdInput = tr.children[usdIndex].querySelector('input');
+                        if (usdInput) {
+                            let usdVal = (Number(cuentas[index].capital) || 0) * (Number(cuentas[index].risk) || 0) / 100;
+                            usdInput.value = getCurrencyStr(usdVal);
+                        }
+                    }
+                }
+            }
+            
             renderGrafico();
         }
 
@@ -1115,6 +1166,12 @@
         function toggleChartLabel(key, isChecked) {
             chartLabels[key] = isChecked;
             localStorage.setItem('chartLabels', JSON.stringify(chartLabels));
+            renderGrafico();
+        }
+
+        function cambiarBarValueDisplay(val) {
+            barValueDisplay = val;
+            localStorage.setItem('barValueDisplay', val);
             renderGrafico();
         }
 
@@ -1212,7 +1269,7 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
             guardarYRenderizar();
         }
 
@@ -1382,7 +1439,7 @@
         // Navegación con TAB
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Tab') {
-                const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled);
+                const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled && !el.readOnly);
                 const current = document.activeElement;
                 if (inputs.includes(current)) {
                     e.preventDefault();
