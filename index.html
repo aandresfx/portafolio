@@ -185,7 +185,7 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 50px; /* Más margen para los avatares */
+            margin-top: 20px; /* Espacio extra para el eje */
             padding-bottom: 10px;
         }
 
@@ -200,8 +200,12 @@
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper { 
-            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; align-items: flex-start; 
-            overflow-x: auto; overflow-y: hidden;
+            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; align-items: flex-end; /* Alineado al fondo para que las barras crezcan hacia arriba */
+            overflow-x: auto; 
+            overflow-y: visible; /* IMPORTANTE: Permite que el avatar sobresalga */
+            padding-top: 50px; /* Espacio para el avatar */
+            padding-bottom: 10px;
+            margin-top: -50px; /* Compensa el padding para no desajustar el gráfico */
         }
 
         .global-zero-line {
@@ -212,14 +216,12 @@
 
         .chart-column { 
             position: relative; width: 45px; flex-shrink: 0; 
-            display: flex; flex-direction: column; align-items: center; 
+            display: flex; flex-direction: column; align-items: center; height: 300px; /* Altura fija para las barras */
         }
-
-        .bar-container { position: relative; width: 100%; height: 300px; }
 
         .avatar-container {
             position: absolute;
-            top: -40px; /* Encima de la barra */
+            top: -40px; /* Flota por encima de la barra */
             left: 50%;
             transform: translateX(-50%);
             width: 28px;
@@ -234,6 +236,8 @@
             font-size: 12px; font-weight: bold; color: var(--text-muted);
         }
         .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .bar-container { position: relative; width: 100%; height: 100%; }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -251,7 +255,7 @@
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; }
+        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; position: absolute; top: 100%; }
 
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
@@ -352,6 +356,7 @@
                 <!-- Menú de opciones del gráfico -->
                 <div class="dropdown-menu" id="chart-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar textos:</span>
+                    <label><input type="checkbox" id="chk-investor" checked onchange="toggleChartLabel('investor', this.checked)"> Inversor (Avatar)</label>
                     <label><input type="checkbox" id="chk-name" checked onchange="toggleChartLabel('name', this.checked)"> Empresa</label>
                     <label><input type="checkbox" id="chk-capital" checked onchange="toggleChartLabel('capital', this.checked)"> Capital</label>
                     <label><input type="checkbox" id="chk-cost" checked onchange="toggleChartLabel('cost', this.checked)"> Costo</label>
@@ -499,8 +504,9 @@
             modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
         };
 
+        // Añadido chartLabels.investor
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
-            name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true
+            investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true
         };
 
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -512,7 +518,7 @@
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
         let currentLayout = localStorage.getItem('layoutState') || 'side';
-        let tempAvatarBase64 = ""; // Para guardar la foto temporalmente antes de agregar el inversor
+        let tempAvatarBase64 = "";
 
         // Inicializar UI
         function initUI() {
@@ -526,6 +532,7 @@
             document.getElementById('color-mod-propio').value = colores.modPropio;
             document.getElementById('color-mod-mixto').value = colores.modMixto;
 
+            document.getElementById('chk-investor').checked = chartLabels.investor;
             document.getElementById('chk-name').checked = chartLabels.name;
             document.getElementById('chk-capital').checked = chartLabels.capital;
             document.getElementById('chk-cost').checked = chartLabels.cost;
@@ -918,14 +925,13 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                // AVATAR DEL INVERSOR
+                // AVATAR DEL INVERSOR (Controlado por chartLabels.investor)
                 let avatarHTML = '';
-                if(cuenta.investor) {
+                if(chartLabels.investor && cuenta.investor) {
                     const inv = inversores.find(i => i.name === cuenta.investor);
                     if (inv && inv.avatar) {
                         avatarHTML = `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`;
                     } else {
-                        // Si no tiene foto, mostrar la inicial
                         const initial = cuenta.investor.charAt(0).toUpperCase();
                         avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
                     }
