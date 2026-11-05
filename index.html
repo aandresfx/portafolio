@@ -164,6 +164,7 @@
         
         .btn-delete {
             background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; transition: transform 0.2s;
+            flex-shrink: 0; /* Evita que se aplaste */
         }
         .btn-delete:hover { transform: scale(1.2); }
 
@@ -292,14 +293,14 @@
 
         .settings-panel {
             position: fixed; bottom: 75px; left: 20px; background: var(--card-bg); border: var(--glass-border);
-            border-radius: 10px; padding: 15px; width: 320px; box-shadow: var(--shadow); z-index: 100;
+            border-radius: 10px; padding: 15px; width: 340px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 80vh; overflow-y: auto;
         }
         .settings-panel.active { display: flex; }
         
         .settings-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
-        .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; }
+        .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
         .toggle-btn {
@@ -311,13 +312,11 @@
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        .company-list, .investor-list { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; max-height: 150px; overflow-y: auto; padding-right: 5px;}
-        .list-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; gap: 5px; }
-        .list-row input[type="color"] { width: 25px; height: 20px; flex-shrink: 0;}
-        .list-row img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);}
-        
-        /* Estilo para los inputs de edición dentro de la lista */
-        .list-row input[type="text"] { flex-grow: 1; min-width: 50px; padding: 4px; font-size: 11px; }
+        /* Listas de empresas e inversores en configuración */
+        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 150px; overflow-y: auto; padding-right: 5px;}
+        .list-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; gap: 8px; }
+        .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
+        .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
 
         /* Marca de agua */
         .watermark {
@@ -428,7 +427,7 @@
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
-        <label>Empresas:</label>
+        <label>Empresas (Editar / Eliminar):</label>
         <div class="company-list" id="company-list"></div>
         <div style="display:flex; gap:5px; margin-top:5px;">
             <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
@@ -438,7 +437,7 @@
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
-        <label>Inversores:</label>
+        <label>Inversores (Editar / Eliminar):</label>
         <div class="investor-list" id="investor-list"></div>
         <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
             <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
@@ -1161,12 +1160,11 @@
         }
 
         function cambiarNombreEmpresa(index, nuevoNombre) {
-            if(!nuevoNombre.trim()) { renderCompanyList(); return; } // Si se borra el texto, volver al original
+            if(!nuevoNombre.trim()) { renderCompanyList(); return; } 
             const oldName = empresas[index].name;
             empresas[index].name = nuevoNombre.trim();
             localStorage.setItem('misEmpresas', JSON.stringify(empresas));
             
-            // Actualizar cuentas asociadas
             cuentas.forEach(c => { if(c.name === oldName) c.name = nuevoNombre.trim(); });
             guardarYRenderizar();
             renderCompanyList();
@@ -1214,7 +1212,7 @@
             inversores.forEach((inv, index) => {
                 const row = document.createElement('div');
                 row.className = 'list-row';
-                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div style="width:20px; height:20px; border-radius:50%; background:#ccc; text-align:center; font-size:10px; line-height:20px; color:#333;">${inv.name.charAt(0)}</div>`;
+                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div style="width:24px; height:24px; border-radius:50%; background:#ccc; text-align:center; font-size:12px; line-height:24px; color:#333; flex-shrink:0;">${inv.name.charAt(0)}</div>`;
                 row.innerHTML = `
                     ${avatarSrc}
                     <input type="text" value="${inv.name}" onchange="cambiarNombreInversor(${index}, this.value)">
@@ -1230,7 +1228,6 @@
             inversores[index].name = nuevoNombre.trim();
             localStorage.setItem('misInversores', JSON.stringify(inversores));
             
-            // Actualizar cuentas asociadas
             cuentas.forEach(c => { if(c.investor === oldName) c.investor = nuevoNombre.trim(); });
             guardarYRenderizar();
             renderInvestorList();
