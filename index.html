@@ -44,7 +44,7 @@
             background-color: var(--bg-color);
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Se cambiará temporalmente en la captura */
+            background-attachment: fixed; 
             color: var(--text-main);
             margin: 0;
             padding: 20px;
@@ -315,6 +315,9 @@
         .list-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; gap: 5px; }
         .list-row input[type="color"] { width: 25px; height: 20px; flex-shrink: 0;}
         .list-row img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);}
+        
+        /* Estilo para los inputs de edición dentro de la lista */
+        .list-row input[type="text"] { flex-grow: 1; min-width: 50px; padding: 4px; font-size: 11px; }
 
         /* Marca de agua */
         .watermark {
@@ -978,19 +981,15 @@
 
         // --- EXPORTAR IMAGEN (PANTALLA COMPLETA) ---
         function exportChart() {
-            // Capturamos todo el cuerpo de la página
             const body = document.body;
             const panels = document.querySelectorAll('.glass-panel');
 
-            // Guardar estilos originales que html2canvas no procesa bien
             const originalBgAttachment = body.style.backgroundAttachment;
             const originalBackdrops = Array.from(panels).map(p => p.style.backdropFilter);
             const originalWebkitBackdrops = Array.from(panels).map(p => p.style.webkitBackdropFilter);
 
-            // Desactivar fondo fijo temporalmente para que la imagen de fondo se capture correctamente
             body.style.backgroundAttachment = 'scroll'; 
             
-            // Quitar el efecto de desenfoque (blur) de las tarjetas de cristal
             panels.forEach(p => {
                 p.style.backdropFilter = 'none';
                 p.style.webkitBackdropFilter = 'none';
@@ -999,27 +998,24 @@
             const bgColor = isDarkMode ? '#1a202c' : '#e0e5ec';
 
             html2canvas(body, { 
-                scale: 2, // Alta resolución
+                scale: 2,
                 backgroundColor: bgColor,
                 useCORS: true,
                 scrollX: 0,
                 scrollY: 0
             }).then(canvas => {
-                // Restaurar los estilos originales
                 body.style.backgroundAttachment = originalBgAttachment;
                 panels.forEach((p, i) => {
                     p.style.backdropFilter = originalBackdrops[i];
                     p.style.webkitBackdropFilter = originalWebkitBackdrops[i];
                 });
 
-                // Descargar la imagen
                 const link = document.createElement('a');
                 link.download = `Portafolio_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             }).catch(err => {
                 console.error("Error al exportar:", err);
-                // Restaurar estilos en caso de error
                 body.style.backgroundAttachment = originalBgAttachment;
                 panels.forEach((p, i) => {
                     p.style.backdropFilter = originalBackdrops[i];
@@ -1156,11 +1152,24 @@
                 const row = document.createElement('div');
                 row.className = 'list-row';
                 row.innerHTML = `
-                    <span style="flex-grow:1;">${emp.name}</span>
+                    <input type="text" value="${emp.name}" onchange="cambiarNombreEmpresa(${index}, this.value)">
                     <input type="color" value="${emp.color}" onchange="cambiarColorEmpresa(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarEmpresa(${index})" title="Eliminar">🗑️</button>
                 `;
                 list.appendChild(row);
             });
+        }
+
+        function cambiarNombreEmpresa(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderCompanyList(); return; } // Si se borra el texto, volver al original
+            const oldName = empresas[index].name;
+            empresas[index].name = nuevoNombre.trim();
+            localStorage.setItem('misEmpresas', JSON.stringify(empresas));
+            
+            // Actualizar cuentas asociadas
+            cuentas.forEach(c => { if(c.name === oldName) c.name = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderCompanyList();
         }
 
         function cambiarColorEmpresa(index, nuevoColor) {
@@ -1168,6 +1177,16 @@
             localStorage.setItem('misEmpresas', JSON.stringify(empresas));
             renderTabla();
             renderGrafico();
+        }
+
+        function eliminarEmpresa(index) {
+            if(confirm(`¿Eliminar la empresa ${empresas[index].name}?`)) {
+                empresas.splice(index, 1);
+                localStorage.setItem('misEmpresas', JSON.stringify(empresas));
+                renderCompanyList();
+                renderTabla();
+                renderGrafico();
+            }
         }
 
         function agregarEmpresa() {
@@ -1198,11 +1217,23 @@
                 const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div style="width:20px; height:20px; border-radius:50%; background:#ccc; text-align:center; font-size:10px; line-height:20px; color:#333;">${inv.name.charAt(0)}</div>`;
                 row.innerHTML = `
                     ${avatarSrc}
-                    <span style="flex-grow:1;">${inv.name}</span>
-                    <button class="btn-delete" onclick="eliminarInversor(${index})" style="font-size:12px;" title="Eliminar">🗑️</button>
+                    <input type="text" value="${inv.name}" onchange="cambiarNombreInversor(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarInversor(${index})" title="Eliminar">🗑️</button>
                 `;
                 list.appendChild(row);
             });
+        }
+
+        function cambiarNombreInversor(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderInvestorList(); return; }
+            const oldName = inversores[index].name;
+            inversores[index].name = nuevoNombre.trim();
+            localStorage.setItem('misInversores', JSON.stringify(inversores));
+            
+            // Actualizar cuentas asociadas
+            cuentas.forEach(c => { if(c.investor === oldName) c.investor = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderInvestorList();
         }
 
         function previewAvatar(event) {
