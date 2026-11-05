@@ -8,9 +8,6 @@
     <style>
         :root {
             --bg-color: #e0e5ec;
-            --pattern-color: rgba(255, 255, 255, 0.4);
-            --pattern-display: block;
-            
             --card-bg: rgba(255, 255, 255, 0.75);
             --text-main: #2d3748;
             --text-muted: #718096;
@@ -24,16 +21,10 @@
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
             --bar-gap: 25px;
             --chart-label-size: 11px;
-            
-            --company-FTMO: #3182ce;
-            --company-Darwinex: #4a5568;
-            --company-Axi: #e53e3e;
-            --company-Bullfy: #dd6b20;
         }
 
         body.dark-mode {
             --bg-color: #1a202c;
-            --pattern-color: rgba(255, 255, 255, 0.03);
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
@@ -64,19 +55,6 @@
             overflow-x: hidden;
         }
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: 
-                linear-gradient(45deg, var(--pattern-color) 25%, transparent 25%, transparent 75%, var(--pattern-color) 75%, var(--pattern-color)), 
-                linear-gradient(-45deg, var(--pattern-color) 25%, transparent 25%, transparent 75%, var(--pattern-color) 75%, var(--pattern-color));
-            background-size: 60px 60px;
-            z-index: -1;
-            pointer-events: none;
-            display: var(--pattern-display);
-        }
-
         /* --- LAYOUTS --- */
         .container {
             max-width: 1800px;
@@ -88,31 +66,11 @@
             transition: all 0.3s ease;
         }
 
-        /* 1. Lado a Lado (Default) */
-        .container.layout-side {
-            grid-template-columns: 1fr 1fr;
-            grid-template-areas: "table chart";
-        }
-        /* 2. Tabla Abajo */
-        .container.layout-bottom {
-            grid-template-columns: 1fr;
-            grid-template-areas: 
-                "chart"
-                "table";
-        }
-        /* 3. Tabla Arriba */
-        .container.layout-top {
-            grid-template-columns: 1fr;
-            grid-template-areas: 
-                "table"
-                "chart";
-        }
-        /* 4. Minimizada (Solo gráfico) */
-        .container.layout-hidden {
-            grid-template-columns: 0fr 1fr;
-            grid-template-areas: "table chart";
-            gap: 0;
-        }
+        .container.layout-side { grid-template-columns: 1fr 1fr; grid-template-areas: "table chart"; }
+        .container.layout-bottom { grid-template-columns: 1fr; grid-template-areas: "chart" "table"; }
+        .container.layout-top { grid-template-columns: 1fr; grid-template-areas: "table" "chart"; }
+        .container.layout-hidden { grid-template-columns: 0fr 1fr; grid-template-areas: "table chart"; gap: 0; }
+        
         .container.layout-hidden .panel-tabla {
             opacity: 0;
             pointer-events: none;
@@ -152,79 +110,38 @@
         }
         h2 { margin: 0; font-size: 18px; text-align: center; text-transform: uppercase; letter-spacing: 1px; flex-grow: 1; }
         
-        /* Botones de la cabecera */
-        .header-tools {
-            display: flex;
-            gap: 5px;
-        }
+        .header-tools { display: flex; gap: 5px; }
         .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 14px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s;
+            background: transparent; border: none; color: var(--text-muted);
+            font-size: 14px; cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;
         }
         .icon-btn:hover { color: var(--text-main); background: rgba(0,0,0,0.05); }
         body.dark-mode .icon-btn:hover { background: rgba(255,255,255,0.1); }
-        .icon-btn.active { color: #4299e1; background: rgba(66, 153, 225, 0.1); }
 
         .datetime-display {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: capitalize;
-            z-index: 10;
+            position: absolute; top: 15px; left: 20px; font-size: 11px;
+            color: var(--text-muted); font-weight: 600; text-transform: capitalize; z-index: 10;
         }
 
         .btn-float-open {
-            position: fixed;
-            left: 10px;
-            top: 20px;
-            background: var(--card-bg);
-            border: var(--glass-border);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            z-index: 200;
-            color: var(--text-main);
-            backdrop-filter: blur(10px);
+            position: fixed; left: 10px; top: 20px;
+            background: var(--card-bg); border: var(--glass-border); border-radius: 50%;
+            width: 40px; height: 40px; display: none; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: var(--shadow); z-index: 200; color: var(--text-main); backdrop-filter: blur(10px);
         }
         .container.layout-hidden ~ .btn-float-open { display: flex; }
 
-        /* Menús de configuración */
         .dropdown-menu {
-            position: absolute;
-            top: 35px;
-            background: var(--card-bg);
-            border: var(--glass-border);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: var(--shadow);
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            font-size: 12px;
-            backdrop-filter: blur(10px);
-            width: 200px;
+            position: absolute; top: 35px; background: var(--card-bg); border: var(--glass-border);
+            border-radius: 8px; padding: 15px; box-shadow: var(--shadow); z-index: 50;
+            display: none; flex-direction: column; gap: 8px; font-size: 12px; backdrop-filter: blur(10px);
         }
         .dropdown-menu.active { display: flex; }
         .dropdown-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .dropdown-menu hr { width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0; }
         
-        #chart-settings-menu { right: 10px; }
-        #table-settings-menu { left: 10px; }
+        #chart-settings-menu { right: 10px; width: 220px; }
+        #table-settings-menu { left: 10px; width: 200px; }
 
         .table-container { width: 100%; overflow-x: auto; flex-grow: 1; }
         table { width: 100%; border-collapse: collapse; }
@@ -241,6 +158,7 @@
         input:focus, select:focus { border-color: #4299e1; outline: none; }
         
         .in-name { width: 80px; }
+        .in-investor { width: 85px; }
         .in-cap { width: 65px; text-align: right; }
         .in-cost { width: 55px; text-align: right; }
         .in-date { width: 75px; text-align: center; }
@@ -252,8 +170,7 @@
         .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
         
         .btn-delete {
-            background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; 
-            transition: transform 0.2s;
+            background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; transition: transform 0.2s;
         }
         .btn-delete:hover { transform: scale(1.2); }
 
@@ -268,17 +185,13 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 30px;
+            margin-top: 50px; /* Más margen para los avatares */
             padding-bottom: 10px;
         }
 
         .y-axis {
-            position: relative; 
-            width: 35px; 
-            height: 300px; 
-            border-right: 1px solid var(--axis-line); 
-            margin-right: 15px;
-            flex-shrink: 0;
+            position: relative; width: 35px; height: 300px; 
+            border-right: 1px solid var(--axis-line); margin-right: 15px; flex-shrink: 0;
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
@@ -287,13 +200,8 @@
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper { 
-            display: flex; 
-            gap: var(--bar-gap); 
-            flex-grow: 1; 
-            position: relative; 
-            align-items: flex-start; 
-            overflow-x: auto;
-            overflow-y: hidden;
+            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; align-items: flex-start; 
+            overflow-x: auto; overflow-y: hidden;
         }
 
         .global-zero-line {
@@ -303,19 +211,29 @@
         }
 
         .chart-column { 
-            position: relative; 
-            width: 45px; 
-            flex-shrink: 0; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
+            position: relative; width: 45px; flex-shrink: 0; 
+            display: flex; flex-direction: column; align-items: center; 
         }
 
-        .bar-container {
-            position: relative;
-            width: 100%;
-            height: 300px; 
+        .bar-container { position: relative; width: 100%; height: 300px; }
+
+        .avatar-container {
+            position: absolute;
+            top: -40px; /* Encima de la barra */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            overflow: hidden;
+            z-index: 5;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; color: var(--text-muted);
         }
+        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
 
         .bar-range-bg {
             position: absolute; width: 100%; background-color: var(--bar-bg);
@@ -323,23 +241,17 @@
         }
 
         .target-text {
-            position: absolute; top: -18px; font-size: 10px; font-weight: 700; color: var(--text-muted);
+            position: absolute; top: -20px; font-size: 10px; font-weight: 700; color: var(--text-muted);
         }
 
         .bar-fill {
             position: absolute; width: 100%; border-radius: 4px; z-index: 2; 
-            transition: all 0.3s ease;
-            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        .labels-area {
-            width: 110px; 
-            text-align: center; 
-            padding-top: 10px;
-            z-index: 10;
-        }
+        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; }
 
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
@@ -352,21 +264,16 @@
 
         /* --- CONFIGURACIÓN FLOTANTE GLOBAL --- */
         .settings-btn {
-            position: fixed; bottom: 20px; left: 20px;
-            background: var(--card-bg); color: var(--text-main);
-            border: var(--glass-border); border-radius: 50%;
-            width: 45px; height: 45px; font-size: 20px; cursor: pointer;
-            box-shadow: var(--shadow); z-index: 100;
-            display: flex; align-items: center; justify-content: center;
+            position: fixed; bottom: 20px; left: 20px; background: var(--card-bg); color: var(--text-main);
+            border: var(--glass-border); border-radius: 50%; width: 45px; height: 45px; font-size: 20px; cursor: pointer;
+            box-shadow: var(--shadow); z-index: 100; display: flex; align-items: center; justify-content: center;
             transition: transform 0.2s; backdrop-filter: blur(10px);
         }
         .settings-btn:hover { transform: rotate(90deg); }
 
         .settings-panel {
-            position: fixed; bottom: 75px; left: 20px;
-            background: var(--card-bg); border: var(--glass-border);
-            border-radius: 10px; padding: 15px; width: 300px;
-            box-shadow: var(--shadow); z-index: 100;
+            position: fixed; bottom: 75px; left: 20px; background: var(--card-bg); border: var(--glass-border);
+            border-radius: 10px; padding: 15px; width: 320px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 80vh; overflow-y: auto;
         }
@@ -385,31 +292,18 @@
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        .company-list { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; max-height: 120px; overflow-y: auto; padding-right: 5px;}
-        .company-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
-        .company-row input[type="color"] { width: 25px; height: 20px; }
+        .company-list, .investor-list { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; max-height: 150px; overflow-y: auto; padding-right: 5px;}
+        .list-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; gap: 5px; }
+        .list-row input[type="color"] { width: 25px; height: 20px; flex-shrink: 0;}
+        .list-row img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);}
 
         /* Marca de agua */
         .watermark {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            font-size: 13px;
-            color: var(--text-muted);
-            opacity: 0.7;
-            z-index: 100;
-            font-weight: 500;
-            pointer-events: auto;
+            position: fixed; bottom: 25px; right: 25px; font-size: 13px;
+            color: var(--text-muted); opacity: 0.7; z-index: 100; font-weight: 500;
         }
-        .watermark a {
-            color: inherit;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .watermark a:hover {
-            text-decoration: underline;
-            opacity: 1;
-        }
+        .watermark a { color: inherit; text-decoration: none; font-weight: bold; }
+        .watermark a:hover { text-decoration: underline; opacity: 1; }
     </style>
 </head>
 <body>
@@ -446,11 +340,10 @@
 
         <!-- Panel Gráfico -->
         <div class="panel-grafico glass-panel">
-            <!-- Reloj en vivo -->
             <div class="datetime-display" id="datetime-display"></div>
 
             <div class="panel-header">
-                <div style="width: 120px;"></div> <!-- Spacer para centrar el título -->
+                <div style="width: 120px;"></div>
                 <h2>Gráfico</h2>
                 <div class="header-tools">
                     <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
@@ -512,13 +405,23 @@
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
         <label>Empresas:</label>
-        <div class="company-list" id="company-list">
-            <!-- Se genera con JS -->
-        </div>
+        <div class="company-list" id="company-list"></div>
         <div style="display:flex; gap:5px; margin-top:5px;">
             <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
             <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
             <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
+        
+        <label>Inversores:</label>
+        <div class="investor-list" id="investor-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
+            <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
+            <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
+            <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
+            <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
+            <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
         </div>
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
@@ -534,11 +437,6 @@
             <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa: <span id="opacity-val">50</span>%</label>
             <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="cambiarOpacidad(this.value)">
         </div>
-        
-        <label class="checkbox-label">
-            <input type="checkbox" id="toggle-pattern" checked onchange="togglePattern(this.checked)"> 
-            Mostrar textura geométrica
-        </label>
 
         <button class="toggle-btn" onclick="toggleDarkMode()">Modo Oscuro 🌙 / ☀️</button>
         <button class="toggle-btn secondary" onclick="quitarFondo()">Quitar Imagen de Fondo</button>
@@ -554,6 +452,7 @@
         const columnasDef = [
             { key: 'visible', label: '👁' },
             { key: 'name', label: 'Empresa' },
+            { key: 'investor', label: 'Inversor' },
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
             { key: 'startDate', label: 'Inicio' },
@@ -567,19 +466,18 @@
             { key: 'actions', label: '' }
         ];
 
-        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
         
-        // Visibilidad de columnas
-        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
+        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'actions'];
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
-            { visible: true, name: "FTMO", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
-            { visible: true, name: "Bullfy", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
-            { visible: true, name: "Axi", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
+            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "" },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com" },
+            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "" },
+            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
         ];
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas')) || [
@@ -587,6 +485,11 @@
             { name: "Darwinex", color: "#4a5568" },
             { name: "Axi", color: "#e53e3e" },
             { name: "Bullfy", color: "#dd6b20" }
+        ];
+
+        let inversores = JSON.parse(localStorage.getItem('misInversores')) || [
+            { name: "Andrés", avatar: "" },
+            { name: "Lucía", avatar: "" }
         ];
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
@@ -602,7 +505,6 @@
 
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'none';
-        let showPattern = localStorage.getItem('showPattern') !== 'false';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
         let barGap = parseInt(localStorage.getItem('barGap') || 25);
         let chartFontSize = parseInt(localStorage.getItem('chartFontSize') || 11);
@@ -610,6 +512,7 @@
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
         let currentLayout = localStorage.getItem('layoutState') || 'side';
+        let tempAvatarBase64 = ""; // Para guardar la foto temporalmente antes de agregar el inversor
 
         // Inicializar UI
         function initUI() {
@@ -638,16 +541,15 @@
             document.getElementById('font-size-val').innerText = chartFontSize;
             document.documentElement.style.setProperty('--chart-label-size', chartFontSize + 'px');
 
-            document.getElementById('toggle-pattern').checked = showPattern;
             document.getElementById('bg-opacity').value = overlayOpacity;
             document.getElementById('opacity-val').innerText = overlayOpacity;
             
             if(isDarkMode) document.body.classList.add('dark-mode');
-            if(!showPattern) document.documentElement.style.setProperty('--pattern-display', 'none');
             if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
 
             setLayout(currentLayout);
             renderCompanyList();
+            renderInvestorList();
             renderTableSettings();
         }
         initUI();
@@ -757,7 +659,6 @@
             const tbody = document.querySelector('#tabla-datos tbody');
             theadTr.innerHTML = '';
             
-            // Filtrar columnas visibles
             const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
             
             activeColumns.forEach(key => {
@@ -809,6 +710,13 @@
                             const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'transparent';
                             td.innerHTML = `<select class="in-name" style="background-color: ${empColor}; color: ${getContrastColor(empColor)};" onchange="actualizarDato(${index}, 'name', this.value)">${optionsHTML}</select>`;
                             break;
+                        case 'investor':
+                            let invOptions = `<option value="">--</option>` + inversores.map(inv => `<option value="${inv.name}" ${cuenta.investor === inv.name ? 'selected' : ''}>${inv.name}</option>`).join('');
+                            if(cuenta.investor && !inversores.find(i => i.name === cuenta.investor)) {
+                                invOptions += `<option value="${cuenta.investor}" selected>${cuenta.investor}</option>`;
+                            }
+                            td.innerHTML = `<select class="in-investor" onchange="actualizarDato(${index}, 'investor', this.value)">${invOptions}</select>`;
+                            break;
                         case 'capital':
                             td.innerHTML = `<input type="text" class="in-cap" value="${getCurrencyStr(cuenta.capital)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCurrencyStr(parseCurrency(this.value)); actualizarDato(${index}, 'capital', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
@@ -841,10 +749,9 @@
                             td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
-                            // Celdas vacías para Capital propio
                             if (isPropio) {
                                 td.innerHTML = '';
-                                td.style.borderBottom = '1px solid transparent'; // Ocultar borde si es necesario
+                                td.style.borderBottom = '1px solid transparent';
                             } else {
                                 td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             }
@@ -878,7 +785,6 @@
                     onStart: function() { isDraggingColumn = true; },
                     onEnd: function (evt) {
                         const newOrder = Array.from(theadTr.children).map(th => th.dataset.key);
-                        // Mover las columnas reordenadas al array principal
                         const hiddenCols = columnOrder.filter(k => !newOrder.includes(k));
                         columnOrder = [...newOrder, ...hiddenCols];
                         
@@ -1012,6 +918,19 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
+                // AVATAR DEL INVERSOR
+                let avatarHTML = '';
+                if(cuenta.investor) {
+                    const inv = inversores.find(i => i.name === cuenta.investor);
+                    if (inv && inv.avatar) {
+                        avatarHTML = `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`;
+                    } else {
+                        // Si no tiene foto, mostrar la inicial
+                        const initial = cuenta.investor.charAt(0).toUpperCase();
+                        avatarHTML = `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
+                    }
+                }
+
                 let labelsHTML = '';
                 if (chartLabels.name) {
                     const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
@@ -1025,6 +944,7 @@
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
                 column.innerHTML = `
+                    ${avatarHTML}
                     <div class="bar-container">
                         ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
                         <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
@@ -1084,7 +1004,7 @@
 
         document.addEventListener('click', function(event) {
             const cMenu = document.getElementById('chart-settings-menu');
-            const cBtn = cMenu.previousElementSibling.querySelector('button');
+            const cBtn = document.querySelector('[onclick="toggleChartSettings()"]');
             if (cMenu.classList.contains('active') && !cMenu.contains(event.target) && !cBtn.contains(event.target)) {
                 cMenu.classList.remove('active');
             }
@@ -1102,12 +1022,6 @@
             localStorage.setItem('darkMode', isDarkMode);
             updateBackground();
             renderTabla();
-        }
-
-        function togglePattern(isChecked) {
-            showPattern = isChecked;
-            document.documentElement.style.setProperty('--pattern-display', isChecked ? 'block' : 'none');
-            localStorage.setItem('showPattern', isChecked);
         }
 
         function cambiarOpacidad(val) {
@@ -1152,7 +1066,7 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            cuentas.push({ visible: true, name: defaultCompany, capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
             guardarYRenderizar();
         }
 
@@ -1168,9 +1082,9 @@
             list.innerHTML = '';
             empresas.forEach((emp, index) => {
                 const row = document.createElement('div');
-                row.className = 'company-row';
+                row.className = 'list-row';
                 row.innerHTML = `
-                    <span>${emp.name}</span>
+                    <span style="flex-grow:1;">${emp.name}</span>
                     <input type="color" value="${emp.color}" onchange="cambiarColorEmpresa(${index}, this.value)">
                 `;
                 list.appendChild(row);
@@ -1202,15 +1116,79 @@
             }
         }
 
+        // --- GESTIÓN DE INVERSORES ---
+        function renderInvestorList() {
+            const list = document.getElementById('investor-list');
+            list.innerHTML = '';
+            inversores.forEach((inv, index) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div style="width:20px; height:20px; border-radius:50%; background:#ccc; text-align:center; font-size:10px; line-height:20px; color:#333;">${inv.name.charAt(0)}</div>`;
+                row.innerHTML = `
+                    ${avatarSrc}
+                    <span style="flex-grow:1;">${inv.name}</span>
+                    <button class="btn-delete" onclick="eliminarInversor(${index})" style="font-size:12px;" title="Eliminar">🗑️</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempAvatarBase64 = e.target.result;
+                    const preview = document.getElementById('avatar-preview');
+                    preview.src = tempAvatarBase64;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function agregarInversor() {
+            const nameInput = document.getElementById('new-investor-name');
+            const name = nameInput.value.trim();
+
+            if(name && !inversores.find(i => i.name.toLowerCase() === name.toLowerCase())) {
+                inversores.push({ name: name, avatar: tempAvatarBase64 });
+                localStorage.setItem('misInversores', JSON.stringify(inversores));
+                
+                // Limpiar inputs
+                nameInput.value = '';
+                tempAvatarBase64 = "";
+                const preview = document.getElementById('avatar-preview');
+                preview.src = '';
+                preview.style.display = 'none';
+                document.getElementById('new-investor-avatar').value = '';
+
+                renderInvestorList();
+                renderTabla();
+                renderGrafico();
+            } else if(name) {
+                alert("El inversor ya existe.");
+            }
+        }
+
+        function eliminarInversor(index) {
+            if(confirm(`¿Eliminar al inversor ${inversores[index].name}?`)) {
+                inversores.splice(index, 1);
+                localStorage.setItem('misInversores', JSON.stringify(inversores));
+                renderInvestorList();
+                renderTabla();
+                renderGrafico();
+            }
+        }
+
         // --- COLUMNAS VISIBLES ---
         function renderTableSettings() {
             const menu = document.getElementById('table-settings-menu');
-            // Limpiar opciones manteniendo el título
             menu.innerHTML = '<span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>';
             
             columnOrder.forEach(key => {
                 const colDef = columnasDef.find(c => c.key === key);
-                if (key === 'visible' || key === 'actions') return; // No permitir ocultar estos
+                if (key === 'visible' || key === 'actions') return;
 
                 const label = document.createElement('label');
                 const isChecked = visibleCols.includes(key);
