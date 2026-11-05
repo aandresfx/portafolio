@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💼 Portafolio</title>
+    <title>🧠 Portafolio - Mercados evolutivos</title>
+    
+    <!-- 1. FAVICON DE LA PESTAÑA (Reemplaza la URL con tu enlace de GitHub) -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png">
+
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -342,10 +346,52 @@
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
         .list-row .avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; flex-shrink: 0;}
 
-        /* Marca de agua */
+        /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
+        .brand-container {
+            position: fixed; 
+            bottom: 25px; 
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 100;
+            pointer-events: none; /* Para que no moleste al hacer clic */
+        }
+        
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            border: var(--glass-border);
+            padding: 4px 12px 4px 4px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        /* 2. ÍCONO FLOTANTE (Reemplaza la URL con tu enlace de GitHub) */
+        .brand-logo img {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: var(--input-bg); /* Fondo por si la imagen es transparente */
+        }
+
+        .brand-logo span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
         .watermark {
-            position: fixed; bottom: 25px; right: 25px; font-size: 13px;
-            color: var(--text-muted); opacity: 0.7; z-index: 100; font-weight: 500;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.8;
+            font-weight: 500;
         }
         .watermark a { color: inherit; text-decoration: none; font-weight: bold; }
         .watermark a:hover { text-decoration: underline; opacity: 1; }
@@ -511,9 +557,16 @@
         <button class="toggle-btn secondary" onclick="quitarFondo()">Quitar Imagen de Fondo</button>
     </div>
 
-    <!-- Marca de agua -->
-    <div class="watermark">
-        creado por <a href="https://www.instagram.com/aandresfx/" target="_blank">aandres.fx</a>
+    <!-- Marca de agua y Logo Flotante -->
+    <div class="brand-container">
+        <div class="brand-logo">
+            <!-- 3. LOGO FLOTANTE (Reemplaza la URL con tu enlace de GitHub) -->
+            <img src="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png" alt="Logo">
+            <span>Mercados Evolutivos</span>
+        </div>
+        <div class="watermark">
+            creado por <a href="https://www.instagram.com/aandresfx/" target="_blank">aandres.fx</a>
+        </div>
     </div>
 
     <script>
@@ -755,7 +808,6 @@
         // --- BACKUP & RESTORE ---
         function exportarDatos() {
             const backup = {};
-            // Lista de todas las claves que usa la app
             const keys = [
                 'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
                 'chartLabels', 'barValueDisplay', 'darkMode', 'bgImage', 
@@ -766,7 +818,7 @@
             keys.forEach(key => {
                 const item = localStorage.getItem(key);
                 if (item !== null) {
-                    backup[key] = item; // Guardamos el string tal cual está
+                    backup[key] = item; 
                 }
             });
 
@@ -792,7 +844,6 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     
-                    // Restaurar cada elemento en localStorage
                     for (const key in data) {
                         if (data.hasOwnProperty(key)) {
                             localStorage.setItem(key, data[key]);
