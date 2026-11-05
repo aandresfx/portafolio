@@ -773,15 +773,17 @@
                             td.innerHTML = `<select class="in-investor" onchange="actualizarDato(${index}, 'investor', this.value)">${invOptions}</select>`;
                             break;
                         case 'capital':
-                            td.innerHTML = `<input type="text" class="in-cap" value="${getCurrencyStr(cuenta.capital)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCurrencyStr(parseCurrency(this.value)); actualizarDato(${index}, 'capital', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            // AÑADIDO this.select()
+                            td.innerHTML = `<input type="text" class="in-cap" value="${getCurrencyStr(cuenta.capital)}" onfocus="this.value = parseCurrency(this.value) || ''; this.select()" onblur="this.value = getCurrencyStr(parseCurrency(this.value)); actualizarDato(${index}, 'capital', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'cost':
-                            td.innerHTML = `<input type="text" class="in-cost" value="${getCostStr(cuenta.cost)}" onfocus="this.value = parseCurrency(this.value) || ''" onblur="this.value = getCostStr(parseCurrency(this.value)); actualizarDato(${index}, 'cost', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-$">`;
+                            // AÑADIDO this.select()
+                            td.innerHTML = `<input type="text" class="in-cost" value="${getCostStr(cuenta.cost)}" onfocus="this.value = parseCurrency(this.value) || ''; this.select()" onblur="this.value = getCostStr(parseCurrency(this.value)); actualizarDato(${index}, 'cost', parseCurrency(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-$">`;
                             break;
                         case 'startDate':
                             const dateBg = isDarkMode ? '#e2e8f0' : '#2d3748';
                             const dateColor = isDarkMode ? '#1a202c' : '#f7fafc';
-                            // AÑADIDO onfocus="this.select()"
+                            // Ya tenía this.select()
                             td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
@@ -802,14 +804,16 @@
                         case 'actual':
                             const actBg = getAccountColor(cuenta);
                             const actColor = getContrastColor(actBg);
-                            td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            // AÑADIDO this.select()
+                            td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
                             if (isPropio) {
                                 td.innerHTML = '';
                                 td.style.borderBottom = '1px solid transparent';
                             } else {
-                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                                // AÑADIDO this.select()
+                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             }
                             break;
                         case 'max':
@@ -817,14 +821,17 @@
                                 td.innerHTML = '';
                                 td.style.borderBottom = '1px solid transparent';
                             } else {
-                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.max, 0)}" onfocus="this.value = parsePercent(this.value) || ''" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                                // AÑADIDO this.select()
+                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.max, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             }
                             break;
                         case 'url':
-                            td.innerHTML = `<input type="url" class="in-url" value="${cuenta.url || ''}" onchange="actualizarDato(${index}, 'url', this.value)" placeholder="https://...">`;
+                            // AÑADIDO this.select()
+                            td.innerHTML = `<input type="url" class="in-url" value="${cuenta.url || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'url', this.value)" placeholder="https://...">`;
                             break;
                         case 'notes':
-                            td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
+                            // AÑADIDO this.select()
+                            td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
@@ -988,7 +995,6 @@
                 if (chartLabels.name) {
                     const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
                     const empTextColor = getContrastColor(empColor);
-                    // Aplicamos el fondo, color de texto y clases para que parezca un badge
                     labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
                 }
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
