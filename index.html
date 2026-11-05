@@ -273,7 +273,6 @@
             z-index: 10; 
         }
 
-        /* Nombre de la empresa con fondo de color */
         .name-text { 
             font-size: var(--chart-label-size); 
             font-weight: 600; 
@@ -285,7 +284,6 @@
             border-radius: 4px;
         }
 
-        /* Color dinámico para el capital */
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: var(--text-main); font-weight: bold; margin-bottom: 2px; }
         .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
@@ -676,7 +674,6 @@
             return new Date(dateStr);
         }
 
-        // NUEVA FUNCIÓN PARA FORMATEAR FECHA (MMM YYYY)
         function formatMonthYear(dateStr) {
             if(!dateStr) return '';
             const parts = dateStr.split('/');
@@ -687,7 +684,7 @@
                     return `${months[month]} ${parts[2]}`;
                 }
             }
-            return dateStr; // Devuelve el texto original si no tiene el formato esperado
+            return dateStr; 
         }
 
         function getContrastColor(hexcolor) {
@@ -771,7 +768,7 @@
 
                     switch(key) {
                         case 'visible':
-                            td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked)">`;
+                            td.innerHTML = `<input type="checkbox" class="in-check" ${cuenta.visible !== false ? 'checked' : ''} onchange="actualizarDato(${index}, 'visible', this.checked); const isAllVisible = cuentas.every(c => c.visible !== false); document.querySelector('#table-headers input[type=\\'checkbox\\']').checked = isAllVisible;">`;
                             break;
                         case 'name':
                             let optionsHTML = empresas.map(e => `<option value="${e.name}" ${cuenta.name === e.name ? 'selected' : ''}>${e.name}</option>`).join('');
@@ -779,7 +776,7 @@
                                 optionsHTML += `<option value="${cuenta.name}" selected>${cuenta.name}</option>`;
                             }
                             const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'transparent';
-                            td.innerHTML = `<select class="in-name" style="background-color: ${empColor}; color: ${getContrastColor(empColor)};" onchange="actualizarDato(${index}, 'name', this.value)">${optionsHTML}</select>`;
+                            td.innerHTML = `<select class="in-name" style="background-color: ${empColor}; color: ${getContrastColor(empColor)};" onchange="actualizarDato(${index}, 'name', this.value); const c = empresas.find(e => e.name === this.value)?.color || 'transparent'; this.style.backgroundColor = c; this.style.color = getContrastColor(c);">${optionsHTML}</select>`;
                             break;
                         case 'investor':
                             let invOptions = `<option value="">--</option>` + inversores.map(inv => `<option value="${inv.name}" ${cuenta.investor === inv.name ? 'selected' : ''}>${inv.name}</option>`).join('');
@@ -817,7 +814,7 @@
                         case 'actual':
                             const actBg = getAccountColor(cuenta);
                             const actColor = getContrastColor(actBg);
-                            td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
+                            td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value)); const c = getAccountColor(cuentas[${index}]); this.style.backgroundColor = c; this.style.color = getContrastColor(c);" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
                             if (isPropio) {
@@ -905,13 +902,13 @@
         function eliminarCuenta(index) {
             if(confirm("¿Seguro que deseas eliminar esta cuenta?")) {
                 cuentas.splice(index, 1);
-                guardarYRenderizar();
+                guardarYRenderizar(); // Re-renderiza tabla y gráfico
             }
         }
 
         function toggleAllVisibility(isChecked) {
             cuentas.forEach(c => c.visible = isChecked);
-            guardarYRenderizar();
+            guardarYRenderizar(); // Re-renderiza para actualizar todos los checkboxes
         }
 
         function cambiarModalidad(index, valor) {
@@ -923,7 +920,7 @@
                 cuentas[index].min = -10;
                 cuentas[index].max = 10;
             }
-            guardarYRenderizar();
+            guardarYRenderizar(); // Re-renderiza por el cambio de colores y estado de min/max
         }
 
         function renderGrafico() {
@@ -1008,7 +1005,7 @@
                 if (chartLabels.capital) labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                 if (chartLabels.cost && cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
                 if (chartLabels.status) labelsHTML += `<div class="status-text">${cuenta.status || ''}</div>`;
-                if (chartLabels.date) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`; // Uso de la nueva función
+                if (chartLabels.date) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`; 
                 if (chartLabels.url && cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
                 if (chartLabels.notes) labelsHTML += `<div class="notes-text">${cuenta.notes || ''}</div>`;
 
@@ -1075,7 +1072,15 @@
         // --- ACCIONES ---
         function actualizarDato(index, campo, valor) {
             cuentas[index][campo] = valor;
-            guardarYRenderizar();
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            renderGrafico();
+            // NOTA: No llamamos a renderTabla() aquí para evitar que la tabla se redibuje y se pierda el foco del clic.
+        }
+
+        function guardarYRenderizar() {
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            renderTabla();
+            renderGrafico();
         }
 
         function guardarColores() {
@@ -1090,7 +1095,7 @@
             colores.modMixto = document.getElementById('color-mod-mixto').value;
             
             localStorage.setItem('misColores', JSON.stringify(colores));
-            renderTabla();
+            renderTabla(); // Re-renderizamos por los colores de los inputs
             renderGrafico();
         }
 
@@ -1150,7 +1155,7 @@
             isDarkMode = document.body.classList.contains('dark-mode');
             localStorage.setItem('darkMode', isDarkMode);
             updateBackground();
-            renderTabla();
+            renderTabla(); // Re-renderizamos por los colores del fondo de la fecha
         }
 
         function cambiarOpacidad(val) {
@@ -1196,13 +1201,7 @@
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
             cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "" });
-            guardarYRenderizar();
-        }
-
-        function guardarYRenderizar() {
-            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
-            renderTabla();
-            renderGrafico();
+            guardarYRenderizar(); // Re-renderizamos para añadir la fila visualmente
         }
 
         // --- GESTIÓN DE EMPRESAS ---
