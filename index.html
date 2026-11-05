@@ -98,6 +98,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            /* overflow: hidden eliminado para permitir avatares flotantes */
         }
 
         .panel-header {
@@ -185,8 +186,8 @@
         .chart-layout { 
             display: flex; 
             position: relative; 
-            margin-top: 20px; /* Espacio extra para el eje */
-            padding-bottom: 10px;
+            margin-top: 40px; /* Espacio para el avatar */
+            padding-bottom: 160px; /* Espacio para los textos, hace que el panel crezca */
         }
 
         .y-axis {
@@ -200,28 +201,27 @@
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
         .charts-wrapper { 
-            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; align-items: flex-end; /* Alineado al fondo para que las barras crezcan hacia arriba */
+            display: flex; gap: var(--bar-gap); flex-grow: 1; position: relative; 
+            height: 300px; /* Altura exacta de las barras */
+            align-items: flex-end; /* Anclar al fondo */
             overflow-x: auto; 
-            overflow-y: visible; /* IMPORTANTE: Permite que el avatar sobresalga */
-            padding-top: 50px; /* Espacio para el avatar */
-            padding-bottom: 10px;
-            margin-top: -50px; /* Compensa el padding para no desajustar el gráfico */
+            overflow-y: visible; 
         }
 
         .global-zero-line {
             position: absolute; width: 100%; height: 1px;
             background-color: var(--zero-line); z-index: 0; border-bottom: 1px dashed var(--axis-line);
-            transform: translateY(-50%);
+            transform: translateY(50%); /* Centrado con el bottom */
         }
 
         .chart-column { 
             position: relative; width: 45px; flex-shrink: 0; 
-            display: flex; flex-direction: column; align-items: center; height: 300px; /* Altura fija para las barras */
+            display: flex; flex-direction: column; align-items: center; height: 100%; 
         }
 
         .avatar-container {
             position: absolute;
-            top: -40px; /* Flota por encima de la barra */
+            top: -40px; 
             left: 50%;
             transform: translateX(-50%);
             width: 28px;
@@ -255,7 +255,10 @@
 
         .val-text { font-size: 10px; font-weight: bold; }
 
-        .labels-area { width: 110px; text-align: center; padding-top: 10px; z-index: 10; position: absolute; top: 100%; }
+        .labels-area { 
+            width: 110px; text-align: center; padding-top: 10px; z-index: 10; 
+            position: absolute; top: 100%; /* Anclado al fondo de las barras */
+        }
 
         .name-text { font-size: var(--chart-label-size); font-weight: 600; margin-bottom: 2px; word-wrap: break-word; white-space: normal; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: #3182ce; font-weight: bold; margin-bottom: 2px; }
@@ -504,7 +507,6 @@
             modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
         };
 
-        // Añadido chartLabels.investor
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
             investor: true, name: true, capital: true, cost: true, status: true, date: true, url: true, notes: true
         };
@@ -897,8 +899,8 @@
                 yAxis.appendChild(tick);
             }
 
-            const zeroLineTop = 300 - (300 * (zeroBottomPercent / 100));
-            document.getElementById('global-zero-line').style.top = `${zeroLineTop}px`;
+            // Establecer la posición de la línea 0% usando 'bottom' en porcentaje exacto
+            document.getElementById('global-zero-line').style.bottom = `${zeroBottomPercent}%`;
 
             cuentasVisibles.forEach(cuenta => {
                 const column = document.createElement('div');
@@ -925,7 +927,7 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                // AVATAR DEL INVERSOR (Controlado por chartLabels.investor)
+                // AVATAR DEL INVERSOR
                 let avatarHTML = '';
                 if(chartLabels.investor && cuenta.investor) {
                     const inv = inversores.find(i => i.name === cuenta.investor);
