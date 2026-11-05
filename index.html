@@ -29,11 +29,11 @@
         }
 
         body.dark-mode {
-            --bg-color: #1a202c;
+            --bg-colo #1a202c;
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
-            --border-color: #4a5568;
+            --border-colo #4a5568;
             --input-bg: rgba(26, 32, 44, 0.9);
             --input-border: #4a5568;
             --bar-bg: #4a5568;
@@ -304,7 +304,7 @@
         .alert-text { font-size: 14px; margin-bottom: 2px; }
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: var(--text-main); font-weight: bold; margin-bottom: 2px; }
         .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
-        .risk-text { font-size: calc(var(--chart-label-size) - 2px); color: #d97706; font-weight: bold; margin-bottom: 2px; }
+        .risk-text { font-size: calc(var(--chart-label-size) - 2px); color: #ffffff; font-weight: bold; margin-bottom: 2px; }
         .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
         .date-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); margin-bottom: 2px; }
         .audit-link { font-size: calc(var(--chart-label-size) - 1px); color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
@@ -601,7 +601,7 @@
             { key: 'investor', label: 'Inversor' },
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
-            { key: 'risk', label: 'Riesgo' }, 
+            { key: 'risk', label: 'Riesgo %' }, 
             { key: 'risk_usd', label: 'Riesgo USD' }, 
             { key: 'startDate', label: 'Inicio' },
             { key: 'modality', label: 'Modalidad' },
@@ -647,8 +647,8 @@
         let inversores = JSON.parse(localStorage.getItem('misInversores'));
         if (!inversores || inversores.length === 0) {
             inversores = [
-                { name: "Andrés", avatar: "" },
-                { name: "Lucía", avatar: "" }
+                { name: "Usuario 1", avatar: "" },
+                { name: "Usuario 2", avatar: "" }
             ];
         }
 
@@ -717,12 +717,12 @@
             list.innerHTML = '';
 
             const labelNames = {
-                investor: 'Inversor (Avatar)',
+                investor: 'Inversor',
                 alert: 'Alerta ⏰',
                 name: 'Empresa',
                 capital: 'Capital',
                 cost: 'Costo',
-                risk: 'Riesgo (%)',
+                risk: 'Riesgo %',
                 risk_usd: 'Riesgo USD',
                 status: 'Estado',
                 date: 'Fecha',
@@ -1249,12 +1249,12 @@
                             if (cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
                             break;
                         case 'risk':
-                            if (cuenta.risk) labelsHTML += `<div class="risk-text">R: ${getPercentStr(cuenta.risk, 2)}</div>`;
+                            if (cuenta.risk) labelsHTML += `<div class="risk-text"> ${getPercentStr(cuenta.risk, 2)}</div>`;
                             break;
                         case 'risk_usd':
                             if (cuenta.risk) {
                                 let riskUsdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
-                                labelsHTML += `<div class="risk-text">R: ${getCurrencyStr(riskUsdVal)}</div>`;
+                                labelsHTML += `<div class="risk-text"> ${getCurrencyStr(riskUsdVal)}</div>`;
                             }
                             break;
                         case 'status':
