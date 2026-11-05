@@ -164,7 +164,7 @@
         
         .btn-delete {
             background: transparent; border: none; cursor: pointer; font-size: 14px; color: #e53e3e; transition: transform 0.2s;
-            flex-shrink: 0; /* Evita que se aplaste */
+            flex-shrink: 0;
         }
         .btn-delete:hover { transform: scale(1.2); }
 
@@ -282,24 +282,34 @@
         .audit-link:hover { text-decoration: underline; }
         .notes-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
-        /* --- CONFIGURACIÓN FLOTANTE GLOBAL --- */
-        .settings-btn {
-            position: fixed; bottom: 20px; left: 20px; background: var(--card-bg); color: var(--text-main);
-            border: var(--glass-border); border-radius: 50%; width: 45px; height: 45px; font-size: 20px; cursor: pointer;
-            box-shadow: var(--shadow); z-index: 100; display: flex; align-items: center; justify-content: center;
+        /* --- BOTONES FLOTANTES Y PANELES --- */
+        .settings-btn, .management-btn {
+            position: fixed; left: 20px; 
+            background: var(--card-bg); color: var(--text-main);
+            border: var(--glass-border); border-radius: 50%; 
+            width: 45px; height: 45px; font-size: 20px; cursor: pointer;
+            box-shadow: var(--shadow); z-index: 100; 
+            display: flex; align-items: center; justify-content: center;
             transition: transform 0.2s; backdrop-filter: blur(10px);
         }
-        .settings-btn:hover { transform: rotate(90deg); }
+        .settings-btn:hover, .management-btn:hover { transform: rotate(90deg); }
+        
+        .settings-btn { bottom: 20px; }
+        .management-btn { bottom: 75px; font-size: 22px; } /* Botón + encima del engranaje */
 
-        .settings-panel {
-            position: fixed; bottom: 75px; left: 20px; background: var(--card-bg); border: var(--glass-border);
+        .settings-panel, .management-panel {
+            position: fixed; left: 20px; 
+            background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 340px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
-            max-height: 80vh; overflow-y: auto;
+            max-height: 75vh; overflow-y: auto;
         }
-        .settings-panel.active { display: flex; }
+        .settings-panel.active, .management-panel.active { display: flex; }
         
-        .settings-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
+        .settings-panel { bottom: 75px; }
+        .management-panel { bottom: 130px; }
+        
+        .settings-panel label, .management-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
@@ -312,11 +322,12 @@
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        /* Listas de empresas e inversores en configuración */
-        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 150px; overflow-y: auto; padding-right: 5px;}
-        .list-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; gap: 8px; }
+        /* Listas de empresas e inversores */
+        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
+        .list-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
+        .list-row .avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; flex-shrink: 0;}
 
         /* Marca de agua */
         .watermark {
@@ -406,8 +417,34 @@
     <!-- Botón flotante para recuperar panel izquierdo -->
     <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
 
-    <!-- Configuración Flotante Global -->
-    <button class="settings-btn" onclick="toggleGlobalSettings()">⚙️</button>
+    <!-- Botones Flotantes Globales -->
+    <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas e Inversores">➕</button>
+    <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales">⚙️</button>
+    
+    <!-- Panel de Gestión de Datos -->
+    <div class="management-panel" id="management-panel">
+        <label style="margin-top:5px;">Empresas:</label>
+        <div class="company-list" id="company-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
+            <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
+            <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
+        <label>Inversores:</label>
+        <div class="investor-list" id="investor-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
+            <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
+            <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
+            <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
+            <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
+            <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
+        </div>
+    </div>
+
+    <!-- Panel de Configuración Visual -->
     <div class="settings-panel" id="global-settings-panel">
         
         <label style="margin-top:5px;">Colores de Barras:</label>
@@ -424,28 +461,6 @@
         <label>Examen: <input type="color" id="color-mod-examen" onchange="guardarColores()"></label>
         <label>Capital propio: <input type="color" id="color-mod-propio" onchange="guardarColores()"></label>
         <label>Mixto: <input type="color" id="color-mod-mixto" onchange="guardarColores()"></label>
-
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
-        
-        <label>Empresas (Editar / Eliminar):</label>
-        <div class="company-list" id="company-list"></div>
-        <div style="display:flex; gap:5px; margin-top:5px;">
-            <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
-            <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
-            <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
-        </div>
-
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
-        
-        <label>Inversores (Editar / Eliminar):</label>
-        <div class="investor-list" id="investor-list"></div>
-        <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
-            <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
-            <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
-            <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
-            <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
-            <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
-        </div>
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
@@ -503,17 +518,24 @@
             { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "" }
         ];
 
-        let empresas = JSON.parse(localStorage.getItem('misEmpresas')) || [
-            { name: "FTMO", color: "#3182ce" },
-            { name: "Darwinex", color: "#4a5568" },
-            { name: "Axi", color: "#e53e3e" },
-            { name: "Bullfy", color: "#dd6b20" }
-        ];
+        // Forzar valores por defecto si las listas están vacías (por si borraste todo en pruebas)
+        let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
+        if (!empresas || empresas.length === 0) {
+            empresas = [
+                { name: "FTMO", color: "#3182ce" },
+                { name: "Darwinex", color: "#4a5568" },
+                { name: "Axi", color: "#e53e3e" },
+                { name: "Bullfy", color: "#dd6b20" }
+            ];
+        }
 
-        let inversores = JSON.parse(localStorage.getItem('misInversores')) || [
-            { name: "Andrés", avatar: "" },
-            { name: "Lucía", avatar: "" }
-        ];
+        let inversores = JSON.parse(localStorage.getItem('misInversores'));
+        if (!inversores || inversores.length === 0) {
+            inversores = [
+                { name: "Andrés", avatar: "" },
+                { name: "Lucía", avatar: "" }
+            ];
+        }
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
@@ -1066,6 +1088,7 @@
         }
 
         function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
+        function toggleManagementPanel() { document.getElementById('management-panel').classList.toggle('active'); }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
         function toggleTableSettings() { document.getElementById('table-settings-menu').classList.toggle('active'); }
 
@@ -1212,7 +1235,7 @@
             inversores.forEach((inv, index) => {
                 const row = document.createElement('div');
                 row.className = 'list-row';
-                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div style="width:24px; height:24px; border-radius:50%; background:#ccc; text-align:center; font-size:12px; line-height:24px; color:#333; flex-shrink:0;">${inv.name.charAt(0)}</div>`;
+                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div class="avatar-placeholder">${inv.name.charAt(0)}</div>`;
                 row.innerHTML = `
                     ${avatarSrc}
                     <input type="text" value="${inv.name}" onchange="cambiarNombreInversor(${index}, this.value)">
