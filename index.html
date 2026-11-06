@@ -1312,8 +1312,13 @@
                             }
                             break;
                         case 'status':
-                            if (cuenta.status) labelsHTML += `<div class="status-text">${cuenta.status}</div>`;
-                            break;
+                            case 'status':
+    if (cuenta.status) {
+        // Esto separa el texto por espacios y toma el último elemento (el emoji)
+        let soloEmoji = cuenta.status.split(' ').pop(); 
+        labelsHTML += `<div class="status-text">${soloEmoji}</div>`;
+    }
+    break;
                         case 'date':
                             if (cuenta.startDate) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`;
                             break;
