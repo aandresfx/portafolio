@@ -29,11 +29,11 @@
         }
 
         body.dark-mode {
-            --bg-color: #1a202c;
+            --bg-colo #1a202c;
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
-            --border-color: #4a5568;
+            --border-colo #4a5568;
             --input-bg: rgba(26, 32, 44, 0.9);
             --input-border: #4a5568;
             --bar-bg: #4a5568;
@@ -312,36 +312,34 @@
         .notes-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
         /* --- BOTONES FLOTANTES Y PANELES --- */
-        .investor-btn, .company-btn, .settings-btn {
+        .settings-btn, .management-btn {
             position: fixed; left: 20px; 
             background: var(--card-bg); color: var(--text-main);
             border: var(--glass-border); border-radius: 50%; 
             width: 45px; height: 45px; font-size: 20px; cursor: pointer;
             box-shadow: var(--shadow); z-index: 100; 
             display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s, background 0.3s; backdrop-filter: blur(10px);
+            transition: transform 0.2s; backdrop-filter: blur(10px);
         }
-        .investor-btn:hover, .company-btn:hover, .settings-btn:hover { transform: scale(1.1); }
+        .settings-btn:hover, .management-btn:hover { transform: rotate(90deg); }
         
         .settings-btn { bottom: 20px; }
-        .company-btn { bottom: 75px; }
-        .investor-btn { bottom: 130px; }
+        .management-btn { bottom: 75px; font-size: 22px; }
 
-        .panel-floating {
+        .settings-panel, .management-panel {
             position: fixed; left: 20px; 
             background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 340px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 75vh; overflow-y: auto;
         }
-        .panel-floating.active { display: flex; }
+        .settings-panel.active, .management-panel.active { display: flex; }
         
-        #investor-panel { bottom: 180px; }
-        #company-panel { bottom: 125px; }
-        #settings-panel { bottom: 70px; }
+        .settings-panel { bottom: 75px; }
+        .management-panel { bottom: 130px; }
         
-        .panel-floating label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
-        .panel-floating input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
+        .settings-panel label, .management-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
+        .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
         .toggle-btn {
@@ -350,45 +348,14 @@
         }
         .toggle-btn.secondary { background: #718096; }
         .toggle-btn:hover { opacity: 0.9; }
+        .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
+        .company-list, .investor-list, .modality-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
         .list-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
         .list-row .avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; flex-shrink: 0;}
-
-        /* --- ACORDEÓN (DETAILS/SUMMARY) --- */
-        .panel-floating details {
-            margin-bottom: 8px;
-            background: rgba(0,0,0,0.02);
-            border-radius: 6px;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-        }
-        body.dark-mode .panel-floating details {
-            background: rgba(255,255,255,0.05);
-        }
-        .panel-floating summary {
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            outline: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-main);
-            user-select: none;
-        }
-        .panel-floating summary::-webkit-details-marker { display: none; }
-        .panel-floating summary::after {
-            content: '▼';
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-        .panel-floating details[open] summary::after {
-            transform: rotate(180deg);
-        }
 
         /* --- BOTÓN DE ALERTA --- */
         .btn-alert {
@@ -542,85 +509,78 @@
     <!-- Botón flotante para recuperar panel izquierdo -->
     <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
 
-    <!-- 3 Botones Flotantes Globales -->
-    <button class="investor-btn" onclick="toggleInvestorPanel()" title="Gestionar Inversores">👤</button>
-    <button class="company-btn" onclick="toggleCompanyPanel()" title="Gestionar Empresas y Modalidades">🏢</button>
-    <button class="settings-btn" onclick="toggleSettingsPanel()" title="Ajustes de Fondo y Backup">⚙️</button>
+    <!-- Botones Flotantes Globales -->
+    <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
+    <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales">⚙️</button>
     
-    <!-- Panel 1: Inversores -->
-    <div class="panel-floating" id="investor-panel">
-        <details open>
-            <summary>Inversores</summary>
-            <div class="investor-list" id="investor-list"></div>
-            <div style="display:flex; gap:5px; margin-top:10px; flex-wrap: wrap;">
-                <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
-                <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
-                <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
-                <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
-                <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
-            </div>
-        </details>
+    <!-- Panel de Gestión de Datos -->
+    <div class="management-panel" id="management-panel">
+        <label style="margin-top:5px;">Empresas:</label>
+        <div class="company-list" id="company-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
+            <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
+            <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
+        <label>Inversores:</label>
+        <div class="investor-list" id="investor-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
+            <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
+            <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
+            <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
+            <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
+            <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
+        <label>Modalidades:</label>
+        <div class="modality-list" id="modality-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="new-modality-name" class="settings-input" placeholder="Nueva modalidad" style="margin-top:0;">
+            <input type="color" id="new-modality-color" value="#cbd5e0" style="width:30px; height:28px; padding:0; border:none;">
+            <button class="toggle-btn" onclick="agregarModalidad()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
+        <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
+        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
+        <div style="display:flex; gap:5px;">
+            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
+            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
+            <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
+        </div>
     </div>
 
-    <!-- Panel 2: Empresas y Modalidades -->
-    <div class="panel-floating" id="company-panel">
-        <details open>
-            <summary>Empresas</summary>
-            <div class="company-list" id="company-list"></div>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
-                <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
-                <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
-            </div>
-        </details>
+    <!-- Panel de Configuración Visual -->
+    <div class="settings-panel" id="global-settings-panel">
+        
+        <label style="margin-top:5px;">Colores de Barras:</label>
+        <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
+        <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
+        <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
+        <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
+        <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
+        <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
 
-        <details open>
-            <summary>Colores de Modalidad</summary>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                <label>Examen: <input type="color" id="color-mod-examen" onchange="guardarColores()"></label>
-                <label>Capital propio: <input type="color" id="color-mod-propio" onchange="guardarColores()"></label>
-                <label>Mixto: <input type="color" id="color-mod-mixto" onchange="guardarColores()"></label>
-            </div>
-        </details>
-    </div>
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
+        
+        <div>
+            <label style="font-size:11px; color:var(--text-muted); margin-top:5px; display:block;">Sube un archivo de imagen de fondo:</label>
+            <input type="file" id="bg-file-input" class="settings-input" accept="image/*" onchange="cargarImagenLocal(event)">
+        </div>
 
-    <!-- Panel 3: Ajustes de Fondo y Backup -->
-    <div class="panel-floating" id="settings-panel">
-        <details open>
-            <summary>Colores de Barras</summary>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
-                <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
-                <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
-                <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
-                <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
-                <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
-            </div>
-        </details>
+        <div>
+            <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa: <span id="opacity-val">50</span>%</label>
+            <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="cambiarOpacidad(this.value)">
+        </div>
 
-        <details open>
-            <summary>Fondo de Pantalla</summary>
-            <div>
-                <label style="font-size:11px; color:var(--text-muted); margin-top:5px; display:block;">Sube un archivo de imagen de fondo:</label>
-                <input type="file" id="bg-file-input" class="settings-input" accept="image/*" onchange="cargarImagenLocal(event)">
-            </div>
-            <div style="margin-top:10px;">
-                <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa: <span id="opacity-val">50</span>%</label>
-                <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="cambiarOpacidad(this.value)">
-            </div>
-            <button class="toggle-btn" onclick="toggleDarkMode()" style="margin-top:10px; width: 100%;">Modo Oscuro 🌙 / ☀️</button>
-            <button class="toggle-btn secondary" onclick="quitarFondo()" style="margin-top:5px; width: 100%;">Quitar Imagen de Fondo</button>
-        </details>
-
-        <details open>
-            <summary>Copia de Seguridad (Backup)</summary>
-            <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
-            <div style="display:flex; gap:5px;">
-                <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar</button>
-                <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar</button>
-                <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
-            </div>
-        </details>
+        <button class="toggle-btn" onclick="toggleDarkMode()">Modo Oscuro 🌙 / ☀️</button>
+        <button class="toggle-btn secondary" onclick="quitarFondo()">Quitar Imagen de Fondo</button>
     </div>
 
     <!-- Marca de agua y Logo Flotante -->
@@ -693,11 +653,19 @@
             ];
         }
 
+        let modalidades = JSON.parse(localStorage.getItem('misModalidades'));
+        if (!modalidades || modalidades.length === 0) {
+            modalidades = [
+                { name: "Examen", color: "#2d3748" },
+                { name: "Capital propio", color: "#fefcbf" },
+                { name: "Mixto", color: "#e9d8fd" }
+            ];
+        }
+
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
             passed: "#a3e635", failed: "#7f1d1d",
-            ownPos: "#3b82f6", ownNeg: "#ec4899",
-            modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
+            ownPos: "#3b82f6", ownNeg: "#ec4899"
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
@@ -725,9 +693,6 @@
             document.getElementById('color-failed').value = colores.failed;
             document.getElementById('color-own-pos').value = colores.ownPos;
             document.getElementById('color-own-neg').value = colores.ownNeg;
-            document.getElementById('color-mod-examen').value = colores.modExamen;
-            document.getElementById('color-mod-propio').value = colores.modPropio;
-            document.getElementById('color-mod-mixto').value = colores.modMixto;
 
             document.getElementById('bar-val-display').value = barValueDisplay;
             
@@ -746,8 +711,9 @@
             setLayout(currentLayout);
             renderCompanyList();
             renderInvestorList();
+            renderModalityList(); // Nueva función
             renderTableSettings();
-            renderChartLabelsMenu();
+            renderChartLabelsMenu(); 
         }
         initUI();
 
@@ -881,7 +847,7 @@
         }
 
         function getContrastColor(hexcolor) {
-            if(!hexcolor) return '#ffffff';
+            if(!hexcolor || hexcolor === 'transparent') return '#ffffff';
             if(hexcolor.indexOf('#') !== 0) return '#ffffff';
             let r = parseInt(hexcolor.substr(1, 2), 16);
             let g = parseInt(hexcolor.substr(3, 2), 16);
@@ -890,11 +856,9 @@
             return (yiq >= 128) ? '#000000' : '#ffffff';
         }
 
-        function getModColor(mod) {
-            if(mod === 'Examen') return colores.modExamen;
-            if(mod === 'Capital propio') return colores.modPropio;
-            if(mod === 'Mixto') return colores.modMixto;
-            return '#ffffff';
+        function getModColor(modName) {
+            const mod = modalidades.find(m => m.name === modName);
+            return mod ? mod.color : 'transparent';
         }
 
         function getAccountColor(cuenta) {
@@ -918,7 +882,7 @@
         function exportarDatos() {
             const backup = {};
             const keys = [
-                'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
+                'misCuentasPro', 'misEmpresas', 'misInversores', 'misModalidades', 'misColores', 
                 'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
                 'visibleCols', 'layoutState'
@@ -1053,12 +1017,12 @@
                             td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
+                            let modOptionsHTML = modalidades.map(m => `<option value="${m.name}" ${cuenta.modality === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
+                            if(!modalidades.find(m => m.name === cuenta.modality) && cuenta.modality) {
+                                modOptionsHTML += `<option value="${cuenta.modality}" selected>${cuenta.modality}</option>`;
+                            }
                             const modBg = getModColor(cuenta.modality);
-                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">
-                                <option value="Examen" ${cuenta.modality === 'Examen' ? 'selected' : ''}>Examen</option>
-                                <option value="Capital propio" ${cuenta.modality === 'Capital propio' ? 'selected' : ''}>Capital propio</option>
-                                <option value="Mixto" ${cuenta.modality === 'Mixto' ? 'selected' : ''}>Mixto</option>
-                            </select>`;
+                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">${modOptionsHTML}</select>`;
                             break;
                         case 'status':
                             td.innerHTML = `<select class="in-status" onchange="actualizarDato(${index}, 'status', this.value)">
@@ -1424,9 +1388,6 @@
             colores.failed = document.getElementById('color-failed').value;
             colores.ownPos = document.getElementById('color-own-pos').value;
             colores.ownNeg = document.getElementById('color-own-neg').value;
-            colores.modExamen = document.getElementById('color-mod-examen').value;
-            colores.modPropio = document.getElementById('color-mod-propio').value;
-            colores.modMixto = document.getElementById('color-mod-mixto').value;
             
             localStorage.setItem('misColores', JSON.stringify(colores));
             renderTabla();
@@ -1458,23 +1419,8 @@
             localStorage.setItem('chartFontSize', chartFontSize);
         }
 
-        // --- TOGGLE PANELES ---
-        function toggleInvestorPanel() {
-            document.getElementById('company-panel').classList.remove('active');
-            document.getElementById('settings-panel').classList.remove('active');
-            document.getElementById('investor-panel').classList.toggle('active');
-        }
-        function toggleCompanyPanel() {
-            document.getElementById('investor-panel').classList.remove('active');
-            document.getElementById('settings-panel').classList.remove('active');
-            document.getElementById('company-panel').classList.toggle('active');
-        }
-        function toggleSettingsPanel() {
-            document.getElementById('investor-panel').classList.remove('active');
-            document.getElementById('company-panel').classList.remove('active');
-            document.getElementById('settings-panel').classList.toggle('active');
-        }
-
+        function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
+        function toggleManagementPanel() { document.getElementById('management-panel').classList.toggle('active'); }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
         function toggleTableSettings() { document.getElementById('table-settings-menu').classList.toggle('active'); }
 
@@ -1491,22 +1437,16 @@
                 tMenu.classList.remove('active');
             }
 
-            const iPanel = document.getElementById('investor-panel');
-            const iBtn = document.querySelector('.investor-btn');
-            if (iPanel.classList.contains('active') && !iPanel.contains(event.target) && !iBtn.contains(event.target)) {
-                iPanel.classList.remove('active');
+            const gPanel = document.getElementById('global-settings-panel');
+            const gBtn = document.querySelector('.settings-btn');
+            if (gPanel.classList.contains('active') && !gPanel.contains(event.target) && !gBtn.contains(event.target)) {
+                gPanel.classList.remove('active');
             }
 
-            const cPanel = document.getElementById('company-panel');
-            const cBtn = document.querySelector('.company-btn');
-            if (cPanel.classList.contains('active') && !cPanel.contains(event.target) && !cBtn.contains(event.target)) {
-                cPanel.classList.remove('active');
-            }
-
-            const sPanel = document.getElementById('settings-panel');
-            const sBtn = document.querySelector('.settings-btn');
-            if (sPanel.classList.contains('active') && !sPanel.contains(event.target) && !sBtn.contains(event.target)) {
-                sPanel.classList.remove('active');
+            const mPanel = document.getElementById('management-panel');
+            const mBtn = document.querySelector('.management-btn');
+            if (mPanel.classList.contains('active') && !mPanel.contains(event.target) && !mBtn.contains(event.target)) {
+                mPanel.classList.remove('active');
             }
         });
 
@@ -1549,7 +1489,9 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            const defaultModality = modalidades.length > 0 ? modalidades[0].name : "Examen";
+            
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
             guardarYRenderizar();
         }
 
@@ -1687,6 +1629,69 @@
                 renderInvestorList();
                 renderTabla();
                 renderGrafico();
+            }
+        }
+
+        // --- GESTIÓN DE MODALIDADES ---
+        function renderModalityList() {
+            const list = document.getElementById('modality-list');
+            if (!list) return;
+            list.innerHTML = '';
+            modalidades.forEach((mod, index) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                row.innerHTML = `
+                    <input type="text" value="${mod.name}" onchange="cambiarNombreModalidad(${index}, this.value)">
+                    <input type="color" value="${mod.color}" onchange="cambiarColorModalidad(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarModalidad(${index})" title="Eliminar">🗑️</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function cambiarNombreModalidad(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderModalityList(); return; }
+            const oldName = modalidades[index].name;
+            modalidades[index].name = nuevoNombre.trim();
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            
+            cuentas.forEach(c => { if(c.modality === oldName) c.modality = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderModalityList();
+        }
+
+        function cambiarColorModalidad(index, nuevoColor) {
+            modalidades[index].color = nuevoColor;
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            renderTabla();
+            renderGrafico();
+        }
+
+        function eliminarModalidad(index) {
+            if(confirm(`¿Eliminar la modalidad ${modalidades[index].name}?`)) {
+                modalidades.splice(index, 1);
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+            }
+        }
+
+        function agregarModalidad() {
+            const nameInput = document.getElementById('new-modality-name');
+            const colorInput = document.getElementById('new-modality-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if(name && !modalidades.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+                modalidades.push({ name: name, color: color });
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                nameInput.value = '';
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+            } else if(name) {
+                alert("La modalidad ya existe.");
             }
         }
 
