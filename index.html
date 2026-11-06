@@ -341,6 +341,7 @@
         #settings-panel { bottom: 70px; }
         
         .panel-floating label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
+        .panel-floating input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
         
         .toggle-btn {
@@ -351,7 +352,7 @@
         .toggle-btn:hover { opacity: 0.9; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        .company-list, .investor-list, .modality-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
+        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
         .list-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
@@ -359,7 +360,7 @@
 
         /* --- ACORDEÓN (DETAILS/SUMMARY) --- */
         .panel-floating details {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             background: rgba(0,0,0,0.02);
             border-radius: 6px;
             padding: 8px;
@@ -574,22 +575,29 @@
         </details>
 
         <details open>
-            <summary>Modalidades</summary>
-            <div class="modality-list" id="modality-list"></div>
-            <div style="display:flex; gap:5px; margin-top:10px; flex-wrap: wrap;">
-                <input type="text" id="new-modality-name" class="settings-input" placeholder="Nueva modalidad" style="margin-top:0; flex:1; min-width: 120px;">
-                <div style="display: flex; gap: 5px; align-items: center; width: 100%; font-size: 10px;">
-                    <label>Base: <input type="color" id="new-modality-color" value="#cbd5e0"></label>
-                    <label>Pos (+): <input type="color" id="new-modality-pos-color" value="#38a169"></label>
-                    <label>Neg (-): <input type="color" id="new-modality-neg-color" value="#e53e3e"></label>
-                </div>
-                <button class="toggle-btn" onclick="agregarModalidad()" style="padding:4px 8px; width: 100%;">+ Añadir Modalidad</button>
+            <summary>Colores de Modalidad</summary>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                <label>Examen: <input type="color" id="color-mod-examen" onchange="guardarColores()"></label>
+                <label>Capital propio: <input type="color" id="color-mod-propio" onchange="guardarColores()"></label>
+                <label>Mixto: <input type="color" id="color-mod-mixto" onchange="guardarColores()"></label>
             </div>
         </details>
     </div>
 
     <!-- Panel 3: Ajustes de Fondo y Backup -->
     <div class="panel-floating" id="settings-panel">
+        <details open>
+            <summary>Colores de Barras</summary>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
+                <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
+                <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
+                <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
+                <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
+                <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
+            </div>
+        </details>
+
         <details open>
             <summary>Fondo de Pantalla</summary>
             <div>
@@ -600,16 +608,16 @@
                 <label style="font-size:11px; color:var(--text-muted);">Opacidad de la capa: <span id="opacity-val">50</span>%</label>
                 <input type="range" id="bg-opacity" min="0" max="100" value="50" oninput="cambiarOpacidad(this.value)">
             </div>
-            <button class="toggle-btn" onclick="toggleDarkMode()" style="margin-top:10px;">Modo Oscuro 🌙 / ☀️</button>
-            <button class="toggle-btn secondary" onclick="quitarFondo()" style="margin-top:5px;">Quitar Imagen de Fondo</button>
+            <button class="toggle-btn" onclick="toggleDarkMode()" style="margin-top:10px; width: 100%;">Modo Oscuro 🌙 / ☀️</button>
+            <button class="toggle-btn secondary" onclick="quitarFondo()" style="margin-top:5px; width: 100%;">Quitar Imagen de Fondo</button>
         </details>
 
         <details open>
-            <summary>Copia de Seguridad</summary>
+            <summary>Copia de Seguridad (Backup)</summary>
             <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
             <div style="display:flex; gap:5px;">
-                <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
-                <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
+                <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar</button>
+                <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar</button>
                 <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
             </div>
         </details>
@@ -685,21 +693,12 @@
             ];
         }
 
-        let modalidades = JSON.parse(localStorage.getItem('misModalidades'));
-        if (!modalidades || modalidades.length === 0) {
-            modalidades = [
-                { name: "Examen", color: "#2d3748", posColor: "#38a169", negColor: "#e53e3e" },
-                { name: "Capital propio", color: "#fefcbf", posColor: "#3b82f6", negColor: "#ec4899" },
-                { name: "Mixto", color: "#e9d8fd", posColor: "#38a169", negColor: "#e53e3e" }
-            ];
-        } else {
-            // Parche de compatibilidad: Si el usuario guardó modalidades con la versión anterior,
-            // nos aseguramos de que tengan los colores pos y neg.
-            modalidades.forEach(m => {
-                if(!m.posColor) m.posColor = '#38a169';
-                if(!m.negColor) m.negColor = '#e53e3e';
-            });
-        }
+        let colores = JSON.parse(localStorage.getItem('misColores')) || { 
+            pos: "#38a169", neg: "#e53e3e", 
+            passed: "#a3e635", failed: "#7f1d1d",
+            ownPos: "#3b82f6", ownNeg: "#ec4899",
+            modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
+        };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
             investor: true, name: true, capital: true, cost: true, risk: true, risk_usd: true, status: true, date: true, url: true, notes: true, alert: true
@@ -720,6 +719,16 @@
 
         // Inicializar UI
         function initUI() {
+            document.getElementById('color-pos').value = colores.pos;
+            document.getElementById('color-neg').value = colores.neg;
+            document.getElementById('color-passed').value = colores.passed;
+            document.getElementById('color-failed').value = colores.failed;
+            document.getElementById('color-own-pos').value = colores.ownPos;
+            document.getElementById('color-own-neg').value = colores.ownNeg;
+            document.getElementById('color-mod-examen').value = colores.modExamen;
+            document.getElementById('color-mod-propio').value = colores.modPropio;
+            document.getElementById('color-mod-mixto').value = colores.modMixto;
+
             document.getElementById('bar-val-display').value = barValueDisplay;
             
             document.getElementById('gap-slider').value = barGap;
@@ -737,9 +746,8 @@
             setLayout(currentLayout);
             renderCompanyList();
             renderInvestorList();
-            renderModalityList();
             renderTableSettings();
-            renderChartLabelsMenu(); 
+            renderChartLabelsMenu();
         }
         initUI();
 
@@ -873,7 +881,7 @@
         }
 
         function getContrastColor(hexcolor) {
-            if(!hexcolor || hexcolor === 'transparent') return '#ffffff';
+            if(!hexcolor) return '#ffffff';
             if(hexcolor.indexOf('#') !== 0) return '#ffffff';
             let r = parseInt(hexcolor.substr(1, 2), 16);
             let g = parseInt(hexcolor.substr(3, 2), 16);
@@ -882,32 +890,35 @@
             return (yiq >= 128) ? '#000000' : '#ffffff';
         }
 
-        function getModColor(modName) {
-            const mod = modalidades.find(m => m.name === modName);
-            return mod ? mod.color : 'transparent';
+        function getModColor(mod) {
+            if(mod === 'Examen') return colores.modExamen;
+            if(mod === 'Capital propio') return colores.modPropio;
+            if(mod === 'Mixto') return colores.modMixto;
+            return '#ffffff';
         }
 
         function getAccountColor(cuenta) {
-            const mod = modalidades.find(m => m.name === cuenta.modality);
-            const posColor = (mod && mod.posColor) ? mod.posColor : '#38a169';
-            const negColor = (mod && mod.negColor) ? mod.negColor : '#e53e3e';
-            
+            const isPropio = cuenta.modality === 'Capital propio';
             let displayValue = Number(cuenta.actual) || 0;
-            
-            if (cuenta.status && cuenta.status.includes('Desaprobado')) {
-                return negColor;
-            } else if (cuenta.status && cuenta.status.includes('Aprobado')) {
-                return posColor;
+            let color = colores.pos;
+
+            if (cuenta.status.includes('Desaprobado') && !isPropio) {
+                color = colores.failed;
+            } else if (cuenta.status.includes('Aprobado') && !isPropio) {
+                color = colores.passed;
+            } else if (isPropio) {
+                color = displayValue >= 0 ? colores.ownPos : colores.ownNeg;
             } else {
-                return displayValue >= 0 ? posColor : negColor;
+                color = displayValue >= 0 ? colores.pos : colores.neg;
             }
+            return color;
         }
 
         // --- BACKUP & RESTORE ---
         function exportarDatos() {
             const backup = {};
             const keys = [
-                'misCuentasPro', 'misEmpresas', 'misInversores', 'misModalidades', 
+                'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
                 'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
                 'visibleCols', 'layoutState'
@@ -1042,12 +1053,12 @@
                             td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
-                            let modOptionsHTML = modalidades.map(m => `<option value="${m.name}" ${cuenta.modality === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
-                            if(!modalidades.find(m => m.name === cuenta.modality) && cuenta.modality) {
-                                modOptionsHTML += `<option value="${cuenta.modality}" selected>${cuenta.modality}</option>`;
-                            }
                             const modBg = getModColor(cuenta.modality);
-                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">${modOptionsHTML}</select>`;
+                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">
+                                <option value="Examen" ${cuenta.modality === 'Examen' ? 'selected' : ''}>Examen</option>
+                                <option value="Capital propio" ${cuenta.modality === 'Capital propio' ? 'selected' : ''}>Capital propio</option>
+                                <option value="Mixto" ${cuenta.modality === 'Mixto' ? 'selected' : ''}>Mixto</option>
+                            </select>`;
                             break;
                         case 'status':
                             td.innerHTML = `<select class="in-status" onchange="actualizarDato(${index}, 'status', this.value)">
@@ -1406,6 +1417,22 @@
             renderGrafico();
         }
 
+        function guardarColores() {
+            colores.pos = document.getElementById('color-pos').value;
+            colores.neg = document.getElementById('color-neg').value;
+            colores.passed = document.getElementById('color-passed').value;
+            colores.failed = document.getElementById('color-failed').value;
+            colores.ownPos = document.getElementById('color-own-pos').value;
+            colores.ownNeg = document.getElementById('color-own-neg').value;
+            colores.modExamen = document.getElementById('color-mod-examen').value;
+            colores.modPropio = document.getElementById('color-mod-propio').value;
+            colores.modMixto = document.getElementById('color-mod-mixto').value;
+            
+            localStorage.setItem('misColores', JSON.stringify(colores));
+            renderTabla();
+            renderGrafico();
+        }
+
         function toggleChartLabel(key, isChecked) {
             chartLabels[key] = isChecked;
             localStorage.setItem('chartLabels', JSON.stringify(chartLabels));
@@ -1431,7 +1458,7 @@
             localStorage.setItem('chartFontSize', chartFontSize);
         }
 
-        // Funciones para abrir/cerrar los 3 paneles
+        // --- TOGGLE PANELES ---
         function toggleInvestorPanel() {
             document.getElementById('company-panel').classList.remove('active');
             document.getElementById('settings-panel').classList.remove('active');
@@ -1522,9 +1549,7 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            const defaultModality = modalidades.length > 0 ? modalidades[0].name : "Examen";
-            
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
             guardarYRenderizar();
         }
 
@@ -1662,79 +1687,6 @@
                 renderInvestorList();
                 renderTabla();
                 renderGrafico();
-            }
-        }
-
-        // --- GESTIÓN DE MODALIDADES ---
-        function renderModalityList() {
-            const list = document.getElementById('modality-list');
-            if (!list) return;
-            list.innerHTML = '';
-            modalidades.forEach((mod, index) => {
-                const row = document.createElement('div');
-                row.className = 'list-row';
-                row.style.flexWrap = 'wrap';
-                row.innerHTML = `
-                    <input type="text" value="${mod.name}" onchange="cambiarNombreModalidad(${index}, this.value)" style="flex: 1; min-width: 100px;">
-                    <button class="btn-delete" onclick="eliminarModalidad(${index})" title="Eliminar">🗑️</button>
-                    <div style="display:flex; gap:10px; width:100%; margin-top:5px; font-size:10px; align-items:center;">
-                        <label style="display:flex; align-items:center; gap:5px;">Base: <input type="color" value="${mod.color}" onchange="cambiarColorModalidad(${index}, 'color', this.value)"></label>
-                        <label style="display:flex; align-items:center; gap:5px;">Pos: <input type="color" value="${mod.posColor || '#38a169'}" onchange="cambiarColorModalidad(${index}, 'posColor', this.value)"></label>
-                        <label style="display:flex; align-items:center; gap:5px;">Neg: <input type="color" value="${mod.negColor || '#e53e3e'}" onchange="cambiarColorModalidad(${index}, 'negColor', this.value)"></label>
-                    </div>
-                `;
-                list.appendChild(row);
-            });
-        }
-
-        function cambiarNombreModalidad(index, nuevoNombre) {
-            if(!nuevoNombre.trim()) { renderModalityList(); return; }
-            const oldName = modalidades[index].name;
-            modalidades[index].name = nuevoNombre.trim();
-            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-            
-            cuentas.forEach(c => { if(c.modality === oldName) c.modality = nuevoNombre.trim(); });
-            guardarYRenderizar();
-            renderModalityList();
-        }
-
-        function cambiarColorModalidad(index, type, nuevoColor) {
-            modalidades[index][type] = nuevoColor;
-            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-            renderTabla();
-            renderGrafico();
-        }
-
-        function eliminarModalidad(index) {
-            if(confirm(`¿Eliminar la modalidad ${modalidades[index].name}?`)) {
-                modalidades.splice(index, 1);
-                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-                renderModalityList();
-                renderTabla();
-                renderGrafico();
-            }
-        }
-
-        function agregarModalidad() {
-            const nameInput = document.getElementById('new-modality-name');
-            const colorInput = document.getElementById('new-modality-color');
-            const posColorInput = document.getElementById('new-modality-pos-color');
-            const negColorInput = document.getElementById('new-modality-neg-color');
-            
-            const name = nameInput.value.trim();
-            const color = colorInput.value;
-            const posColor = posColorInput.value;
-            const negColor = negColorInput.value;
-
-            if(name && !modalidades.find(m => m.name.toLowerCase() === name.toLowerCase())) {
-                modalidades.push({ name: name, color: color, posColor: posColor, negColor: negColor });
-                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-                nameInput.value = '';
-                renderModalityList();
-                renderTabla();
-                renderGrafico();
-            } else if(name) {
-                alert("La modalidad ya existe.");
             }
         }
 
