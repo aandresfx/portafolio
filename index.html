@@ -692,6 +692,13 @@
                 { name: "Capital propio", color: "#fefcbf", posColor: "#3b82f6", negColor: "#ec4899" },
                 { name: "Mixto", color: "#e9d8fd", posColor: "#38a169", negColor: "#e53e3e" }
             ];
+        } else {
+            // Parche de compatibilidad: Si el usuario guardó modalidades con la versión anterior,
+            // nos aseguramos de que tengan los colores pos y neg.
+            modalidades.forEach(m => {
+                if(!m.posColor) m.posColor = '#38a169';
+                if(!m.negColor) m.negColor = '#e53e3e';
+            });
         }
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
@@ -882,14 +889,14 @@
 
         function getAccountColor(cuenta) {
             const mod = modalidades.find(m => m.name === cuenta.modality);
-            const posColor = mod ? mod.posColor : '#38a169';
-            const negColor = mod ? mod.negColor : '#e53e3e';
+            const posColor = (mod && mod.posColor) ? mod.posColor : '#38a169';
+            const negColor = (mod && mod.negColor) ? mod.negColor : '#e53e3e';
             
             let displayValue = Number(cuenta.actual) || 0;
             
-            if (cuenta.status.includes('Desaprobado')) {
+            if (cuenta.status && cuenta.status.includes('Desaprobado')) {
                 return negColor;
-            } else if (cuenta.status.includes('Aprobado')) {
+            } else if (cuenta.status && cuenta.status.includes('Aprobado')) {
                 return posColor;
             } else {
                 return displayValue >= 0 ? posColor : negColor;
