@@ -29,11 +29,11 @@
         }
 
         body.dark-mode {
-            --bg-colo #1a202c;
+            --bg-color: #1a202c;
             --card-bg: rgba(45, 55, 72, 0.75);
             --text-main: #f7fafc;
             --text-muted: #a0aec0;
-            --border-colo #4a5568;
+            --border-color: #4a5568;
             --input-bg: rgba(26, 32, 44, 0.9);
             --input-border: #4a5568;
             --bar-bg: #4a5568;
@@ -239,6 +239,11 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+            cursor: pointer; /* Nuevo: Cursor para indicar que se puede hacer clic */
+        }
+        
+        .chart-column:hover .bar-fill {
+            opacity: 0.8; /* Efecto visual al pasar el mouse */
         }
 
         .bar-container { 
@@ -356,6 +361,40 @@
         .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
         .list-row .avatar-placeholder { width: 24px; height: 24px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #333; flex-shrink: 0;}
+
+        /* --- PESTAÑAS DEL MENÚ DE GESTIÓN --- */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 6px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+        }
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tab-content.active {
+            display: flex;
+        }
 
         /* --- BOTÓN DE ALERTA --- */
         .btn-alert {
@@ -511,52 +550,47 @@
 
     <!-- Botones Flotantes Globales -->
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
-    <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales">⚙️</button>
+    <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
-    <!-- Panel de Gestión de Datos -->
+    <!-- Panel de Gestión de Datos (Con Pestañas) -->
     <div class="management-panel" id="management-panel">
-        <label style="margin-top:5px;">Empresas:</label>
-        <div class="company-list" id="company-list"></div>
-        <div style="display:flex; gap:5px; margin-top:5px;">
-            <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
-            <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
-            <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('empresas', this)">Empresas</button>
+            <button class="tab-btn" onclick="switchTab('inversores', this)">Inversores</button>
+            <button class="tab-btn" onclick="switchTab('modalidades', this)">Modalidades</button>
         </div>
 
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
-        
-        <label>Inversores:</label>
-        <div class="investor-list" id="investor-list"></div>
-        <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
-            <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
-            <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
-            <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
-            <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
-            <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
+        <div class="tab-content active" id="tab-empresas">
+            <div class="company-list" id="company-list"></div>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="text" id="new-company-name" class="settings-input" placeholder="Nueva empresa" style="margin-top:0;">
+                <input type="color" id="new-company-color" value="#4299e1" style="width:30px; height:28px; padding:0; border:none;">
+                <button class="toggle-btn" onclick="agregarEmpresa()" style="padding:4px 8px;">+</button>
+            </div>
         </div>
 
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
-        
-        <label>Modalidades:</label>
-        <div class="modality-list" id="modality-list"></div>
-        <div style="display:flex; gap:5px; margin-top:5px;">
-            <input type="text" id="new-modality-name" class="settings-input" placeholder="Nueva modalidad" style="margin-top:0;">
-            <input type="color" id="new-modality-color" value="#cbd5e0" style="width:30px; height:28px; padding:0; border:none;">
-            <button class="toggle-btn" onclick="agregarModalidad()" style="padding:4px 8px;">+</button>
+        <div class="tab-content" id="tab-inversores">
+            <div class="investor-list" id="investor-list"></div>
+            <div style="display:flex; gap:5px; margin-top:5px; flex-wrap: wrap;">
+                <input type="text" id="new-investor-name" class="settings-input" placeholder="Nombre" style="margin-top:0; flex:1;">
+                <input type="file" id="new-investor-avatar" accept="image/*" style="display:none;" onchange="previewAvatar(event)">
+                <button class="toggle-btn secondary" onclick="document.getElementById('new-investor-avatar').click()" style="padding:4px 8px;">Foto</button>
+                <img id="avatar-preview" src="" style="width:28px; height:28px; border-radius:50%; display:none; object-fit:cover; border:1px solid #ccc;">
+                <button class="toggle-btn" onclick="agregarInversor()" style="padding:4px 8px;">+</button>
+            </div>
         </div>
 
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
-        
-        <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
-        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
-        <div style="display:flex; gap:5px;">
-            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
-            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
-            <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
+        <div class="tab-content" id="tab-modalidades">
+            <div class="modality-list" id="modality-list"></div>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="text" id="new-modality-name" class="settings-input" placeholder="Nueva modalidad" style="margin-top:0;">
+                <input type="color" id="new-modality-color" value="#cbd5e0" style="width:30px; height:28px; padding:0; border:none;">
+                <button class="toggle-btn" onclick="agregarModalidad()" style="padding:4px 8px;">+</button>
+            </div>
         </div>
     </div>
 
-    <!-- Panel de Configuración Visual -->
+    <!-- Panel de Configuración Visual y Backup -->
     <div class="settings-panel" id="global-settings-panel">
         
         <label style="margin-top:5px;">Colores de Barras:</label>
@@ -581,6 +615,16 @@
 
         <button class="toggle-btn" onclick="toggleDarkMode()">Modo Oscuro 🌙 / ☀️</button>
         <button class="toggle-btn secondary" onclick="quitarFondo()">Quitar Imagen de Fondo</button>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
+        
+        <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
+        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
+        <div style="display:flex; gap:5px;">
+            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
+            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
+            <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
+        </div>
     </div>
 
     <!-- Marca de agua y Logo Flotante -->
@@ -711,11 +755,20 @@
             setLayout(currentLayout);
             renderCompanyList();
             renderInvestorList();
-            renderModalityList(); // Nueva función
+            renderModalityList();
             renderTableSettings();
             renderChartLabelsMenu(); 
         }
         initUI();
+
+        // --- PESTAÑAS DE GESTIÓN ---
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
 
         // --- MENÚ DE ETIQUETAS DEL GRÁFICO ---
         function renderChartLabelsMenu() {
@@ -1285,6 +1338,44 @@
                         ${labelsHTML.includes('avatar-container') ? labelsHTML.replace(labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6), '') : labelsHTML}
                     </div>
                 `;
+                
+                // NUEVA FUNCIONALIDAD: Editar valor al hacer clic en la columna
+                const originalIndex = cuentas.findIndex(c => c === cuenta);
+                column.onclick = (e) => {
+                    if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
+                    
+                    const currentVal = cuentas[originalIndex].actual || 0;
+                    const newValStr = prompt(`Editar % actual para ${cuenta.name} (${cuenta.investor || 'Sin inversor'}):`, currentVal);
+                    
+                    if (newValStr !== null) {
+                        const parsed = parseFloat(newValStr.replace(',', '.'));
+                        if (!isNaN(parsed)) {
+                            cuentas[originalIndex].actual = parsed;
+                            
+                            // Actualizar la tabla directamente para evitar re-renderizar todo
+                            const trs = document.querySelectorAll('#tabla-datos tbody tr');
+                            if (trs[originalIndex]) {
+                                const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
+                                const actIndex = activeColumns.indexOf('actual');
+                                if (actIndex > -1) {
+                                    const input = trs[originalIndex].children[actIndex].querySelector('input');
+                                    if (input) {
+                                        input.value = getPercentStr(parsed, 1);
+                                        const c = getAccountColor(cuentas[originalIndex]);
+                                        input.style.backgroundColor = c;
+                                        input.style.color = getContrastColor(c);
+                                    }
+                                }
+                            }
+                            
+                            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+                            renderGrafico(); 
+                        } else if (newValStr.trim() !== '') {
+                            alert("Por favor, ingresa un número válido.");
+                        }
+                    }
+                };
+                
                 chartArea.appendChild(column);
             });
         }
