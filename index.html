@@ -351,7 +351,7 @@
         .checkbox-label { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         input[type="range"] { width: 100%; cursor: pointer; }
         
-        .company-list, .investor-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
+        .company-list, .investor-list, .modality-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 180px; overflow-y: auto; padding-right: 5px;}
         .list-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .list-row input[type="text"] { flex: 1; min-width: 0; padding: 4px 6px; font-size: 11px; }
         .list-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;}
@@ -510,7 +510,7 @@
     <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
 
     <!-- Botones Flotantes Globales -->
-    <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas e Inversores">➕</button>
+    <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales">⚙️</button>
     
     <!-- Panel de Gestión de Datos -->
@@ -537,6 +537,16 @@
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
         
+        <label>Modalidades:</label>
+        <div class="modality-list" id="modality-list"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input type="text" id="new-modality-name" class="settings-input" placeholder="Nueva modalidad" style="margin-top:0;">
+            <input type="color" id="new-modality-color" value="#cbd5e0" style="width:30px; height:28px; padding:0; border:none;">
+            <button class="toggle-btn" onclick="agregarModalidad()" style="padding:4px 8px;">+</button>
+        </div>
+
+        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+        
         <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
         <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
         <div style="display:flex; gap:5px;">
@@ -559,17 +569,8 @@
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
-        <label>Colores de Modalidad:</label>
-        <label>Examen: <input type="color" id="color-mod-examen" onchange="guardarColores()"></label>
-        <label>Capital propio: <input type="color" id="color-mod-propio" onchange="guardarColores()"></label>
-        <label>Mixto: <input type="color" id="color-mod-mixto" onchange="guardarColores()"></label>
-
-        <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
-        
         <div>
-            <label style="font-size:11px; color:var(--text-muted);">URL de imagen de fondo:</label>
-            <input type="text" id="bg-url-input" class="settings-input" placeholder="https://ejemplo.com/foto.jpg" onchange="cambiarFondo(this.value)">
-            <label style="font-size:11px; color:var(--text-muted); margin-top:5px; display:block;">O sube un archivo:</label>
+            <label style="font-size:11px; color:var(--text-muted); margin-top:5px; display:block;">Sube un archivo de imagen de fondo:</label>
             <input type="file" id="bg-file-input" class="settings-input" accept="image/*" onchange="cargarImagenLocal(event)">
         </div>
 
@@ -652,11 +653,19 @@
             ];
         }
 
+        let modalidades = JSON.parse(localStorage.getItem('misModalidades'));
+        if (!modalidades || modalidades.length === 0) {
+            modalidades = [
+                { name: "Examen", color: "#2d3748" },
+                { name: "Capital propio", color: "#fefcbf" },
+                { name: "Mixto", color: "#e9d8fd" }
+            ];
+        }
+
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
             passed: "#a3e635", failed: "#7f1d1d",
-            ownPos: "#3b82f6", ownNeg: "#ec4899",
-            modExamen: "#2d3748", modPropio: "#fefcbf", modMixto: "#e9d8fd"
+            ownPos: "#3b82f6", ownNeg: "#ec4899"
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
@@ -684,9 +693,6 @@
             document.getElementById('color-failed').value = colores.failed;
             document.getElementById('color-own-pos').value = colores.ownPos;
             document.getElementById('color-own-neg').value = colores.ownNeg;
-            document.getElementById('color-mod-examen').value = colores.modExamen;
-            document.getElementById('color-mod-propio').value = colores.modPropio;
-            document.getElementById('color-mod-mixto').value = colores.modMixto;
 
             document.getElementById('bar-val-display').value = barValueDisplay;
             
@@ -701,13 +707,13 @@
             document.getElementById('opacity-val').innerText = overlayOpacity;
             
             if(isDarkMode) document.body.classList.add('dark-mode');
-            if(savedBgImage !== 'none') document.getElementById('bg-url-input').value = savedBgImage.startsWith('data:') ? '(Imagen local cargada)' : savedBgImage;
 
             setLayout(currentLayout);
             renderCompanyList();
             renderInvestorList();
+            renderModalityList(); // Nueva función
             renderTableSettings();
-            renderChartLabelsMenu(); // Nueva función
+            renderChartLabelsMenu(); 
         }
         initUI();
 
@@ -741,20 +747,18 @@
                 list.appendChild(item);
             });
 
-            // Inicializar Sortable si no está ya inicializado
             if (!window.chartSortableInitialized) {
                 new Sortable(list, {
                     animation: 150,
                     ghostClass: 'sortable-ghost',
                     onEnd: function (evt) {
-                        // Reconstruir el orden basado en el DOM
                         const newOrder = Array.from(list.children).map(item => {
                             const input = item.querySelector('input[type="checkbox"]');
                             return input.id.replace('chk-', '');
                         });
                         chartLabelsOrder = newOrder;
                         localStorage.setItem('chartLabelsOrder', JSON.stringify(chartLabelsOrder));
-                        renderGrafico(); // Redibujar el gráfico con el nuevo orden
+                        renderGrafico(); 
                     }
                 });
                 window.chartSortableInitialized = true;
@@ -843,7 +847,7 @@
         }
 
         function getContrastColor(hexcolor) {
-            if(!hexcolor) return '#ffffff';
+            if(!hexcolor || hexcolor === 'transparent') return '#ffffff';
             if(hexcolor.indexOf('#') !== 0) return '#ffffff';
             let r = parseInt(hexcolor.substr(1, 2), 16);
             let g = parseInt(hexcolor.substr(3, 2), 16);
@@ -852,11 +856,9 @@
             return (yiq >= 128) ? '#000000' : '#ffffff';
         }
 
-        function getModColor(mod) {
-            if(mod === 'Examen') return colores.modExamen;
-            if(mod === 'Capital propio') return colores.modPropio;
-            if(mod === 'Mixto') return colores.modMixto;
-            return '#ffffff';
+        function getModColor(modName) {
+            const mod = modalidades.find(m => m.name === modName);
+            return mod ? mod.color : 'transparent';
         }
 
         function getAccountColor(cuenta) {
@@ -880,7 +882,7 @@
         function exportarDatos() {
             const backup = {};
             const keys = [
-                'misCuentasPro', 'misEmpresas', 'misInversores', 'misColores', 
+                'misCuentasPro', 'misEmpresas', 'misInversores', 'misModalidades', 'misColores', 
                 'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
                 'visibleCols', 'layoutState'
@@ -1015,12 +1017,12 @@
                             td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
+                            let modOptionsHTML = modalidades.map(m => `<option value="${m.name}" ${cuenta.modality === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
+                            if(!modalidades.find(m => m.name === cuenta.modality) && cuenta.modality) {
+                                modOptionsHTML += `<option value="${cuenta.modality}" selected>${cuenta.modality}</option>`;
+                            }
                             const modBg = getModColor(cuenta.modality);
-                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">
-                                <option value="Examen" ${cuenta.modality === 'Examen' ? 'selected' : ''}>Examen</option>
-                                <option value="Capital propio" ${cuenta.modality === 'Capital propio' ? 'selected' : ''}>Capital propio</option>
-                                <option value="Mixto" ${cuenta.modality === 'Mixto' ? 'selected' : ''}>Mixto</option>
-                            </select>`;
+                            td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">${modOptionsHTML}</select>`;
                             break;
                         case 'status':
                             td.innerHTML = `<select class="in-status" onchange="actualizarDato(${index}, 'status', this.value)">
@@ -1217,10 +1219,9 @@
 
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 
-                // Construir etiquetas basadas en el orden del array
                 let labelsHTML = '';
                 chartLabelsOrder.forEach(key => {
-                    if (!chartLabels[key]) return; // Si está desmarcado, no se muestra
+                    if (!chartLabels[key]) return; 
 
                     switch(key) {
                         case 'investor':
@@ -1387,9 +1388,6 @@
             colores.failed = document.getElementById('color-failed').value;
             colores.ownPos = document.getElementById('color-own-pos').value;
             colores.ownNeg = document.getElementById('color-own-neg').value;
-            colores.modExamen = document.getElementById('color-mod-examen').value;
-            colores.modPropio = document.getElementById('color-mod-propio').value;
-            colores.modMixto = document.getElementById('color-mod-mixto').value;
             
             localStorage.setItem('misColores', JSON.stringify(colores));
             renderTabla();
@@ -1467,15 +1465,6 @@
             updateBackground();
         }
 
-        function cambiarFondo(url) {
-            if(url.trim() === '') { quitarFondo(); return; }
-            if(!url.startsWith('http') && !url.startsWith('data:')) url = 'https://' + url;
-            savedBgImage = url;
-            localStorage.setItem('bgImage', url);
-            document.getElementById('bg-file-input').value = '';
-            updateBackground();
-        }
-
         function cargarImagenLocal(event) {
             const file = event.target.files[0];
             if (file) {
@@ -1483,7 +1472,6 @@
                 reader.onload = function(e) {
                     savedBgImage = e.target.result;
                     localStorage.setItem('bgImage', savedBgImage);
-                    document.getElementById('bg-url-input').value = '(Imagen local cargada)';
                     updateBackground();
                 };
                 reader.readAsDataURL(file);
@@ -1493,7 +1481,6 @@
         function quitarFondo() {
             savedBgImage = 'none';
             localStorage.removeItem('bgImage');
-            document.getElementById('bg-url-input').value = '';
             document.getElementById('bg-file-input').value = '';
             updateBackground();
         }
@@ -1502,7 +1489,9 @@
             const hoy = new Date();
             const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: "Examen", status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            const defaultModality = modalidades.length > 0 ? modalidades[0].name : "Examen";
+            
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
             guardarYRenderizar();
         }
 
@@ -1640,6 +1629,69 @@
                 renderInvestorList();
                 renderTabla();
                 renderGrafico();
+            }
+        }
+
+        // --- GESTIÓN DE MODALIDADES ---
+        function renderModalityList() {
+            const list = document.getElementById('modality-list');
+            if (!list) return;
+            list.innerHTML = '';
+            modalidades.forEach((mod, index) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                row.innerHTML = `
+                    <input type="text" value="${mod.name}" onchange="cambiarNombreModalidad(${index}, this.value)">
+                    <input type="color" value="${mod.color}" onchange="cambiarColorModalidad(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarModalidad(${index})" title="Eliminar">🗑️</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function cambiarNombreModalidad(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderModalityList(); return; }
+            const oldName = modalidades[index].name;
+            modalidades[index].name = nuevoNombre.trim();
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            
+            cuentas.forEach(c => { if(c.modality === oldName) c.modality = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderModalityList();
+        }
+
+        function cambiarColorModalidad(index, nuevoColor) {
+            modalidades[index].color = nuevoColor;
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            renderTabla();
+            renderGrafico();
+        }
+
+        function eliminarModalidad(index) {
+            if(confirm(`¿Eliminar la modalidad ${modalidades[index].name}?`)) {
+                modalidades.splice(index, 1);
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+            }
+        }
+
+        function agregarModalidad() {
+            const nameInput = document.getElementById('new-modality-name');
+            const colorInput = document.getElementById('new-modality-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if(name && !modalidades.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+                modalidades.push({ name: name, color: color });
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                nameInput.value = '';
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+            } else if(name) {
+                alert("La modalidad ya existe.");
             }
         }
 
