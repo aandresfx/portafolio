@@ -116,8 +116,8 @@
         body.dark-mode .icon-btn:hover { background: rgba(255,255,255,0.1); }
 
         .datetime-display {
-            position: absolute; top: 15px; left: 20px; font-size: 11px;
-            color: var(--text-muted); font-weight: 600; text-transform: capitalize; z-index: 10;
+            position: absolute; top: 15px; left: 20px; font-size: 14px; /* Aumentado de 11px a 14px */
+            color: var(--text-muted); font-weight: 600; z-index: 10;
         }
 
         .btn-float-open {
@@ -211,7 +211,7 @@
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
-            font-size: 10px; color: var(--text-muted); font-weight: 600;
+            font-size: 11px; color: var(--text-muted); font-weight: 600; /* Aumentado de 10px a 11px */
         }
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
@@ -224,6 +224,7 @@
             overflow-x: auto;
             overflow-y: hidden; 
             padding-top: 40px; 
+            padding-left: 30px; /* Añadido para separar la primera barra */
         }
 
         .global-zero-line {
@@ -239,11 +240,11 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            cursor: pointer; /* Nuevo: Cursor para indicar que se puede hacer clic */
+            cursor: pointer;
         }
         
         .chart-column:hover .bar-fill {
-            opacity: 0.8; /* Efecto visual al pasar el mouse */
+            opacity: 0.8;
         }
 
         .bar-container { 
@@ -276,7 +277,11 @@
         }
 
         .target-text {
-            position: absolute; top: -20px; font-size: 10px; font-weight: 700; color: var(--text-muted);
+            position: absolute; top: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted); /* Aumentado a 11px */
+        }
+        
+        .min-text {
+            position: absolute; bottom: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted); /* Nuevo para el mínimo */
         }
 
         .bar-fill {
@@ -284,7 +289,7 @@
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
 
-        .val-text { font-size: 10px; font-weight: bold; text-align: center; line-height: 1.1; }
+        .val-text { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.1; } /* Aumentado de 10px a 11px */
 
         .labels-area { 
             position: absolute;
@@ -828,10 +833,22 @@
         // --- RELOJ EN VIVO ---
         function updateClock() {
             const now = new Date();
-            const optionsDate = { weekday: 'long', day: 'numeric', month: 'long' };
-            const dateStr = now.toLocaleDateString('es-ES', optionsDate);
-            const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('datetime-display').innerText = `${dateStr} ${timeStr} hs`;
+            const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            
+            const diaSemana = dias[now.getDay()];
+            const dia = now.getDate();
+            const mes = meses[now.getMonth()];
+            const anio = now.getFullYear();
+            const hora = String(now.getHours()).padStart(2, '0');
+            const minuto = String(now.getMinutes()).padStart(2, '0');
+            const segundo = String(now.getSeconds()).padStart(2, '0');
+            
+            // Formato: lunes 9 de noviembre 2026, 13:32:30 hs
+            let texto = `${diaSemana} ${dia} de ${mes} ${anio}, ${hora}:${minuto}:${segundo} hs`;
+            texto = texto.charAt(0).toUpperCase() + texto.slice(1); // Capitalizar primera letra
+            
+            document.getElementById('datetime-display').innerText = texto;
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -1245,7 +1262,9 @@
                 let color = getAccountColor(cuenta);
                 
                 const textColor = getContrastColor(color);
-                const pctStr = displayValue > 0 ? `+${displayValue.toFixed(1)}%` : `${displayValue.toFixed(1)}%`;
+                
+                // Formato entero para el porcentaje en la barra
+                const pctStr = displayValue > 0 ? `+${Math.round(displayValue)}%` : `${Math.round(displayValue)}%`;
                 const usdVal = ((Number(cuenta.capital) || 0) * displayValue) / 100;
                 const usdStr = getCurrencyStr(usdVal);
 
@@ -1270,7 +1289,9 @@
                 if (displayValue < 0) fillBottomPercent = zeroBottomPercent - fillHeightPercent;
                 if (displayValue === 0) fillHeightPercent = 0;
 
+                // Generar texto para el máximo (arriba) y el mínimo (abajo)
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
+                let minHTML = (!isPropio && cuenta.min !== '' && cuenta.min !== null) ? `<div class="min-text">${Number(cuenta.min).toFixed(0)}%</div>` : '';
                 
                 let labelsHTML = '';
                 chartLabelsOrder.forEach(key => {
@@ -1312,13 +1333,11 @@
                             }
                             break;
                         case 'status':
-                            case 'status':
-    if (cuenta.status) {
-        // Esto separa el texto por espacios y toma el último elemento (el emoji)
-        let soloEmoji = cuenta.status.split(' ').pop(); 
-        labelsHTML += `<div class="status-text">${soloEmoji}</div>`;
-    }
-    break;
+                            if (cuenta.status) {
+                                let soloEmoji = cuenta.status.split(' ').pop(); 
+                                labelsHTML += `<div class="status-text">${soloEmoji}</div>`;
+                            }
+                            break;
                         case 'date':
                             if (cuenta.startDate) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`;
                             break;
@@ -1334,7 +1353,7 @@
                 column.innerHTML = `
                     <div class="bar-container">
                         ${labelsHTML.includes('avatar-container') ? labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6) : ''}
-                        ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}</div>` : ''}
+                        ${!isPropio ? `<div class="bar-range-bg" style="bottom: ${rangeBottomPercent}%; height: ${rangeHeightPercent}%;">${targetHTML}${minHTML}</div>` : ''}
                         <div class="bar-fill" style="bottom: ${fillBottomPercent}%; height: ${fillHeightPercent}%; background-color: ${color};">
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                         </div>
@@ -1344,7 +1363,6 @@
                     </div>
                 `;
                 
-                // NUEVA FUNCIONALIDAD: Editar valor al hacer clic en la columna
                 const originalIndex = cuentas.findIndex(c => c === cuenta);
                 column.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
@@ -1357,7 +1375,6 @@
                         if (!isNaN(parsed)) {
                             cuentas[originalIndex].actual = parsed;
                             
-                            // Actualizar la tabla directamente para evitar re-renderizar todo
                             const trs = document.querySelectorAll('#tabla-datos tbody tr');
                             if (trs[originalIndex]) {
                                 const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
