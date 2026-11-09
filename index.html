@@ -116,7 +116,7 @@
         body.dark-mode .icon-btn:hover { background: rgba(255,255,255,0.1); }
 
         .datetime-display {
-            position: absolute; top: 15px; left: 20px; font-size: 14px; /* Aumentado de 11px a 14px */
+            position: absolute; top: 15px; left: 20px; font-size: 14px;
             color: var(--text-muted); font-weight: 600; z-index: 10;
         }
 
@@ -211,9 +211,18 @@
         }
         .y-tick {
             position: absolute; right: 5px; transform: translateY(-50%);
-            font-size: 11px; color: var(--text-muted); font-weight: 600; /* Aumentado de 10px a 11px */
+            font-size: 11px; color: var(--text-muted); font-weight: 600;
         }
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
+
+        /* NUEVO: Estilo para las divisiones intermedias */
+        .y-tick-minor {
+            position: absolute; right: 5px; transform: translateY(-50%);
+        }
+        .y-tick-minor::after { 
+            content: ''; position: absolute; right: -16px; top: 50%; 
+            width: 5px; height: 1px; background: var(--axis-line); opacity: 0.5; 
+        }
 
         .charts-wrapper { 
             display: flex; 
@@ -224,7 +233,7 @@
             overflow-x: auto;
             overflow-y: hidden; 
             padding-top: 40px; 
-            padding-left: 30px; /* Añadido para separar la primera barra */
+            padding-left: 30px;
         }
 
         .global-zero-line {
@@ -277,11 +286,11 @@
         }
 
         .target-text {
-            position: absolute; top: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted); /* Aumentado a 11px */
+            position: absolute; top: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted);
         }
         
         .min-text {
-            position: absolute; bottom: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted); /* Nuevo para el mínimo */
+            position: absolute; bottom: -20px; font-size: 11px; font-weight: 700; color: var(--text-muted);
         }
 
         .bar-fill {
@@ -289,7 +298,7 @@
             transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
         }
 
-        .val-text { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.1; } /* Aumentado de 10px a 11px */
+        .val-text { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.1; }
 
         .labels-area { 
             position: absolute;
@@ -315,7 +324,7 @@
         .cap-text { font-size: calc(var(--chart-label-size) - 1px); color: var(--text-main); font-weight: bold; margin-bottom: 2px; }
         .cost-text { font-size: calc(var(--chart-label-size) - 1px); color: #e53e3e; font-weight: bold; margin-bottom: 2px; }
         .risk-text { font-size: calc(var(--chart-label-size) - 2px); color: #ffffff; font-weight: bold; margin-bottom: 2px; }
-        .status-text { font-size: calc(var(--chart-label-size) - 1px); margin-bottom: 2px; white-space: normal;}
+        .status-text { font-size: calc(var(--chart-label-size) + 1px); margin-bottom: 2px; white-space: normal; }
         .date-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); margin-bottom: 2px; }
         .audit-link { font-size: calc(var(--chart-label-size) - 1px); color: #4299e1; text-decoration: none; display: block; margin-bottom: 4px; font-weight: 600;}
         .audit-link:hover { text-decoration: underline; }
@@ -846,7 +855,7 @@
             
             // Formato: lunes 9 de noviembre 2026, 13:32:30 hs
             let texto = `${diaSemana} ${dia} de ${mes} ${anio}, ${hora}:${minuto}:${segundo} hs`;
-            texto = texto.charAt(0).toUpperCase() + texto.slice(1); // Capitalizar primera letra
+            texto = texto.charAt(0).toUpperCase() + texto.slice(1); 
             
             document.getElementById('datetime-display').innerText = texto;
         }
@@ -1242,12 +1251,19 @@
             const zeroBottomPercent = 50; 
 
             const step = rangeGlobal > 30 ? 10 : 5;
-            for (let i = globalMin; i <= globalMax; i += step) {
+            // Modificado para saltar de 2.5 en 2.5
+            for (let i = globalMin; i <= globalMax; i += 2.5) {
                 const topPercent = 100 - (((i - globalMin) / rangeGlobal) * 100);
                 const tick = document.createElement('div');
-                tick.className = 'y-tick';
+                
+                if (i % step === 0) {
+                    tick.className = 'y-tick';
+                    tick.innerText = `${i}%`;
+                } else {
+                    tick.className = 'y-tick-minor';
+                }
+                
                 tick.style.top = `${topPercent}%`;
-                tick.innerText = `${i}%`;
                 yAxis.appendChild(tick);
             }
 
@@ -1263,16 +1279,14 @@
                 
                 const textColor = getContrastColor(color);
                 
-                // Formato entero para el porcentaje en la barra
                 let valStr;
-if (displayValue % 1 === 0) {
-    // Si es un número entero (ej. 10.0), quitar el decimal
-    valStr = displayValue.toFixed(0);
-} else {
-    // Si tiene decimales (ej. 9.4), mantener un decimal
-    valStr = displayValue.toFixed(1);
-}
-const pctStr = displayValue > 0 ? `+${valStr}%` : `${valStr}%`;
+                if (displayValue % 1 === 0) {
+                    valStr = displayValue.toFixed(0);
+                } else {
+                    valStr = displayValue.toFixed(1);
+                }
+                const pctStr = displayValue > 0 ? `+${valStr}%` : `${valStr}%`;
+                
                 const usdVal = ((Number(cuenta.capital) || 0) * displayValue) / 100;
                 const usdStr = getCurrencyStr(usdVal);
 
@@ -1297,7 +1311,6 @@ const pctStr = displayValue > 0 ? `+${valStr}%` : `${valStr}%`;
                 if (displayValue < 0) fillBottomPercent = zeroBottomPercent - fillHeightPercent;
                 if (displayValue === 0) fillHeightPercent = 0;
 
-                // Generar texto para el máximo (arriba) y el mínimo (abajo)
                 let targetHTML = (!isPropio && cuenta.max !== '' && cuenta.max !== null) ? `<div class="target-text">${Number(cuenta.max).toFixed(0)}%</div>` : '';
                 let minHTML = (!isPropio && cuenta.min !== '' && cuenta.min !== null) ? `<div class="min-text">${Number(cuenta.min).toFixed(0)}%</div>` : '';
                 
