@@ -132,6 +132,7 @@
             position: absolute; top: 35px; background: var(--card-bg); border: var(--glass-border);
             border-radius: 8px; padding: 15px; box-shadow: var(--shadow); z-index: 50;
             display: none; flex-direction: column; gap: 8px; font-size: 12px; backdrop-filter: blur(10px);
+            max-height: 80vh; overflow-y: auto;
         }
         .dropdown-menu.active { display: flex; }
         .dropdown-menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -215,7 +216,6 @@
         }
         .y-tick::after { content: ''; position: absolute; right: -16px; top: 50%; width: 10px; height: 1px; background: var(--axis-line); }
 
-        /* NUEVO: Estilo para las divisiones intermedias */
         .y-tick-minor {
             position: absolute; right: 5px; transform: translateY(-50%);
         }
@@ -534,6 +534,18 @@
                         <option value="both">Ambos</option>
                     </select>
 
+                    <hr>
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Filtros:</span>
+                    <div style="display:grid; gap:5px; margin-top:5px; margin-bottom:10px;">
+                        <select id="filter-year" onchange="updateFilter('year', this.value)" style="width:100%; padding:4px; font-size:11px;"></select>
+                        <select id="filter-company" onchange="updateFilter('company', this.value)" style="width:100%; padding:4px; font-size:11px;"></select>
+                        <select id="filter-investor" onchange="updateFilter('investor', this.value)" style="width:100%; padding:4px; font-size:11px;"></select>
+                        <select id="filter-modality" onchange="updateFilter('modality', this.value)" style="width:100%; padding:4px; font-size:11px;"></select>
+                        <select id="filter-status" onchange="updateFilter('status', this.value)" style="width:100%; padding:4px; font-size:11px;"></select>
+                    </div>
+                    <button class="toggle-btn secondary" onclick="clearFilters()" style="width:100%; margin-bottom:10px; padding:4px; font-size:11px;">Limpiar Filtros</button>
+
+                    <hr>
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Textos debajo (Arrastrar para ordenar):</span>
                     <div id="chart-labels-list">
                         <!-- Se genera con JS -->
@@ -684,6 +696,11 @@
         let chartLabelsOrder = JSON.parse(localStorage.getItem('chartLabelsOrder')) || [
             'investor', 'alert', 'name', 'capital', 'cost', 'risk', 'risk_usd', 'status', 'date', 'url', 'notes'
         ];
+        
+        if (!chartLabelsOrder.includes('modality')) {
+            chartLabelsOrder.push('modality');
+            localStorage.setItem('chartLabelsOrder', JSON.stringify(chartLabelsOrder));
+        }
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
@@ -727,8 +744,11 @@
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
-            investor: true, name: true, capital: true, cost: true, risk: true, risk_usd: true, status: true, date: true, url: true, notes: true, alert: true
+            investor: true, name: true, capital: true, cost: true, risk: true, risk_usd: true, status: true, date: true, url: true, notes: true, alert: true, modality: false
         };
+        if (chartLabels.modality === undefined) chartLabels.modality = false;
+
+        let chartFilters = { year: 'all', company: 'all', investor: 'all', modality: 'all', status: 'all' };
 
         let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; 
 
@@ -771,9 +791,48 @@
             renderInvestorList();
             renderModalityList();
             renderTableSettings();
-            renderChartLabelsMenu(); 
+            renderChartLabelsMenu();
+            populateFilters();
         }
         initUI();
+
+        // --- FILTROS ---
+        function populateFilters() {
+            const years = [...new Set(cuentas.map(c => c.startDate ? c.startDate.split('/')[2] : null).filter(y => y))].sort().reverse();
+            const companies = [...new Set(cuentas.map(c => c.name).filter(c => c))].sort();
+            const investors = [...new Set(cuentas.map(c => c.investor).filter(c => c))].sort();
+            const modalities = [...new Set(cuentas.map(c => c.modality).filter(c => c))].sort();
+            const statuses = [...new Set(cuentas.map(c => c.status).filter(c => c))].sort();
+
+            const fillSelect = (id, items, defaultText, currentVal) => {
+                const sel = document.getElementById(id);
+                sel.innerHTML = `<option value="all">Todos (${defaultText})</option>`;
+                items.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    if (item === currentVal) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            };
+
+            fillSelect('filter-year', years, 'Años', chartFilters.year);
+            fillSelect('filter-company', companies, 'Empresas', chartFilters.company);
+            fillSelect('filter-investor', investors, 'Inversores', chartFilters.investor);
+            fillSelect('filter-modality', modalities, 'Modalidades', chartFilters.modality);
+            fillSelect('filter-status', statuses, 'Estados', chartFilters.status);
+        }
+
+        function updateFilter(key, value) {
+            chartFilters[key] = value;
+            renderGrafico();
+        }
+
+        function clearFilters() {
+            chartFilters = { year: 'all', company: 'all', investor: 'all', modality: 'all', status: 'all' };
+            populateFilters();
+            renderGrafico();
+        }
 
         // --- PESTAÑAS DE GESTIÓN ---
         function switchTab(tabName, btn) {
@@ -793,6 +852,7 @@
                 investor: 'Inversor',
                 alert: 'Alerta ⏰',
                 name: 'Empresa',
+                modality: 'Modalidad',
                 capital: 'Capital',
                 cost: 'Costo',
                 risk: 'Riesgo %',
@@ -853,7 +913,6 @@
             const minuto = String(now.getMinutes()).padStart(2, '0');
             const segundo = String(now.getSeconds()).padStart(2, '0');
             
-            // Formato: lunes 9 de noviembre 2026, 13:32:30 hs
             let texto = `${diaSemana} ${dia} de ${mes} ${anio}, ${hora}:${minuto}:${segundo} hs`;
             texto = texto.charAt(0).toUpperCase() + texto.slice(1); 
             
@@ -1232,7 +1291,22 @@
             chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
-            const cuentasVisibles = cuentas.filter(c => c.visible !== false);
+            // APLICAR FILTROS
+            const cuentasVisibles = cuentas.filter(c => {
+                if (c.visible === false) return false;
+                
+                if (chartFilters.year !== 'all') {
+                    const y = c.startDate ? c.startDate.split('/')[2] : '';
+                    if (y !== chartFilters.year) return false;
+                }
+                if (chartFilters.company !== 'all' && c.name !== chartFilters.company) return false;
+                if (chartFilters.investor !== 'all' && c.investor !== chartFilters.investor) return false;
+                if (chartFilters.modality !== 'all' && c.modality !== chartFilters.modality) return false;
+                if (chartFilters.status !== 'all' && c.status !== chartFilters.status) return false;
+                
+                return true;
+            });
+            
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
             let maxAbs = 10; 
@@ -1338,11 +1412,21 @@
                             const empTextColor = getContrastColor(empColor);
                             labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
                             break;
+                        case 'modality':
+                            if (cuenta.modality) {
+                                const modColor = getModColor(cuenta.modality);
+                                const modTextColor = getContrastColor(modColor);
+                                labelsHTML += `<div class="name-text" style="background-color: ${modColor}; color: ${modTextColor}; font-size: calc(var(--chart-label-size) - 1px);">${cuenta.modality}</div>`;
+                            }
+                            break;
                         case 'capital':
                             labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                             break;
                         case 'cost':
-                            if (cuenta.cost !== 0) labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
+                            // Se muestra incluso si es $0 (siempre que no sea nulo/vacío)
+                            if (cuenta.cost !== '' && cuenta.cost !== null && cuenta.cost !== undefined) {
+                                labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
+                            }
                             break;
                         case 'risk':
                             if (cuenta.risk) labelsHTML += `<div class="risk-text"> ${getPercentStr(cuenta.risk, 2)}</div>`;
@@ -1490,6 +1574,7 @@
             }
             
             renderGrafico();
+            populateFilters(); // Actualizar filtros si cambia algún dato
         }
 
         function toggleAlerta(index) {
@@ -1513,6 +1598,7 @@
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla();
             renderGrafico();
+            populateFilters();
         }
 
         function guardarColores() {
@@ -1670,6 +1756,7 @@
                 renderCompanyList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             }
         }
 
@@ -1686,6 +1773,7 @@
                 renderCompanyList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             } else if(name) {
                 alert("La empresa ya existe.");
             }
@@ -1751,6 +1839,7 @@
                 renderInvestorList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             } else if(name) {
                 alert("El inversor ya existe.");
             }
@@ -1763,6 +1852,7 @@
                 renderInvestorList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             }
         }
 
@@ -1808,6 +1898,7 @@
                 renderModalityList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             }
         }
 
@@ -1824,6 +1915,7 @@
                 renderModalityList();
                 renderTabla();
                 renderGrafico();
+                populateFilters();
             } else if(name) {
                 alert("La modalidad ya existe.");
             }
