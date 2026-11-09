@@ -1264,7 +1264,15 @@
                 const textColor = getContrastColor(color);
                 
                 // Formato entero para el porcentaje en la barra
-                const pctStr = displayValue > 0 ? `+${Math.round(displayValue)}%` : `${Math.round(displayValue)}%`;
+                let valStr;
+if (displayValue % 1 === 0) {
+    // Si es un número entero (ej. 10.0), quitar el decimal
+    valStr = displayValue.toFixed(0);
+} else {
+    // Si tiene decimales (ej. 9.4), mantener un decimal
+    valStr = displayValue.toFixed(1);
+}
+const pctStr = displayValue > 0 ? `+${valStr}%` : `${valStr}%`;
                 const usdVal = ((Number(cuenta.capital) || 0) * displayValue) / 100;
                 const usdStr = getCurrencyStr(usdVal);
 
