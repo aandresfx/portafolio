@@ -218,10 +218,14 @@
 
         .y-tick-minor {
             position: absolute; right: 5px; transform: translateY(-50%);
+            font-size: 9px;
+            color: var(--text-muted); 
+            font-weight: normal;
+            opacity: 0.8;
         }
         .y-tick-minor::after { 
             content: ''; position: absolute; right: -16px; top: 50%; 
-            width: 5px; height: 1px; background: var(--axis-line); opacity: 0.5; 
+            width: 5px; height: 1px; background: var(--axis-line); opacity: 0.4; 
         }
 
         .charts-wrapper { 
@@ -1309,7 +1313,7 @@
             
             cuentasVisibles.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate));
 
-            let maxAbs = 10; 
+            let maxAbs = 0; 
             cuentasVisibles.forEach(c => {
                 if(c.modality !== 'Capital propio') {
                     const valMin = Math.abs(Number(c.min) || 0);
@@ -1319,13 +1323,22 @@
                 }
             });
 
-            const globalMax = Math.ceil(maxAbs / 5) * 5;
+            if (maxAbs < 5) maxAbs = 5;
+
+            let globalMax = Math.ceil(maxAbs / 5) * 5;
+
+            // Lógica para evitar superposiciones cuando el valor es exactamente el límite de la escala
+            if (globalMax === maxAbs) {
+                globalMax += 5;
+            }
+
             const globalMin = -globalMax;
             const rangeGlobal = globalMax - globalMin;
             const zeroBottomPercent = 50; 
 
             const step = rangeGlobal > 30 ? 10 : 5;
-            // Modificado para saltar de 2.5 en 2.5
+            
+            // Bucle de dibujo de la escala (pasos de 2.5)
             for (let i = globalMin; i <= globalMax; i += 2.5) {
                 const topPercent = 100 - (((i - globalMin) / rangeGlobal) * 100);
                 const tick = document.createElement('div');
@@ -1335,6 +1348,7 @@
                     tick.innerText = `${i}%`;
                 } else {
                     tick.className = 'y-tick-minor';
+                    tick.innerText = `${i}%`; // Se agrega el texto para las líneas intermedias
                 }
                 
                 tick.style.top = `${topPercent}%`;
@@ -1423,7 +1437,6 @@
                             labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
                             break;
                         case 'cost':
-                            // Se muestra incluso si es $0 (siempre que no sea nulo/vacío)
                             if (cuenta.cost !== '' && cuenta.cost !== null && cuenta.cost !== undefined) {
                                 labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
                             }
