@@ -77,12 +77,12 @@
         .container.show-table { grid-template-areas: "chart" "table"; }
         
         .container.show-alerts { 
-            grid-template-columns: minmax(0, 1fr) 340px; 
+            grid-template-columns: minmax(0, 1fr) 360px; /* Panel un poco más ancho */
             grid-template-areas: "chart alerts"; 
         }
         
         .container.show-table.show-alerts { 
-            grid-template-columns: minmax(0, 1fr) 340px; 
+            grid-template-columns: minmax(0, 1fr) 360px; 
             grid-template-areas: "chart alerts" "table table"; 
         }
 
@@ -100,7 +100,7 @@
             grid-area: alerts; 
             display: none; 
             flex-direction: column; 
-            height: 100%; /* Altura dinámica, pero puedes cambiarla a un px fijo si lo prefieres */
+            height: 100%; 
         }
 
         .glass-panel {
@@ -185,6 +185,8 @@
         .in-notes { width: 80px; }
         .in-check { width: 16px; height: 16px; cursor: pointer; accent-color: #4299e1; }
         .in-alert { width: 45px; text-align: center; }
+        .in-news { width: 35px; text-align: center; }
+        .in-daily-limit { width: 55px; text-align: center; }
         .in-risk { width: 55px; text-align: center; }
         .in-risk-usd { width: 65px; text-align: right; }
         
@@ -343,13 +345,11 @@
             text-align: center; 
             padding-top: 10px; 
             z-index: 10; 
-            cursor: pointer; /* Indica que es clickeable */
+            cursor: pointer;
             border-radius: 8px;
             transition: background 0.2s;
         }
-        .labels-area:hover {
-            background: rgba(255, 255, 255, 0.1); /* Efecto hover sutil */
-        }
+        .labels-area:hover { background: rgba(255, 255, 255, 0.1); }
 
         .name-text { 
             font-size: var(--chart-label-size); 
@@ -505,14 +505,26 @@
         .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 5px; }
         .modal-actions .toggle-btn { flex: 1; padding: 10px; }
 
-        /* --- PANEL DE ALERTAS INTERNO --- */
+        /* --- PANEL DE MONITOREO Y MANTENIMIENTO --- */
         #alert-list-container {
             flex-grow: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             padding-right: 5px;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            padding-left: 5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
         }
         .alert-item {
             display: flex;
@@ -527,7 +539,14 @@
         }
         .alert-item:hover { background: rgba(66, 153, 225, 0.1); }
         
-        /* Formato compacto en una sola línea */
+        .alert-item.maintenance-item {
+            background: rgba(229, 62, 62, 0.15);
+            border-color: rgba(229, 62, 62, 0.3);
+        }
+        .alert-item.maintenance-item:hover {
+            background: rgba(229, 62, 62, 0.25);
+        }
+
         .alert-content {
             display: flex; align-items: center; gap: 6px; width: 100%; overflow: hidden;
         }
@@ -627,13 +646,13 @@
             </div>
         </div>
 
-        <!-- Panel de Alertas -->
+        <!-- Panel de Monitoreo y Mantenimiento -->
         <div class="panel-alertas glass-panel" id="panel-alertas">
             <div class="panel-header">
                 <div style="width: 30px;"></div>
-                <h2>Alertas ⏰</h2>
+                <h2>Monitoreo</h2>
                 <div class="header-tools">
-                    <button class="icon-btn" onclick="toggleAlerts()" title="Cerrar Alertas">❌</button>
+                    <button class="icon-btn" onclick="toggleAlerts()" title="Cerrar Panel">❌</button>
                 </div>
             </div>
             <div id="alert-list-container">
@@ -672,7 +691,7 @@
 
     <!-- Botones Flotantes Globales -->
     <button class="table-btn" id="btn-toggle-table" onclick="toggleTable()" title="Mostrar/Ocultar Tabla">📝</button>
-    <button class="alert-btn" id="btn-toggle-alerts" onclick="toggleAlerts()" title="Mostrar/Ocultar Alertas">🔔</button>
+    <button class="alert-btn" id="btn-toggle-alerts" onclick="toggleAlerts()" title="Mostrar/Ocultar Monitoreo">💻</button>
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
@@ -771,8 +790,10 @@
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
             { key: 'risk', label: 'Riesgo %' }, 
+            { key: 'dailyLimit', label: 'Lím. Diario' }, // NUEVA
             { key: 'risk_usd', label: 'Riesgo $' }, 
             { key: 'startDate', label: 'Inicio' },
+            { key: 'lastActivity', label: 'Últ. Actividad' }, // NUEVA
             { key: 'modality', label: 'Modalidad' },
             { key: 'status', label: 'Estado' },
             { key: 'actual', label: 'Actual' },
@@ -781,14 +802,15 @@
             { key: 'url', label: 'URL' },
             { key: 'notes', label: 'Notas' },
             { key: 'alert', label: 'Alerta' }, 
+            { key: 'news', label: 'Noticia 📄' }, // NUEVA
             { key: 'actions', label: '' }
         ];
 
-        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'risk_usd', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
+        let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'dailyLimit', 'risk_usd', 'startDate', 'lastActivity', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'news', 'actions'];
         columnOrder = columnOrder.filter(k => columnasDef.find(c => c.key === k));
         columnasDef.forEach(c => { if(!columnOrder.includes(c.key)) columnOrder.push(c.key); });
         
-        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'risk_usd', 'startDate', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'actions'];
+        let visibleCols = JSON.parse(localStorage.getItem('visibleCols')) || ['visible', 'name', 'investor', 'capital', 'cost', 'risk', 'dailyLimit', 'risk_usd', 'startDate', 'lastActivity', 'modality', 'status', 'actual', 'min', 'max', 'url', 'notes', 'alert', 'news', 'actions'];
 
         // --- ORDEN DE TEXTOS EN GRÁFICO ---
         let chartLabelsOrder = JSON.parse(localStorage.getItem('chartLabelsOrder')) || [
@@ -802,11 +824,18 @@
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, startDate: "01/09/2024", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "" },
-            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, startDate: "02/10/2024", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰" },
-            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, startDate: "10/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "" },
-            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, startDate: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "" }
+            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, dailyLimit: -5, startDate: "01/09/2024", lastActivity: "10/11/2026", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "", news: true },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, dailyLimit: -5, startDate: "02/10/2024", lastActivity: "01/11/2026", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰", news: false },
+            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, dailyLimit: -4, startDate: "10/10/2026", lastActivity: "20/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "", news: true },
+            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, dailyLimit: null, startDate: "15/11/2026", lastActivity: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "", news: false }
         ];
+
+        // MIGRACIÓN DE DATOS (Para cuentas viejas que no tengan los nuevos campos)
+        cuentas.forEach(c => {
+            if (c.news === undefined) c.news = false;
+            if (c.dailyLimit === undefined) c.dailyLimit = null;
+            if (c.lastActivity === undefined) c.lastActivity = "";
+        });
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
         if (!empresas || empresas.length === 0) {
@@ -931,68 +960,145 @@
             if(showAlerts) renderAlertPanel();
         }
 
-        // --- PANEL DE ALERTAS ---
+        // --- PANEL DE MONITOREO Y MANTENIMIENTO ---
+        function getDaysDiff(dateStr) {
+            if(!dateStr) return 999; // Si no hay fecha, no entra en mantenimiento
+            
+            const parts = dateStr.split('/');
+            if(parts.length !== 3) return 999;
+            
+            const targetDate = new Date(parts[2], parts[1]-1, parts[0]);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalizar para contar días exactos
+            
+            const diffTime = Math.abs(today - targetDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            return diffDays;
+        }
+
         function renderAlertPanel() {
             const list = document.getElementById('alert-list-container');
             if(!list) return;
             list.innerHTML = '';
             
-            const alertas = cuentas.filter(c => c.alert);
+            // --- LISTADO DE MONITOREO ---
+            const alertas = cuentas.filter(c => c.alert || c.news);
+            
+            list.innerHTML += `<div class="section-title">Monitoreo</div>`;
             
             if (alertas.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding: 20px; font-size:12px; color:var(--text-muted);">No hay alertas activas</div>';
-                return;
+                list.innerHTML += '<div style="text-align:center; padding: 10px; font-size:11px; color:var(--text-muted);">No hay cuentas en monitoreo</div>';
+            } else {
+                alertas.forEach(c => {
+                    const originalIndex = cuentas.indexOf(c);
+                    const item = document.createElement('div');
+                    item.className = 'alert-item';
+                    
+                    item.onclick = (e) => {
+                        if(e.target.closest('.btn-clear-alert')) return;
+                        openEditModal(originalIndex);
+                    };
+
+                    const modColor = getModColor(c.modality);
+                    const modText = getContrastColor(modColor);
+                    const riskUsdVal = ((Number(c.capital) || 0) * (Number(c.risk) || 0)) / 100;
+
+                    let avatarHtml = '';
+                    if (c.investor) {
+                        const inv = inversores.find(i => i.name === c.investor);
+                        if (inv && inv.avatar) {
+                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
+                        } else {
+                            const initial = c.investor.charAt(0).toUpperCase();
+                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
+                        }
+                    }
+
+                    item.innerHTML = `
+                        <div class="alert-content">
+                            ${avatarHtml}
+                            <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
+                            ${c.news ? '<span style="font-size: 11px;" title="Noticias de alto impacto">📄</span>' : ''}
+                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 1) : '-'}</span>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap; margin-left: auto;">${getCurrencyStr(riskUsdVal)}</span>
+                            <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta" style="margin-left: 4px;">✅</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
             }
 
-            alertas.forEach(c => {
-                const originalIndex = cuentas.indexOf(c);
-                const item = document.createElement('div');
-                item.className = 'alert-item';
-                
-                // El clic en el ítem abre el modal (excepto si se hace clic en el botón de check)
-                item.onclick = (e) => {
-                    if(e.target.closest('.btn-clear-alert')) return;
-                    openEditModal(originalIndex);
-                };
-
-                const modColor = getModColor(c.modality);
-                const modText = getContrastColor(modColor);
-                
-                // Calcular Riesgo USD
-                const riskUsdVal = ((Number(c.capital) || 0) * (Number(c.risk) || 0)) / 100;
-
-                // Generar HTML del avatar
-                let avatarHtml = '';
-                if (c.investor) {
-                    const inv = inversores.find(i => i.name === c.investor);
-                    if (inv && inv.avatar) {
-                        avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
-                    } else {
-                        const initial = c.investor.charAt(0).toUpperCase();
-                        avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
-                    }
-                }
-
-                // Formato de una sola línea: Avatar -> Empresa -> % -> Modalidad -> Riesgo USD
-                item.innerHTML = `
-                    <div class="alert-content">
-                        ${avatarHtml}
-                        <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${c.name}</span>
-                        <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
-                        <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
-                        <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap; margin-left: auto;">${getCurrencyStr(riskUsdVal)}</span>
-                        <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta" style="margin-left: 4px;">✅</button>
-                    </div>
-                `;
-                list.appendChild(item);
+            // --- LISTADO DE MANTENIMIENTO ---
+            const mantenimiento = cuentas.filter(c => {
+                const days = getDaysDiff(c.lastActivity);
+                return days >= 15 && days <= 30; // Entre 15 y 30 días
             });
+            
+            list.innerHTML += `<div class="section-title" style="color: #e53e3e; margin-top: 20px;">Mantenimiento (Inactividad > 15 días)</div>`;
+            
+            if (mantenimiento.length === 0) {
+                list.innerHTML += '<div style="text-align:center; padding: 10px; font-size:11px; color:var(--text-muted);">Todas las cuentas están al día</div>';
+            } else {
+                mantenimiento.forEach(c => {
+                    const originalIndex = cuentas.indexOf(c);
+                    const item = document.createElement('div');
+                    item.className = 'alert-item maintenance-item'; // Fondo rojizo
+                    
+                    item.onclick = (e) => {
+                        if(e.target.closest('.btn-clear-alert')) return;
+                        openEditModal(originalIndex);
+                    };
+
+                    const modColor = getModColor(c.modality);
+                    const modText = getContrastColor(modColor);
+                    const daysSince = getDaysDiff(c.lastActivity);
+                    const daysRemaining = 30 - daysSince;
+
+                    let avatarHtml = '';
+                    if (c.investor) {
+                        const inv = inversores.find(i => i.name === c.investor);
+                        if (inv && inv.avatar) {
+                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
+                        } else {
+                            const initial = c.investor.charAt(0).toUpperCase();
+                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
+                        }
+                    }
+
+                    item.innerHTML = `
+                        <div class="alert-content">
+                            ${avatarHtml}
+                            <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
+                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap; margin-left: auto;">Quedan ${daysRemaining} días</span>
+                            <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="margin-left: 4px;">✅</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
         }
 
         function clearAlertFromPanel(index) {
             cuentas[index].alert = '';
+            cuentas[index].news = false;
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla(); 
             renderGrafico(); 
+            renderAlertPanel(); 
+        }
+
+        function updateActivityToToday(index) {
+            const hoy = new Date();
+            const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
+            cuentas[index].lastActivity = fechaStr;
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            renderTabla(); 
             renderAlertPanel(); 
         }
 
@@ -1158,6 +1264,9 @@
             texto = texto.charAt(0).toUpperCase() + texto.slice(1); 
             
             document.getElementById('datetime-display').innerText = texto;
+            
+            // Auto-actualizar el panel de monitoreo cada minuto por si cambia el día
+            if(segundo === '00' && showAlerts) renderAlertPanel();
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -1199,12 +1308,25 @@
             let num = str.toString().replace(',', '.').replace(/[^\d.-]/g, '');
             return num ? parseFloat(num) : '';
         }
+        
+        // FUNCIÓN MODIFICADA: Formato automático de año 20XX
         function formatDate(input) {
             let val = input.value.replace(/\D/g, '');
-            if (val.length > 2 && val.length <= 4) val = val.substring(0, 2) + '/' + val.substring(2);
-            else if (val.length > 4) val = val.substring(0, 2) + '/' + val.substring(2, 4) + '/' + val.substring(4, 8);
+            if (val.length > 2 && val.length <= 4) {
+                val = val.substring(0, 2) + '/' + val.substring(2);
+            } else if (val.length > 4) {
+                let day = val.substring(0, 2);
+                let month = val.substring(2, 4);
+                let year = val.substring(4);
+                
+                // Si el año tiene 2 dígitos, le agregamos "20" adelante (ej: 22 -> 2022)
+                if (year.length === 2) year = '20' + year;
+                
+                val = `${day}/${month}/${year}`;
+            }
             input.value = val;
         }
+
         function parseDate(dateStr) {
             if(!dateStr) return new Date(0);
             const parts = dateStr.split('/');
@@ -1386,6 +1508,9 @@
                         case 'risk':
                             td.innerHTML = `<input type="text" class="in-risk" value="${getPercentStr(cuenta.risk, 2)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 2); actualizarDato(${index}, 'risk', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
+                        case 'dailyLimit':
+                            td.innerHTML = `<input type="text" class="in-daily-limit" value="${getPercentStr(cuenta.dailyLimit, 1)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'dailyLimit', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()" placeholder="-0%">`;
+                            break;
                         case 'risk_usd':
                             let usdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
                             td.innerHTML = `<input type="text" class="in-risk-usd" style="color:var(--text-muted); font-weight:bold; background:transparent; border:none; box-shadow:none;" readonly value="${getCurrencyStr(usdVal)}">`;
@@ -1394,6 +1519,11 @@
                             const dateBg = isDarkMode ? '#e2e8f0' : '#2d3748';
                             const dateColor = isDarkMode ? '#1a202c' : '#f7fafc';
                             td.innerHTML = `<input type="text" class="in-date" style="background-color: ${dateBg}; color: ${dateColor};" value="${cuenta.startDate}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'startDate', this.value)" placeholder="DD/MM/AAAA">`;
+                            break;
+                        case 'lastActivity':
+                            const actDateBg = isDarkMode ? '#e2e8f0' : '#2d3748';
+                            const actDateColor = isDarkMode ? '#1a202c' : '#f7fafc';
+                            td.innerHTML = `<input type="text" class="in-date" style="background-color: ${actDateBg}; color: ${actDateColor};" value="${cuenta.lastActivity || ''}" onfocus="this.select()" oninput="formatDate(this)" onchange="actualizarDato(${index}, 'lastActivity', this.value)" placeholder="DD/MM/AAAA">`;
                             break;
                         case 'modality':
                             let modOptionsHTML = modalidades.map(m => `<option value="${m.name}" ${cuenta.modality === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
@@ -1440,6 +1570,9 @@
                         case 'alert':
                             td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Alerta">${cuenta.alert || ''}</button>`;
                             break;
+                        case 'news':
+                            td.innerHTML = `<button class="btn-alert ${cuenta.news ? 'active' : ''}" onclick="toggleNews(${index})" title="Activar/Desactivar Noticia" style="font-size:11px; min-height:22px;">${cuenta.news ? '📄' : ''}</button>`;
+                            break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
                             break;
@@ -1482,10 +1615,10 @@
                 if (valA === null || valA === undefined) valA = '';
                 if (valB === null || valB === undefined) valB = '';
 
-                if (['capital', 'cost', 'actual', 'min', 'max', 'risk', 'risk_usd'].includes(key)) {
+                if (['capital', 'cost', 'actual', 'min', 'max', 'risk', 'dailyLimit', 'risk_usd'].includes(key)) {
                     valA = Number(valA) || 0;
                     valB = Number(valB) || 0;
-                } else if (key === 'startDate') {
+                } else if (key === 'startDate' || key === 'lastActivity') {
                     valA = parseDate(valA);
                     valB = parseDate(valB);
                 } else {
@@ -1842,6 +1975,23 @@
             renderAlertPanel(); 
         }
 
+        function toggleNews(index) {
+            cuentas[index].news = !cuentas[index].news;
+            
+            const btn = document.getElementById(`btn-news-${index}`);
+            if (btn) {
+                btn.innerHTML = cuentas[index].news ? '📄' : '';
+                if (cuentas[index].news) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+            
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            renderAlertPanel();
+        }
+
         function guardarYRenderizar() {
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla();
@@ -1970,7 +2120,7 @@
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
             const defaultModality = modalidades.length > 0 ? modalidades[0].name : "Examen";
             
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, startDate: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "" });
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, dailyLimit: null, startDate: fechaStr, lastActivity: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "", news: false });
             guardarYRenderizar();
         }
 
