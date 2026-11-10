@@ -71,21 +71,23 @@
             transition: all 0.3s ease;
         }
 
-        .container.layout-side { grid-template-columns: 1fr 1fr; grid-template-areas: "table chart"; }
+        /* Grilla dinámica según los paneles visibles */
+        .container.layout-table-chart-alerts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 320px; grid-template-areas: "table chart alerts"; }
+        .container.layout-table-chart { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "table chart"; }
+        .container.layout-chart-alerts { grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "chart alerts"; }
+        .container.layout-chart-only { grid-template-columns: 1fr; grid-template-areas: "chart"; }
+        
+        /* Layouts legacy para compatibilidad con los botones de arriba */
         .container.layout-bottom { grid-template-columns: 1fr; grid-template-areas: "chart" "table"; }
         .container.layout-top { grid-template-columns: 1fr; grid-template-areas: "table" "chart"; }
-        .container.layout-hidden { grid-template-columns: 0fr 1fr; grid-template-areas: "table chart"; gap: 0; }
-        
-        .container.layout-hidden .panel-tabla {
-            opacity: 0; pointer-events: none; padding: 0; margin: 0; overflow: hidden;
-        }
 
         @media (max-width: 1200px) {
-            .container.layout-side { grid-template-columns: 1fr; grid-template-areas: "table" "chart"; }
+            .container { grid-template-columns: 1fr !important; grid-template-areas: "table" "chart" "alerts" !important; }
         }
 
         .panel-tabla { grid-area: table; }
         .panel-grafico { grid-area: chart; }
+        .panel-alertas { grid-area: alerts; display: flex; flex-direction: column; height: 100%; max-height: 800px;}
 
         .glass-panel {
             background: var(--card-bg);
@@ -119,14 +121,6 @@
             position: absolute; top: 15px; left: 20px; font-size: 14px;
             color: var(--text-muted); font-weight: 600; z-index: 10;
         }
-
-        .btn-float-open {
-            position: fixed; left: 10px; top: 20px;
-            background: var(--card-bg); border: var(--glass-border); border-radius: 50%;
-            width: 40px; height: 40px; display: none; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: var(--shadow); z-index: 200; color: var(--text-main); backdrop-filter: blur(10px);
-        }
-        .container.layout-hidden ~ .btn-float-open { display: flex; }
 
         .dropdown-menu {
             position: absolute; top: 35px; background: var(--card-bg); border: var(--glass-border);
@@ -388,24 +382,6 @@
         .settings-panel { bottom: 75px; }
         .management-panel { bottom: 130px; }
 
-        /* --- NUEVO: PANEL DE ALERTAS MODAL --- */
-        .alert-panel { 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--card-bg); border: var(--glass-border);
-            border-radius: 10px; padding: 20px; width: 360px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 1000;
-            display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(20px);
-            max-height: 80vh; overflow-y: auto;
-        }
-        .alert-panel.active { display: flex; }
-        
-        .alert-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
-            display: none; z-index: 999;
-        }
-        .alert-overlay.active { display: block; }
-        
         .settings-panel label, .management-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
         .settings-input { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; }
@@ -508,52 +484,51 @@
         .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 5px; }
         .modal-actions .toggle-btn { flex: 1; padding: 10px; }
 
-        /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
-        .brand-container {
-            position: fixed; 
-            bottom: 25px; 
-            right: 25px;
+        /* --- PANEL DE ALERTAS INTERNO --- */
+        #alert-list-container {
+            flex-grow: 1;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
             gap: 8px;
-            z-index: 100;
-            pointer-events: none;
+            padding-right: 5px;
         }
-        
-        .brand-logo {
+        .alert-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: var(--card-bg);
-            border: var(--glass-border);
-            padding: 4px 12px 4px 4px;
-            border-radius: 50px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
+            justify-content: space-between;
+            background: var(--input-bg);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .alert-item:hover { background: rgba(66, 153, 225, 0.1); }
+        .alert-item-info { display: flex; flex-direction: column; gap: 4px; flex-grow: 1;}
+        .alert-item-title { font-size: 12px; font-weight: bold; color: var(--text-main); }
+        .alert-item-sub { display: flex; gap: 6px; align-items: center; }
+        .alert-item-value { font-size: 12px; font-weight: bold; }
+        .alert-item-mod { font-size: 9px; padding: 2px 4px; border-radius: 3px; }
+        .btn-clear-alert {
+            background: transparent; border: none; cursor: pointer; font-size: 16px; color: #38a169;
         }
 
-        .brand-logo img {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            object-fit: cover;
-            background-color: var(--input-bg);
+        /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
+        .brand-container {
+            position: fixed; bottom: 25px; right: 25px;
+            display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+            z-index: 100; pointer-events: none;
         }
-
-        .brand-logo span {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-main);
-            letter-spacing: 0.5px;
+        .brand-logo {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--card-bg); border: var(--glass-border);
+            padding: 4px 12px 4px 4px; border-radius: 50px;
+            box-shadow: var(--shadow); backdrop-filter: blur(10px);
         }
-
-        .watermark {
-            font-size: 12px;
-            color: var(--text-muted);
-            opacity: 0.8;
-            font-weight: 500;
-        }
+        .brand-logo img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background-color: var(--input-bg); }
+        .brand-logo span { font-size: 12px; font-weight: 600; color: var(--text-main); letter-spacing: 0.5px; }
+        .watermark { font-size: 12px; color: var(--text-muted); opacity: 0.8; font-weight: 500; }
         .watermark a { color: inherit; text-decoration: none; font-weight: bold; }
         .watermark a:hover { text-decoration: underline; opacity: 1; }
     </style>
@@ -572,25 +547,16 @@
         </div>
     </div>
 
-    <!-- OVERLAY Y PANEL DE ALERTAS -->
-    <div class="alert-overlay" id="alert-overlay" onclick="toggleAlertPanel()"></div>
-    <div class="alert-panel" id="alert-panel">
-        <h3 style="margin: 0 0 10px 0; font-size: 14px; text-align: center; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Alertas Activas ⏰</h3>
-        <div id="alert-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-    </div>
-
-    <div class="container layout-side" id="main-container">
+    <div class="container" id="main-container">
         <!-- Panel Tabla -->
         <div class="panel-tabla glass-panel" id="panel-tabla">
             <div class="panel-header">
                 <div class="header-tools">
-                    <button class="icon-btn" onclick="setLayout('side')" title="Lado a lado">↔️</button>
-                    <button class="icon-btn" onclick="setLayout('bottom')" title="Tabla abajo">⬇️</button>
-                    <button class="icon-btn" onclick="setLayout('top')" title="Tabla arriba">⬆️</button>
-                    <button class="icon-btn" onclick="setLayout('hidden')" title="Ocultar tabla">▶️</button>
+                    <button class="icon-btn" onclick="toggleTable()" title="Ocultar/Mostrar Tabla">▶️</button>
                     <button class="icon-btn" onclick="toggleTableSettings()" title="Configurar columnas">⚙️</button>
                 </div>
                 <h2>Empresas</h2>
+                <div style="width: 60px;"></div>
                 
                 <!-- Menú de opciones de la tabla -->
                 <div class="dropdown-menu" id="table-settings-menu">
@@ -609,12 +575,12 @@
             <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
         </div>
 
-        <!-- Panel Gráfico -->
+        <!-- Panel Gráfico (Siempre visible) -->
         <div class="panel-grafico glass-panel" id="panel-grafico-export">
             <div class="datetime-display" id="datetime-display"></div>
 
             <div class="panel-header">
-                <div style="width: 120px;"></div>
+                <div style="width: 60px;"></div>
                 <h2>Gráfico</h2>
                 <div class="header-tools">
                     <button class="icon-btn" onclick="exportChart()" title="Descargar Imagen">📸</button>
@@ -665,13 +631,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- Panel de Alertas (Tercer panel) -->
+        <div class="panel-alertas glass-panel" id="panel-alertas" style="display: none;">
+            <div class="panel-header">
+                <div style="width: 30px;"></div>
+                <h2>Alertas ⏰</h2>
+                <div class="header-tools">
+                    <button class="icon-btn" onclick="toggleAlerts()" title="Cerrar Alertas">❌</button>
+                </div>
+            </div>
+            <div id="alert-list-container">
+                <!-- Se genera con JS -->
+            </div>
+        </div>
     </div>
 
-    <!-- Botón flotante para recuperar panel izquierdo -->
-    <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
-
     <!-- Botones Flotantes Globales -->
-    <button class="alert-btn" onclick="toggleAlertPanel()" title="Ver Alertas Activas">🔔</button>
+    <button class="alert-btn" onclick="toggleAlerts()" title="Ver/Ocultar Alertas">🔔</button>
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
@@ -857,11 +834,15 @@
         
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
-        let currentLayout = localStorage.getItem('layoutState') || 'side';
         let tempAvatarBase64 = "";
 
         // MODAL VARIABLES
         let editingIndex = -1;
+
+        // ESTADO DE UI (Visibilidad de paneles)
+        let showTable = localStorage.getItem('showTable') !== 'false';
+        let showAlerts = localStorage.getItem('showAlerts') === 'true';
+        let layoutMode = localStorage.getItem('layoutMode') || 'side'; // side, bottom, top
 
         // Inicializar UI
         function initUI() {
@@ -886,7 +867,7 @@
             
             if(isDarkMode) document.body.classList.add('dark-mode');
 
-            setLayout(currentLayout);
+            updateLayout();
             renderCompanyList();
             renderInvestorList();
             renderModalityList();
@@ -897,25 +878,53 @@
         }
         initUI();
 
-        // --- PANEL DE ALERTAS ---
-        function toggleAlertPanel() {
-            document.getElementById('management-panel').classList.remove('active');
-            document.getElementById('global-settings-panel').classList.remove('active');
+        // --- CONTROL DE LAYOUT ---
+        function updateLayout() {
+            const container = document.getElementById('main-container');
+            const panelTabla = document.getElementById('panel-tabla');
+            const panelAlertas = document.getElementById('panel-alertas');
             
-            const panel = document.getElementById('alert-panel');
-            const overlay = document.getElementById('alert-overlay');
-            
-            if (panel.classList.contains('active')) {
-                panel.classList.remove('active');
-                overlay.classList.remove('active');
+            if (showTable && showAlerts) {
+                container.className = 'container layout-table-chart-alerts';
+                panelTabla.style.display = 'flex';
+                panelAlertas.style.display = 'flex';
+            } else if (showTable && !showAlerts) {
+                if (layoutMode === 'bottom') container.className = 'container layout-bottom';
+                else if (layoutMode === 'top') container.className = 'container layout-top';
+                else container.className = 'container layout-table-chart';
+                
+                panelTabla.style.display = 'flex';
+                panelAlertas.style.display = 'none';
+            } else if (!showTable && showAlerts) {
+                container.className = 'container layout-chart-alerts';
+                panelTabla.style.display = 'none';
+                panelAlertas.style.display = 'flex';
             } else {
-                panel.classList.add('active');
-                overlay.classList.add('active');
+                container.className = 'container layout-chart-only';
+                panelTabla.style.display = 'none';
+                panelAlertas.style.display = 'none';
             }
+
+            localStorage.setItem('showTable', showTable);
+            localStorage.setItem('showAlerts', showAlerts);
+            localStorage.setItem('layoutMode', layoutMode);
         }
 
+        function toggleTable() {
+            showTable = !showTable;
+            updateLayout();
+        }
+
+        function toggleAlerts() {
+            showAlerts = !showAlerts;
+            updateLayout();
+            if(showAlerts) renderAlertPanel();
+        }
+
+        // --- PANEL DE ALERTAS ---
         function renderAlertPanel() {
-            const list = document.getElementById('alert-list');
+            const list = document.getElementById('alert-list-container');
+            if(!list) return;
             list.innerHTML = '';
             
             const alertas = cuentas.filter(c => c.alert);
@@ -928,30 +937,29 @@
             alertas.forEach(c => {
                 const originalIndex = cuentas.indexOf(c);
                 const item = document.createElement('div');
-                item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--input-bg); padding:8px; border-radius:6px; border:1px solid var(--border-color);";
+                item.className = 'alert-item';
                 
                 item.onclick = (e) => {
                     if(e.target.closest('.btn-clear-alert')) return;
                     openEditModal(originalIndex);
                 };
-                item.style.cursor = 'pointer';
 
                 const modColor = getModColor(c.modality);
                 const modText = getContrastColor(modColor);
 
                 item.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap:2px; pointer-events:none;">
-                        <div style="font-size:12px; font-weight:bold; color:var(--text-main);">
+                    <div class="alert-item-info">
+                        <div class="alert-item-title">
                             ${c.name} <span style="font-weight:normal; font-size:10px; color:var(--text-muted);">(${c.investor || 'Sin inv.'})</span>
                         </div>
-                        <div style="display:flex; gap:5px; align-items:center;">
-                            <span style="font-size:11px; font-weight:bold; color:${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'};">
+                        <div class="alert-item-sub">
+                            <span class="alert-item-value" style="color:${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'};">
                                 ${getPercentStr(c.actual, 1)}
                             </span>
-                            <span style="font-size:9px; background:${modColor}; color:${modText}; padding:1px 4px; border-radius:3px;">${c.modality}</span>
+                            <span class="alert-item-mod" style="background:${modColor}; color:${modText};">${c.modality}</span>
                         </div>
                     </div>
-                    <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" style="background:transparent; border:none; cursor:pointer; font-size:16px;" title="Quitar Alerta">✅</button>
+                    <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta">✅</button>
                 `;
                 list.appendChild(item);
             });
@@ -1109,11 +1117,13 @@
             }
         }
 
-        // --- LAYOUTS ---
+        // --- LAYOUTS BOTONES (Tabla Arriba/Abajo) ---
         function setLayout(mode) {
-            currentLayout = mode;
-            document.getElementById('main-container').className = `container layout-${mode}`;
-            localStorage.setItem('layoutState', mode);
+            if (mode === 'side' || mode === 'bottom' || mode === 'top') {
+                layoutMode = mode;
+                showTable = true; // Asegurar que la tabla se vea al cambiar layout
+                updateLayout();
+            }
         }
 
         // --- RELOJ EN VIVO ---
@@ -1240,7 +1250,7 @@
                 'misCuentasPro', 'misEmpresas', 'misInversores', 'misModalidades', 'misColores', 
                 'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
-                'visibleCols', 'layoutState'
+                'visibleCols', 'showTable', 'showAlerts', 'layoutMode'
             ];
 
             keys.forEach(key => {
@@ -1570,21 +1580,11 @@
 
             let prevYear = null;
 
-            cuentasVisibles.forEach((cuenta, index) => {
+            cuentasVisibles.forEach((cuenta) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
-                // Lógica para los separadores de año
-                if (index === 0 && year) {
-                    // Primer año: creamos un divisor invisible para que ocupe espacio
-                    const divider = document.createElement('div');
-                    divider.className = 'year-divider';
-                    divider.style.background = 'transparent'; // Sin línea vertical
-                    divider.style.border = 'none';
-                    divider.innerHTML = `<div class="year-label">${year}</div>`;
-                    chartArea.appendChild(divider);
-                }
-                else if (prevYear !== null && year !== prevYear && year !== '') {
-                    // Años posteriores: divisor normal con línea
+                // Lógica para los separadores de año (Ahora incluye el primero con línea)
+                if (year !== prevYear && year !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
@@ -1862,14 +1862,10 @@
 
         function toggleGlobalSettings() { 
             document.getElementById('management-panel').classList.remove('active');
-            document.getElementById('alert-panel').classList.remove('active');
-            document.getElementById('alert-overlay').classList.remove('active');
             document.getElementById('global-settings-panel').classList.toggle('active'); 
         }
         function toggleManagementPanel() { 
             document.getElementById('global-settings-panel').classList.remove('active');
-            document.getElementById('alert-panel').classList.remove('active');
-            document.getElementById('alert-overlay').classList.remove('active');
             document.getElementById('management-panel').classList.toggle('active'); 
         }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
