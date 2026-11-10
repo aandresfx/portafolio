@@ -55,7 +55,7 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* CORRECCIÓN: Evita que el contenedor se estire al quitar paneles */
+            align-items: flex-start;
             transition: background 0.3s ease, color 0.3s ease;
             position: relative;
             overflow-x: hidden;
@@ -67,7 +67,7 @@
             width: 100%;
             display: grid;
             gap: 20px;
-            align-items: stretch; /* Hace que los paneles igualen su altura en la misma fila */
+            align-items: start;
             z-index: 1;
             transition: all 0.3s ease;
             grid-template-columns: minmax(0, 1fr);
@@ -96,13 +96,11 @@
         .panel-tabla { grid-area: table; display: none; }
         .panel-grafico { grid-area: chart; display: flex; }
         
-        /* CORRECCIÓN: Truco de CSS para que las alertas igualen exactamente la altura del gráfico */
         .panel-alertas { 
             grid-area: alerts; 
             display: none; 
             flex-direction: column; 
-            height: 0; 
-            min-height: 100%; 
+            height: 100%; /* Altura dinámica, pero puedes cambiarla a un px fijo si lo prefieres */
         }
 
         .glass-panel {
@@ -264,12 +262,15 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+        }
+
+        .bar-container { 
+            position: relative; 
+            width: 100%; 
+            height: 400px; 
             cursor: pointer;
         }
-        
-        .chart-column:hover .bar-fill {
-            opacity: 0.8;
-        }
+        .bar-container:hover .bar-fill { opacity: 0.8; }
 
         /* --- SEPARADOR DE AÑOS --- */
         .year-divider {
@@ -295,12 +296,6 @@
             color: var(--text-muted);
             white-space: nowrap;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .bar-container { 
-            position: relative; 
-            width: 100%; 
-            height: 400px;
         }
 
         .avatar-container {
@@ -348,6 +343,12 @@
             text-align: center; 
             padding-top: 10px; 
             z-index: 10; 
+            cursor: pointer; /* Indica que es clickeable */
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .labels-area:hover {
+            background: rgba(255, 255, 255, 0.1); /* Efecto hover sutil */
         }
 
         .name-text { 
@@ -518,20 +519,21 @@
             align-items: center;
             justify-content: space-between;
             background: var(--input-bg);
-            padding: 10px;
+            padding: 8px 10px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
             cursor: pointer;
             transition: background 0.2s;
         }
         .alert-item:hover { background: rgba(66, 153, 225, 0.1); }
-        .alert-item-info { display: flex; flex-direction: column; gap: 4px; flex-grow: 1;}
-        .alert-item-title { font-size: 12px; font-weight: bold; color: var(--text-main); }
-        .alert-item-sub { display: flex; gap: 6px; align-items: center; }
-        .alert-item-value { font-size: 12px; font-weight: bold; }
-        .alert-item-mod { font-size: 9px; padding: 2px 4px; border-radius: 3px; }
+        
+        /* Formato compacto en una sola línea */
+        .alert-content {
+            display: flex; align-items: center; gap: 6px; width: 100%; overflow: hidden;
+        }
+        
         .btn-clear-alert {
-            background: transparent; border: none; cursor: pointer; font-size: 16px; color: #38a169;
+            background: transparent; border: none; cursor: pointer; font-size: 16px; color: #38a169; flex-shrink: 0;
         }
 
         /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
@@ -947,6 +949,7 @@
                 const item = document.createElement('div');
                 item.className = 'alert-item';
                 
+                // El clic en el ítem abre el modal (excepto si se hace clic en el botón de check)
                 item.onclick = (e) => {
                     if(e.target.closest('.btn-clear-alert')) return;
                     openEditModal(originalIndex);
@@ -954,20 +957,32 @@
 
                 const modColor = getModColor(c.modality);
                 const modText = getContrastColor(modColor);
+                
+                // Calcular Riesgo USD
+                const riskUsdVal = ((Number(c.capital) || 0) * (Number(c.risk) || 0)) / 100;
 
+                // Generar HTML del avatar
+                let avatarHtml = '';
+                if (c.investor) {
+                    const inv = inversores.find(i => i.name === c.investor);
+                    if (inv && inv.avatar) {
+                        avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
+                    } else {
+                        const initial = c.investor.charAt(0).toUpperCase();
+                        avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
+                    }
+                }
+
+                // Formato de una sola línea: Avatar -> Empresa -> % -> Modalidad -> Riesgo USD
                 item.innerHTML = `
-                    <div class="alert-item-info">
-                        <div class="alert-item-title">
-                            ${c.name} <span style="font-weight:normal; font-size:10px; color:var(--text-muted);">(${c.investor || 'Sin inv.'})</span>
-                        </div>
-                        <div class="alert-item-sub">
-                            <span class="alert-item-value" style="color:${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'};">
-                                ${getPercentStr(c.actual, 1)}
-                            </span>
-                            <span class="alert-item-mod" style="background:${modColor}; color:${modText};">${c.modality}</span>
-                        </div>
+                    <div class="alert-content">
+                        ${avatarHtml}
+                        <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${c.name}</span>
+                        <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                        <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
+                        <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap; margin-left: auto;">${getCurrencyStr(riskUsdVal)}</span>
+                        <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta" style="margin-left: 4px;">✅</button>
                     </div>
-                    <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta">✅</button>
                 `;
                 list.appendChild(item);
             });
@@ -1587,7 +1602,7 @@
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
                     if (index === 0) {
-                        divider.style.background = 'transparent'; // Quita la línea vertical del primer año
+                        divider.style.background = 'transparent'; 
                         divider.style.border = 'none';
                     }
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
@@ -1712,15 +1727,25 @@
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                         </div>
                     </div>
-                    <div class="labels-area">
+                    <div class="labels-area" title="Clic para activar/desactivar alerta">
                         ${labelsHTML.includes('avatar-container') ? labelsHTML.replace(labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6), '') : labelsHTML}
                     </div>
                 `;
                 
                 const originalIndex = cuentas.findIndex(c => c === cuenta);
-                column.onclick = (e) => {
+
+                // Clic en la barra abre el modal de edición
+                const barContainer = column.querySelector('.bar-container');
+                barContainer.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
                     openEditModal(originalIndex); 
+                };
+
+                // Clic en el área de los textos activa/desactiva la alerta
+                const labelsArea = column.querySelector('.labels-area');
+                labelsArea.onclick = (e) => {
+                    if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
+                    toggleAlerta(originalIndex);
                 };
                 
                 chartArea.appendChild(column);
