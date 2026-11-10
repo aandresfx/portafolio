@@ -1037,7 +1037,7 @@
                 return days >= 15 && days <= 30; // Entre 15 y 30 días
             });
             
-            list.innerHTML += `<div class="section-title" style="color: #e53e3e; margin-top: 20px;">Mantenimiento (Inactividad > 15 días)</div>`;
+            list.innerHTML += `<div class="section-title" style="color: var(--text-muted); margin-top: 20px;">Mantenimiento mensual</div>`;
             
             if (mantenimiento.length === 0) {
                 list.innerHTML += '<div style="text-align:center; padding: 10px; font-size:11px; color:var(--text-muted);">Todas las cuentas están al día</div>';
