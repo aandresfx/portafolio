@@ -66,7 +66,7 @@
             width: 100%;
             display: grid;
             gap: 20px;
-            align-items: start; 
+            align-items: stretch; /* Asegura que todos los paneles de la misma fila tengan la misma altura */
             z-index: 1;
             transition: all 0.3s ease;
             grid-template-columns: minmax(0, 1fr);
@@ -78,26 +78,24 @@
         .container.show-alerts { 
             grid-template-columns: minmax(0, 1fr) 340px; 
             grid-template-areas: "chart alerts"; 
-            align-items: stretch; /* Hace que las alertas igualen el alto del gráfico */
         }
         
         .container.show-table.show-alerts { 
             grid-template-columns: minmax(0, 1fr) 340px; 
             grid-template-areas: "chart alerts" "table table"; 
-            align-items: stretch;
         }
 
         @media (max-width: 1200px) {
             .container, .container.show-table, .container.show-alerts, .container.show-table.show-alerts { 
                 grid-template-columns: 1fr; 
                 grid-template-areas: "chart" "alerts" "table"; 
-                align-items: start;
             }
         }
 
-        .panel-tabla { grid-area: table; }
-        .panel-grafico { grid-area: chart; }
-        .panel-alertas { grid-area: alerts; height: 100%; display: flex; flex-direction: column;}
+        /* Los paneles se ocultan por defecto y se muestran con JS */
+        .panel-tabla { grid-area: table; display: none; }
+        .panel-grafico { grid-area: chart; display: flex; }
+        .panel-alertas { grid-area: alerts; display: none; flex-direction: column; height: 100%; }
 
         .glass-panel {
             background: var(--card-bg);
@@ -203,6 +201,7 @@
             position: relative; 
             margin-top: 10px;
             padding-bottom: 10px;
+            flex-grow: 1;
         }
 
         .y-axis {
@@ -895,13 +894,22 @@
         // --- CONTROL DE LAYOUT ---
         function updateLayout() {
             const container = document.getElementById('main-container');
+            const panelTabla = document.getElementById('panel-tabla');
+            const panelAlertas = document.getElementById('panel-alertas');
             
+            // Alternar clases de la grilla
             if (showTable) container.classList.add('show-table'); else container.classList.remove('show-table');
             if (showAlerts) container.classList.add('show-alerts'); else container.classList.remove('show-alerts');
             
+            // Alternar display de los paneles (previene desplazamientos indeseados)
+            panelTabla.style.display = showTable ? 'flex' : 'none';
+            panelAlertas.style.display = showAlerts ? 'flex' : 'none';
+
+            // Opacidad de los botones
             document.getElementById('btn-toggle-table').classList.toggle('btn-inactive', !showTable);
             document.getElementById('btn-toggle-alerts').classList.toggle('btn-inactive', !showAlerts);
             
+            // Guardar estado
             localStorage.setItem('showTable', showTable);
             localStorage.setItem('showAlerts', showAlerts);
         }
