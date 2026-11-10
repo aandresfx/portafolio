@@ -1473,13 +1473,22 @@
 
             document.getElementById('global-zero-line').style.top = `240px`; 
 
-            let prevYear = null;
+                        let prevYear = null;
 
-            cuentasVisibles.forEach(cuenta => {
+            cuentasVisibles.forEach((cuenta, index) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
-                // Insertar separador de año si cambia
-                if (prevYear !== null && year !== prevYear && year !== '') {
+                // NUEVO: Mostrar la etiqueta del primer año al inicio
+                if (index === 0 && year) {
+                    const divider = document.createElement('div');
+                    divider.className = 'year-divider';
+                    divider.style.background = 'transparent'; // Ocultamos la línea vertical
+                    // Alineamos la etiqueta a la izquierda para que no se corte
+                    divider.innerHTML = `<div class="year-label" style="left: 0; transform: translateX(0);">${year}</div>`;
+                    chartArea.appendChild(divider);
+                }
+                // Insertar separador de año si cambia (Lógica original para los siguientes)
+                else if (prevYear !== null && year !== prevYear && year !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
@@ -1619,7 +1628,6 @@
 
                 if (year) prevYear = year;
             });
-        }
 
         // --- EXPORTAR IMAGEN (PANTALLA COMPLETA) ---
         function exportChart() {
