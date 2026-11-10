@@ -1015,7 +1015,7 @@
                         }
                     }
 
-                    // Línea de MONITOREO: avatar -> empresa -> capital -> % actual -> modalidad -> noticias -> limite diario -> riesgo USD -> riesgo %
+                    // Línea de MONITOREO: avatar -> empresa -> capital -> % actual -> modalidad -> noticias -> limite diario -> riesgo USD -> riesgo % -> check
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1025,9 +1025,11 @@
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             ${c.news ? '<span style="font-size: 11px;" title="Noticia de alto impacto">📰</span>' : ''}
                             <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 0) : '-'}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
-                            <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar de Monitoreo" style="margin-left: auto;">✅</button>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                                <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
+                                <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
+                                <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar de Monitoreo">✅</button>
+                            </div>
                         </div>
                     `;
                     list.appendChild(item);
@@ -1071,17 +1073,18 @@
                         }
                     }
 
-                    // Línea de MANTENIMIENTO: avatar -> empresa -> capital -> % actual -> modalidad -> riesgo % -> días restantes -> check
+                    // Línea de MANTENIMIENTO: avatar -> empresa -> capital -> % actual -> modalidad -> "Quedan N días" -> check
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
                             <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
                             <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
-                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? colores.pos : (c.actual < 0 ? colores.neg : 'var(--text-main)')}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
-                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap; margin-left: auto;">Quedan ${daysRemaining}d</span>
-                            <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="margin-left: 4px;">✅</button>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                                <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">Quedan ${daysRemaining} días</span>
+                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
+                            </div>
                         </div>
                     `;
                     list.appendChild(item);
@@ -1582,7 +1585,6 @@
                             td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Monitoreo">${cuenta.alert ? '💻' : ''}</button>`;
                             break;
                         case 'news':
-                            // CORRECCIÓN: Añadido id="btn-news-${index}" para actualización instantánea
                             td.innerHTML = `<button id="btn-news-${index}" class="btn-alert ${cuenta.news ? 'active' : ''}" onclick="toggleNews(${index})" title="Activar/Desactivar Noticia" style="font-size:11px; min-height:22px;">${cuenta.news ? '📰' : ''}</button>`;
                             break;
                         case 'actions':
@@ -2002,7 +2004,6 @@
             
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             
-            // Solo actualizar el panel si la cuenta ya está visible en él (en Monitoreo)
             if (cuentas[index].alert) {
                 renderAlertPanel();
             }
