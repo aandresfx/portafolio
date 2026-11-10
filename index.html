@@ -268,11 +268,11 @@
             background-color: var(--axis-line);
             flex-shrink: 0;
             opacity: 0.5;
-            margin: 0 5px; /* Un poco de margen extra */
+            margin: 0 5px; 
         }
         .year-label {
             position: absolute;
-            top: -35px; /* Ubicado justo por encima de las barras/avatares */
+            top: -35px; 
             left: 50%;
             transform: translateX(-50%);
             background: var(--input-bg);
@@ -361,7 +361,7 @@
         .notes-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
         /* --- BOTONES FLOTANTES Y PANELES --- */
-        .settings-btn, .management-btn {
+        .settings-btn, .management-btn, .alert-btn {
             position: fixed; left: 20px; 
             background: var(--card-bg); color: var(--text-main);
             border: var(--glass-border); border-radius: 50%; 
@@ -370,22 +370,24 @@
             display: flex; align-items: center; justify-content: center;
             transition: transform 0.2s; backdrop-filter: blur(10px);
         }
-        .settings-btn:hover, .management-btn:hover { transform: rotate(90deg); }
+        .settings-btn:hover, .management-btn:hover, .alert-btn:hover { transform: scale(1.1); }
         
         .settings-btn { bottom: 20px; }
         .management-btn { bottom: 75px; font-size: 22px; }
+        .alert-btn { bottom: 130px; font-size: 20px; }
 
-        .settings-panel, .management-panel {
+        .settings-panel, .management-panel, .alert-panel {
             position: fixed; left: 20px; 
             background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 340px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 75vh; overflow-y: auto;
         }
-        .settings-panel.active, .management-panel.active { display: flex; }
+        .settings-panel.active, .management-panel.active, .alert-panel.active { display: flex; }
         
         .settings-panel { bottom: 75px; }
         .management-panel { bottom: 130px; }
+        .alert-panel { bottom: 185px; width: 280px; }
         
         .settings-panel label, .management-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
@@ -645,9 +647,16 @@
     <button class="btn-float-open" onclick="setLayout('side')" title="Mostrar Panel">↔️</button>
 
     <!-- Botones Flotantes Globales -->
+    <button class="alert-btn" onclick="toggleAlertPanel()" title="Ver Alertas Activas">🔔</button>
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
+    <!-- NUEVO PANEL: ALERTAS ACTIVAS -->
+    <div class="alert-panel" id="alert-panel">
+        <h3 style="margin: 0 0 10px 0; font-size: 14px; text-align: center; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Alertas Activas ⏰</h3>
+        <div id="alert-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
     <!-- Panel de Gestión de Datos (Con Pestañas) -->
     <div class="management-panel" id="management-panel">
         <div class="tabs">
@@ -866,8 +875,68 @@
             renderTableSettings();
             renderChartLabelsMenu();
             populateFilters();
+            renderAlertPanel(); // Inicializar panel de alertas
         }
         initUI();
+
+        // --- NUEVO: PANEL DE ALERTAS ---
+        function toggleAlertPanel() {
+            document.getElementById('management-panel').classList.remove('active');
+            document.getElementById('global-settings-panel').classList.remove('active');
+            document.getElementById('alert-panel').classList.toggle('active');
+        }
+
+        function renderAlertPanel() {
+            const list = document.getElementById('alert-list');
+            list.innerHTML = '';
+            
+            const alertas = cuentas.filter(c => c.alert);
+            
+            if (alertas.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding: 20px; font-size:12px; color:var(--text-muted);">No hay alertas activas</div>';
+                return;
+            }
+
+            alertas.forEach(c => {
+                const originalIndex = cuentas.indexOf(c);
+                const item = document.createElement('div');
+                item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--input-bg); padding:8px; border-radius:6px; border:1px solid var(--border-color);";
+                
+                // Al hacer clic en la info, abre el modal de edición
+                item.onclick = (e) => {
+                    if(e.target.closest('.btn-clear-alert')) return;
+                    openEditModal(originalIndex);
+                };
+                item.style.cursor = 'pointer';
+
+                const modColor = getModColor(c.modality);
+                const modText = getContrastColor(modColor);
+
+                item.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:2px; pointer-events:none;">
+                        <div style="font-size:12px; font-weight:bold; color:var(--text-main);">
+                            ${c.name} <span style="font-weight:normal; font-size:10px; color:var(--text-muted);">(${c.investor || 'Sin inv.'})</span>
+                        </div>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <span style="font-size:11px; font-weight:bold; color:${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'};">
+                                ${getPercentStr(c.actual, 1)}
+                            </span>
+                            <span style="font-size:9px; background:${modColor}; color:${modText}; padding:1px 4px; border-radius:3px;">${c.modality}</span>
+                        </div>
+                    </div>
+                    <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" style="background:transparent; border:none; cursor:pointer; font-size:16px;" title="Quitar Alerta">✅</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function clearAlertFromPanel(index) {
+            cuentas[index].alert = '';
+            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+            renderTabla(); // Actualiza el botón en la tabla
+            renderGrafico(); // Actualiza el gráfico
+            renderAlertPanel(); // Se elimina a sí mismo de la lista
+        }
 
         // --- MODAL ---
         function openEditModal(index) {
@@ -910,6 +979,7 @@
                 
                 localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
                 renderGrafico();
+                renderAlertPanel();
             } else {
                 alert("Por favor, ingresa un número válido.");
             }
@@ -1443,7 +1513,6 @@
 
             let globalMax = Math.ceil(maxAbs / 5) * 5;
 
-            // Lógica para evitar superposiciones cuando el valor es exactamente el límite de la escala
             if (globalMax === maxAbs) {
                 globalMax += 5;
             }
@@ -1454,7 +1523,6 @@
 
             const step = rangeGlobal > 30 ? 10 : 5;
             
-            // Bucle de dibujo de la escala (pasos de 2.5)
             for (let i = globalMin; i <= globalMax; i += 2.5) {
                 const topPercent = 100 - (((i - globalMin) / rangeGlobal) * 100);
                 const tick = document.createElement('div');
@@ -1475,11 +1543,17 @@
 
             let prevYear = null;
 
-            cuentasVisibles.forEach(cuenta => {
+            cuentasVisibles.forEach((cuenta, index) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
-                // Insertar separador de año si cambia
-                if (prevYear !== null && year !== prevYear && year !== '') {
+                if (index === 0 && year) {
+                    const divider = document.createElement('div');
+                    divider.className = 'year-divider';
+                    divider.style.background = 'transparent';
+                    divider.innerHTML = `<div class="year-label" style="left: 0; transform: translateX(0);">${year}</div>`;
+                    chartArea.appendChild(divider);
+                }
+                else if (prevYear !== null && year !== prevYear && year !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
@@ -1706,6 +1780,7 @@
             
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderGrafico();
+            renderAlertPanel(); // Actualiza el panel flotante
         }
 
         function guardarYRenderizar() {
@@ -1713,6 +1788,7 @@
             renderTabla();
             renderGrafico();
             populateFilters();
+            renderAlertPanel(); // Asegura que el panel esté sincronizado
         }
 
         function guardarColores() {
@@ -1753,8 +1829,16 @@
             localStorage.setItem('chartFontSize', chartFontSize);
         }
 
-        function toggleGlobalSettings() { document.getElementById('global-settings-panel').classList.toggle('active'); }
-        function toggleManagementPanel() { document.getElementById('management-panel').classList.toggle('active'); }
+        function toggleGlobalSettings() { 
+            document.getElementById('management-panel').classList.remove('active');
+            document.getElementById('alert-panel').classList.remove('active');
+            document.getElementById('global-settings-panel').classList.toggle('active'); 
+        }
+        function toggleManagementPanel() { 
+            document.getElementById('global-settings-panel').classList.remove('active');
+            document.getElementById('alert-panel').classList.remove('active');
+            document.getElementById('management-panel').classList.toggle('active'); 
+        }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
         function toggleTableSettings() { document.getElementById('table-settings-menu').classList.toggle('active'); }
 
@@ -1781,6 +1865,12 @@
             const mBtn = document.querySelector('.management-btn');
             if (mPanel.classList.contains('active') && !mPanel.contains(event.target) && !mBtn.contains(event.target)) {
                 mPanel.classList.remove('active');
+            }
+
+            const aPanel = document.getElementById('alert-panel');
+            const aBtn = document.querySelector('.alert-btn');
+            if (aPanel.classList.contains('active') && !aPanel.contains(event.target) && !aBtn.contains(event.target)) {
+                aPanel.classList.remove('active');
             }
         });
 
