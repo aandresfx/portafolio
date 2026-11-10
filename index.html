@@ -1021,7 +1021,7 @@
                             ${avatarHtml}
                             <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
                             <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
-                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? colores.pos : (c.actual < 0 ? colores.neg : 'var(--text-main)')}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             ${c.news ? '<span style="font-size: 11px;" title="Noticia de alto impacto">📰</span>' : ''}
                             <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 0) : '-'}</span>
