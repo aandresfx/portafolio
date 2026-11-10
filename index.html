@@ -376,18 +376,35 @@
         .management-btn { bottom: 75px; font-size: 22px; }
         .alert-btn { bottom: 130px; font-size: 20px; }
 
-        .settings-panel, .management-panel, .alert-panel {
+        .settings-panel, .management-panel {
             position: fixed; left: 20px; 
             background: var(--card-bg); border: var(--glass-border);
             border-radius: 10px; padding: 15px; width: 340px; box-shadow: var(--shadow); z-index: 100;
             display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(10px);
             max-height: 75vh; overflow-y: auto;
         }
-        .settings-panel.active, .management-panel.active, .alert-panel.active { display: flex; }
+        .settings-panel.active, .management-panel.active { display: flex; }
         
         .settings-panel { bottom: 75px; }
         .management-panel { bottom: 130px; }
-        .alert-panel { bottom: 185px; width: 280px; }
+
+        /* --- NUEVO: PANEL DE ALERTAS MODAL --- */
+        .alert-panel { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--card-bg); border: var(--glass-border);
+            border-radius: 10px; padding: 20px; width: 360px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 1000;
+            display: none; flex-direction: column; gap: 10px; backdrop-filter: blur(20px);
+            max-height: 80vh; overflow-y: auto;
+        }
+        .alert-panel.active { display: flex; }
+        
+        .alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
+            display: none; z-index: 999;
+        }
+        .alert-overlay.active { display: block; }
         
         .settings-panel label, .management-panel label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .settings-panel input[type="color"] { width: 30px; height: 25px; padding: 0; border: none; cursor: pointer; flex-shrink: 0;}
@@ -555,6 +572,13 @@
         </div>
     </div>
 
+    <!-- OVERLAY Y PANEL DE ALERTAS -->
+    <div class="alert-overlay" id="alert-overlay" onclick="toggleAlertPanel()"></div>
+    <div class="alert-panel" id="alert-panel">
+        <h3 style="margin: 0 0 10px 0; font-size: 14px; text-align: center; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Alertas Activas ⏰</h3>
+        <div id="alert-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
     <div class="container layout-side" id="main-container">
         <!-- Panel Tabla -->
         <div class="panel-tabla glass-panel" id="panel-tabla">
@@ -651,12 +675,6 @@
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
-    <!-- NUEVO PANEL: ALERTAS ACTIVAS -->
-    <div class="alert-panel" id="alert-panel">
-        <h3 style="margin: 0 0 10px 0; font-size: 14px; text-align: center; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Alertas Activas ⏰</h3>
-        <div id="alert-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-    </div>
-
     <!-- Panel de Gestión de Datos (Con Pestañas) -->
     <div class="management-panel" id="management-panel">
         <div class="tabs">
@@ -875,15 +893,25 @@
             renderTableSettings();
             renderChartLabelsMenu();
             populateFilters();
-            renderAlertPanel(); // Inicializar panel de alertas
+            renderAlertPanel(); 
         }
         initUI();
 
-        // --- NUEVO: PANEL DE ALERTAS ---
+        // --- PANEL DE ALERTAS ---
         function toggleAlertPanel() {
             document.getElementById('management-panel').classList.remove('active');
             document.getElementById('global-settings-panel').classList.remove('active');
-            document.getElementById('alert-panel').classList.toggle('active');
+            
+            const panel = document.getElementById('alert-panel');
+            const overlay = document.getElementById('alert-overlay');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                panel.classList.add('active');
+                overlay.classList.add('active');
+            }
         }
 
         function renderAlertPanel() {
@@ -902,7 +930,6 @@
                 const item = document.createElement('div');
                 item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--input-bg); padding:8px; border-radius:6px; border:1px solid var(--border-color);";
                 
-                // Al hacer clic en la info, abre el modal de edición
                 item.onclick = (e) => {
                     if(e.target.closest('.btn-clear-alert')) return;
                     openEditModal(originalIndex);
@@ -933,9 +960,9 @@
         function clearAlertFromPanel(index) {
             cuentas[index].alert = '';
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
-            renderTabla(); // Actualiza el botón en la tabla
-            renderGrafico(); // Actualiza el gráfico
-            renderAlertPanel(); // Se elimina a sí mismo de la lista
+            renderTabla(); 
+            renderGrafico(); 
+            renderAlertPanel(); 
         }
 
         // --- MODAL ---
@@ -1546,14 +1573,18 @@
             cuentasVisibles.forEach((cuenta, index) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
+                // Lógica para los separadores de año
                 if (index === 0 && year) {
+                    // Primer año: creamos un divisor invisible para que ocupe espacio
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
-                    divider.style.background = 'transparent';
-                    divider.innerHTML = `<div class="year-label" style="left: 0; transform: translateX(0);">${year}</div>`;
+                    divider.style.background = 'transparent'; // Sin línea vertical
+                    divider.style.border = 'none';
+                    divider.innerHTML = `<div class="year-label">${year}</div>`;
                     chartArea.appendChild(divider);
                 }
                 else if (prevYear !== null && year !== prevYear && year !== '') {
+                    // Años posteriores: divisor normal con línea
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
@@ -1780,7 +1811,7 @@
             
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderGrafico();
-            renderAlertPanel(); // Actualiza el panel flotante
+            renderAlertPanel(); 
         }
 
         function guardarYRenderizar() {
@@ -1788,7 +1819,7 @@
             renderTabla();
             renderGrafico();
             populateFilters();
-            renderAlertPanel(); // Asegura que el panel esté sincronizado
+            renderAlertPanel(); 
         }
 
         function guardarColores() {
@@ -1832,11 +1863,13 @@
         function toggleGlobalSettings() { 
             document.getElementById('management-panel').classList.remove('active');
             document.getElementById('alert-panel').classList.remove('active');
+            document.getElementById('alert-overlay').classList.remove('active');
             document.getElementById('global-settings-panel').classList.toggle('active'); 
         }
         function toggleManagementPanel() { 
             document.getElementById('global-settings-panel').classList.remove('active');
             document.getElementById('alert-panel').classList.remove('active');
+            document.getElementById('alert-overlay').classList.remove('active');
             document.getElementById('management-panel').classList.toggle('active'); 
         }
         function toggleChartSettings() { document.getElementById('chart-settings-menu').classList.toggle('active'); }
@@ -1865,12 +1898,6 @@
             const mBtn = document.querySelector('.management-btn');
             if (mPanel.classList.contains('active') && !mPanel.contains(event.target) && !mBtn.contains(event.target)) {
                 mPanel.classList.remove('active');
-            }
-
-            const aPanel = document.getElementById('alert-panel');
-            const aBtn = document.querySelector('.alert-btn');
-            if (aPanel.classList.contains('active') && !aPanel.contains(event.target) && !aBtn.contains(event.target)) {
-                aPanel.classList.remove('active');
             }
         });
 
