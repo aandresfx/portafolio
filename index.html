@@ -77,7 +77,7 @@
         .container.show-table { grid-template-areas: "chart" "table"; }
         
         .container.show-alerts { 
-            grid-template-columns: minmax(0, 1fr) 360px; /* Panel un poco más ancho */
+            grid-template-columns: minmax(0, 1fr) 360px; 
             grid-template-areas: "chart alerts"; 
         }
         
@@ -456,7 +456,7 @@
             display: flex;
         }
 
-        /* --- BOTÓN DE ALERTA --- */
+        /* --- BOTÓN DE ALERTA (MONITOREO) --- */
         .btn-alert {
             background: var(--input-bg);
             border: 1px solid var(--input-border);
@@ -548,7 +548,7 @@
         }
 
         .alert-content {
-            display: flex; align-items: center; gap: 6px; width: 100%; overflow: hidden;
+            display: flex; align-items: center; gap: 4px; width: 100%; overflow: hidden;
         }
         
         .btn-clear-alert {
@@ -790,10 +790,10 @@
             { key: 'capital', label: 'Capital' },
             { key: 'cost', label: 'Costo' },
             { key: 'risk', label: 'Riesgo %' }, 
-            { key: 'dailyLimit', label: 'Lím. Diario' }, // NUEVA
+            { key: 'dailyLimit', label: 'Lím. Diario' }, 
             { key: 'risk_usd', label: 'Riesgo $' }, 
             { key: 'startDate', label: 'Inicio' },
-            { key: 'lastActivity', label: 'Últ. Actividad' }, // NUEVA
+            { key: 'lastActivity', label: 'Últ. Actividad' }, 
             { key: 'modality', label: 'Modalidad' },
             { key: 'status', label: 'Estado' },
             { key: 'actual', label: 'Actual' },
@@ -801,8 +801,8 @@
             { key: 'max', label: 'Obj' },
             { key: 'url', label: 'URL' },
             { key: 'notes', label: 'Notas' },
-            { key: 'alert', label: 'Alerta' }, 
-            { key: 'news', label: 'Noticia 📄' }, // NUEVA
+            { key: 'alert', label: 'Monitoreo' }, // RENOMBRADO
+            { key: 'news', label: 'Noticia 📰' }, // RENOMBRADO
             { key: 'actions', label: '' }
         ];
 
@@ -825,16 +825,17 @@
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
             { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, dailyLimit: -5, startDate: "01/09/2024", lastActivity: "10/11/2026", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "", news: true },
-            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, dailyLimit: -5, startDate: "02/10/2024", lastActivity: "01/11/2026", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "⏰", news: false },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, dailyLimit: -5, startDate: "02/10/2024", lastActivity: "01/11/2026", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "💻", news: false },
             { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, dailyLimit: -4, startDate: "10/10/2026", lastActivity: "20/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "", news: true },
             { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, dailyLimit: null, startDate: "15/11/2026", lastActivity: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "", news: false }
         ];
 
-        // MIGRACIÓN DE DATOS (Para cuentas viejas que no tengan los nuevos campos)
+        // MIGRACIÓN DE DATOS
         cuentas.forEach(c => {
             if (c.news === undefined) c.news = false;
             if (c.dailyLimit === undefined) c.dailyLimit = null;
             if (c.lastActivity === undefined) c.lastActivity = "";
+            if (c.alert === '⏰') c.alert = '💻'; // Actualizar emoji viejo a nuevo
         });
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
@@ -962,14 +963,14 @@
 
         // --- PANEL DE MONITOREO Y MANTENIMIENTO ---
         function getDaysDiff(dateStr) {
-            if(!dateStr) return 999; // Si no hay fecha, no entra en mantenimiento
+            if(!dateStr) return 999; 
             
             const parts = dateStr.split('/');
             if(parts.length !== 3) return 999;
             
             const targetDate = new Date(parts[2], parts[1]-1, parts[0]);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalizar para contar días exactos
+            today.setHours(0, 0, 0, 0); 
             
             const diffTime = Math.abs(today - targetDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
@@ -982,9 +983,9 @@
             list.innerHTML = '';
             
             // --- LISTADO DE MONITOREO ---
-            const alertas = cuentas.filter(c => c.alert || c.news);
+            const alertas = cuentas.filter(c => c.alert);
             
-            list.innerHTML += `<div class="section-title">Monitoreo</div>`;
+            list.innerHTML += `<div class="section-title">MONITOREO</div>`;
             
             if (alertas.length === 0) {
                 list.innerHTML += '<div style="text-align:center; padding: 10px; font-size:11px; color:var(--text-muted);">No hay cuentas en monitoreo</div>';
@@ -1014,6 +1015,7 @@
                         }
                     }
 
+                    // Línea de MONITOREO: avatar -> empresa -> capital -> % actual -> modalidad -> noticias -> limite diario -> riesgo USD -> riesgo %
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1021,10 +1023,11 @@
                             <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
                             <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
-                            ${c.news ? '<span style="font-size: 11px;" title="Noticias de alto impacto">📄</span>' : ''}
+                            ${c.news ? '<span style="font-size: 11px;" title="Noticia de alto impacto">📰</span>' : ''}
                             <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 1) : '-'}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap; margin-left: auto;">${getCurrencyStr(riskUsdVal)}</span>
-                            <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar Alerta" style="margin-left: 4px;">✅</button>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getPercentStr(c.risk, 1)}</span>
+                            <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar de Monitoreo" style="margin-left: auto;">✅</button>
                         </div>
                     `;
                     list.appendChild(item);
@@ -1034,10 +1037,10 @@
             // --- LISTADO DE MANTENIMIENTO ---
             const mantenimiento = cuentas.filter(c => {
                 const days = getDaysDiff(c.lastActivity);
-                return days >= 15 && days <= 30; // Entre 15 y 30 días
+                return days >= 15 && days <= 30; 
             });
             
-            list.innerHTML += `<div class="section-title" style="color: var(--text-muted); margin-top: 20px;">Mantenimiento mensual</div>`;
+            list.innerHTML += `<div class="section-title" style="margin-top: 20px;">MANTENIMIENTO MENSUAL</div>`;
             
             if (mantenimiento.length === 0) {
                 list.innerHTML += '<div style="text-align:center; padding: 10px; font-size:11px; color:var(--text-muted);">Todas las cuentas están al día</div>';
@@ -1045,7 +1048,7 @@
                 mantenimiento.forEach(c => {
                     const originalIndex = cuentas.indexOf(c);
                     const item = document.createElement('div');
-                    item.className = 'alert-item maintenance-item'; // Fondo rojizo
+                    item.className = 'alert-item maintenance-item'; 
                     
                     item.onclick = (e) => {
                         if(e.target.closest('.btn-clear-alert')) return;
@@ -1068,6 +1071,7 @@
                         }
                     }
 
+                    // Línea de MANTENIMIENTO: avatar -> empresa -> capital -> % actual -> modalidad -> riesgo % -> días restantes -> check
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1075,7 +1079,8 @@
                             <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
                             <span style="font-size: 11px; font-weight: bold; color: ${c.actual >= 0 ? 'var(--text-main)' : '#e53e3e'}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
-                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap; margin-left: auto;">Quedan ${daysRemaining} días</span>
+                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getPercentStr(c.risk, 1)}</span>
+                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap; margin-left: auto;">Quedan ${daysRemaining}d</span>
                             <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="margin-left: 4px;">✅</button>
                         </div>
                     `;
@@ -1086,7 +1091,7 @@
 
         function clearAlertFromPanel(index) {
             cuentas[index].alert = '';
-            cuentas[index].news = false;
+            // No borramos c.news aquí, porque son independientes
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
             renderTabla(); 
             renderGrafico(); 
@@ -1204,7 +1209,7 @@
 
             const labelNames = {
                 investor: 'Inversor',
-                alert: 'Alerta ⏰',
+                alert: 'Monitoreo 💻',
                 name: 'Empresa',
                 modality: 'Modalidad',
                 capital: 'Capital',
@@ -1265,7 +1270,6 @@
             
             document.getElementById('datetime-display').innerText = texto;
             
-            // Auto-actualizar el panel de monitoreo cada minuto por si cambia el día
             if(segundo === '00' && showAlerts) renderAlertPanel();
         }
         setInterval(updateClock, 1000);
@@ -1568,10 +1572,10 @@
                             td.innerHTML = `<input type="text" class="in-notes" value="${cuenta.notes || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'notes', this.value)" placeholder="...">`;
                             break;
                         case 'alert':
-                            td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Alerta">${cuenta.alert || ''}</button>`;
+                            td.innerHTML = `<button id="btn-alert-${index}" class="btn-alert ${cuenta.alert ? 'active' : ''}" onclick="toggleAlerta(${index})" title="Activar/Desactivar Monitoreo">${cuenta.alert ? '💻' : ''}</button>`;
                             break;
                         case 'news':
-                            td.innerHTML = `<button class="btn-alert ${cuenta.news ? 'active' : ''}" onclick="toggleNews(${index})" title="Activar/Desactivar Noticia" style="font-size:11px; min-height:22px;">${cuenta.news ? '📄' : ''}</button>`;
+                            td.innerHTML = `<button class="btn-alert ${cuenta.news ? 'active' : ''}" onclick="toggleNews(${index})" title="Activar/Desactivar Noticia" style="font-size:11px; min-height:22px;">${cuenta.news ? '📰' : ''}</button>`;
                             break;
                         case 'actions':
                             td.innerHTML = `<button class="btn-delete" onclick="eliminarCuenta(${index})" title="Eliminar cuenta">🗑️</button>`;
@@ -1860,7 +1864,7 @@
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                         </div>
                     </div>
-                    <div class="labels-area" title="Clic para activar/desactivar alerta">
+                    <div class="labels-area" title="Clic para activar/desactivar monitoreo">
                         ${labelsHTML.includes('avatar-container') ? labelsHTML.replace(labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6), '') : labelsHTML}
                     </div>
                 `;
@@ -1874,7 +1878,7 @@
                     openEditModal(originalIndex); 
                 };
 
-                // Clic en el área de los textos activa/desactiva la alerta
+                // Clic en el área de los textos activa/desactiva la alerta (monitoreo)
                 const labelsArea = column.querySelector('.labels-area');
                 labelsArea.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
@@ -1958,7 +1962,7 @@
         }
 
         function toggleAlerta(index) {
-            cuentas[index].alert = cuentas[index].alert === '⏰' ? '' : '⏰';
+            cuentas[index].alert = cuentas[index].alert === '💻' ? '' : '💻';
             
             const btn = document.getElementById(`btn-alert-${index}`);
             if (btn) {
@@ -1980,7 +1984,7 @@
             
             const btn = document.getElementById(`btn-news-${index}`);
             if (btn) {
-                btn.innerHTML = cuentas[index].news ? '📄' : '';
+                btn.innerHTML = cuentas[index].news ? '📰' : '';
                 if (cuentas[index].news) {
                     btn.classList.add('active');
                 } else {
@@ -1989,7 +1993,11 @@
             }
             
             localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
-            renderAlertPanel();
+            
+            // Solo actualizar el panel si la cuenta ya está visible en él (en Monitoreo)
+            if (cuentas[index].alert) {
+                renderAlertPanel();
+            }
         }
 
         function guardarYRenderizar() {
