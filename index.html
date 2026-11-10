@@ -60,7 +60,7 @@
             overflow-x: hidden;
         }
 
-        /* --- LAYOUTS --- */
+        /* --- LAYOUTS DINÁMICOS --- */
         .container {
             max-width: 1800px;
             width: 100%;
@@ -69,25 +69,35 @@
             align-items: start; 
             z-index: 1;
             transition: all 0.3s ease;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas: "chart";
         }
 
-        /* Grilla dinámica según los paneles visibles */
-        .container.layout-table-chart-alerts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 320px; grid-template-areas: "table chart alerts"; }
-        .container.layout-table-chart { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "table chart"; }
-        .container.layout-chart-alerts { grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "chart alerts"; }
-        .container.layout-chart-only { grid-template-columns: 1fr; grid-template-areas: "chart"; }
+        .container.show-table { grid-template-areas: "chart" "table"; }
         
-        /* Layouts legacy para compatibilidad con los botones de arriba */
-        .container.layout-bottom { grid-template-columns: 1fr; grid-template-areas: "chart" "table"; }
-        .container.layout-top { grid-template-columns: 1fr; grid-template-areas: "table" "chart"; }
+        .container.show-alerts { 
+            grid-template-columns: minmax(0, 1fr) 340px; 
+            grid-template-areas: "chart alerts"; 
+            align-items: stretch; /* Hace que las alertas igualen el alto del gráfico */
+        }
+        
+        .container.show-table.show-alerts { 
+            grid-template-columns: minmax(0, 1fr) 340px; 
+            grid-template-areas: "chart alerts" "table table"; 
+            align-items: stretch;
+        }
 
         @media (max-width: 1200px) {
-            .container { grid-template-columns: 1fr !important; grid-template-areas: "table" "chart" "alerts" !important; }
+            .container, .container.show-table, .container.show-alerts, .container.show-table.show-alerts { 
+                grid-template-columns: 1fr; 
+                grid-template-areas: "chart" "alerts" "table"; 
+                align-items: start;
+            }
         }
 
         .panel-tabla { grid-area: table; }
         .panel-grafico { grid-area: chart; }
-        .panel-alertas { grid-area: alerts; display: flex; flex-direction: column; height: 100%; max-height: 800px;}
+        .panel-alertas { grid-area: alerts; height: 100%; display: flex; flex-direction: column;}
 
         .glass-panel {
             background: var(--card-bg);
@@ -355,20 +365,23 @@
         .notes-text { font-size: calc(var(--chart-label-size) - 2px); color: var(--text-muted); font-style: italic; word-wrap: break-word; white-space: normal; line-height: 1.1;}
 
         /* --- BOTONES FLOTANTES Y PANELES --- */
-        .settings-btn, .management-btn, .alert-btn {
+        .settings-btn, .management-btn, .alert-btn, .table-btn {
             position: fixed; left: 20px; 
             background: var(--card-bg); color: var(--text-main);
             border: var(--glass-border); border-radius: 50%; 
             width: 45px; height: 45px; font-size: 20px; cursor: pointer;
             box-shadow: var(--shadow); z-index: 100; 
             display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s; backdrop-filter: blur(10px);
+            transition: transform 0.2s, opacity 0.2s; backdrop-filter: blur(10px);
         }
-        .settings-btn:hover, .management-btn:hover, .alert-btn:hover { transform: scale(1.1); }
+        .settings-btn:hover, .management-btn:hover, .alert-btn:hover, .table-btn:hover { transform: scale(1.1); }
         
         .settings-btn { bottom: 20px; }
         .management-btn { bottom: 75px; font-size: 22px; }
         .alert-btn { bottom: 130px; font-size: 20px; }
+        .table-btn { bottom: 185px; font-size: 20px; }
+
+        .btn-inactive { opacity: 0.4; }
 
         .settings-panel, .management-panel {
             position: fixed; left: 20px; 
@@ -548,33 +561,6 @@
     </div>
 
     <div class="container" id="main-container">
-        <!-- Panel Tabla -->
-        <div class="panel-tabla glass-panel" id="panel-tabla">
-            <div class="panel-header">
-                <div class="header-tools">
-                    <button class="icon-btn" onclick="toggleTable()" title="Ocultar/Mostrar Tabla">▶️</button>
-                    <button class="icon-btn" onclick="toggleTableSettings()" title="Configurar columnas">⚙️</button>
-                </div>
-                <h2>Empresas</h2>
-                <div style="width: 60px;"></div>
-                
-                <!-- Menú de opciones de la tabla -->
-                <div class="dropdown-menu" id="table-settings-menu">
-                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>
-                    <!-- Se genera con JS -->
-                </div>
-            </div>
-            <div class="table-container">
-                <table id="tabla-datos">
-                    <thead>
-                        <tr id="table-headers"></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
-        </div>
-
         <!-- Panel Gráfico (Siempre visible) -->
         <div class="panel-grafico glass-panel" id="panel-grafico-export">
             <div class="datetime-display" id="datetime-display"></div>
@@ -620,7 +606,7 @@
                     </label>
                     <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
                         <span>Separación de barras:</span>
-                        <input type="range" id="gap-slider" min="5" max="80" value="25" oninput="cambiarGapBarras(this.value)">
+                        <input type="range" id="gap-slider" min="5" max="80" value="25" oninput="cambiarGapBars(this.value)">
                     </label>
                 </div>
             </div>
@@ -632,8 +618,8 @@
             </div>
         </div>
 
-        <!-- Panel de Alertas (Tercer panel) -->
-        <div class="panel-alertas glass-panel" id="panel-alertas" style="display: none;">
+        <!-- Panel de Alertas -->
+        <div class="panel-alertas glass-panel" id="panel-alertas">
             <div class="panel-header">
                 <div style="width: 30px;"></div>
                 <h2>Alertas ⏰</h2>
@@ -645,10 +631,39 @@
                 <!-- Se genera con JS -->
             </div>
         </div>
+
+        <!-- Panel Tabla -->
+        <div class="panel-tabla glass-panel" id="panel-tabla">
+            <div class="panel-header">
+                <div class="header-tools">
+                    <button class="icon-btn" onclick="toggleTableSettings()" title="Configurar columnas">⚙️</button>
+                </div>
+                <h2>Empresas</h2>
+                <div class="header-tools">
+                    <button class="icon-btn" onclick="toggleTable()" title="Cerrar Tabla">❌</button>
+                </div>
+                
+                <!-- Menú de opciones de la tabla -->
+                <div class="dropdown-menu" id="table-settings-menu">
+                    <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>
+                    <!-- Se genera con JS -->
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="tabla-datos">
+                    <thead>
+                        <tr id="table-headers"></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button class="btn-add" onclick="agregarFila()">+ Añadir Cuenta</button>
+        </div>
     </div>
 
     <!-- Botones Flotantes Globales -->
-    <button class="alert-btn" onclick="toggleAlerts()" title="Ver/Ocultar Alertas">🔔</button>
+    <button class="table-btn" id="btn-toggle-table" onclick="toggleTable()" title="Mostrar/Ocultar Tabla">📝</button>
+    <button class="alert-btn" id="btn-toggle-alerts" onclick="toggleAlerts()" title="Mostrar/Ocultar Alertas">🔔</button>
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
@@ -839,10 +854,9 @@
         // MODAL VARIABLES
         let editingIndex = -1;
 
-        // ESTADO DE UI (Visibilidad de paneles)
+        // ESTADO DE UI
         let showTable = localStorage.getItem('showTable') !== 'false';
         let showAlerts = localStorage.getItem('showAlerts') === 'true';
-        let layoutMode = localStorage.getItem('layoutMode') || 'side'; // side, bottom, top
 
         // Inicializar UI
         function initUI() {
@@ -881,33 +895,15 @@
         // --- CONTROL DE LAYOUT ---
         function updateLayout() {
             const container = document.getElementById('main-container');
-            const panelTabla = document.getElementById('panel-tabla');
-            const panelAlertas = document.getElementById('panel-alertas');
             
-            if (showTable && showAlerts) {
-                container.className = 'container layout-table-chart-alerts';
-                panelTabla.style.display = 'flex';
-                panelAlertas.style.display = 'flex';
-            } else if (showTable && !showAlerts) {
-                if (layoutMode === 'bottom') container.className = 'container layout-bottom';
-                else if (layoutMode === 'top') container.className = 'container layout-top';
-                else container.className = 'container layout-table-chart';
-                
-                panelTabla.style.display = 'flex';
-                panelAlertas.style.display = 'none';
-            } else if (!showTable && showAlerts) {
-                container.className = 'container layout-chart-alerts';
-                panelTabla.style.display = 'none';
-                panelAlertas.style.display = 'flex';
-            } else {
-                container.className = 'container layout-chart-only';
-                panelTabla.style.display = 'none';
-                panelAlertas.style.display = 'none';
-            }
-
+            if (showTable) container.classList.add('show-table'); else container.classList.remove('show-table');
+            if (showAlerts) container.classList.add('show-alerts'); else container.classList.remove('show-alerts');
+            
+            document.getElementById('btn-toggle-table').classList.toggle('btn-inactive', !showTable);
+            document.getElementById('btn-toggle-alerts').classList.toggle('btn-inactive', !showAlerts);
+            
             localStorage.setItem('showTable', showTable);
             localStorage.setItem('showAlerts', showAlerts);
-            localStorage.setItem('layoutMode', layoutMode);
         }
 
         function toggleTable() {
@@ -1117,15 +1113,6 @@
             }
         }
 
-        // --- LAYOUTS BOTONES (Tabla Arriba/Abajo) ---
-        function setLayout(mode) {
-            if (mode === 'side' || mode === 'bottom' || mode === 'top') {
-                layoutMode = mode;
-                showTable = true; // Asegurar que la tabla se vea al cambiar layout
-                updateLayout();
-            }
-        }
-
         // --- RELOJ EN VIVO ---
         function updateClock() {
             const now = new Date();
@@ -1250,7 +1237,7 @@
                 'misCuentasPro', 'misEmpresas', 'misInversores', 'misModalidades', 'misColores', 
                 'chartLabels', 'chartLabelsOrder', 'barValueDisplay', 'darkMode', 'bgImage', 
                 'overlayOpacity', 'barGap', 'chartFontSize', 'columnOrder', 
-                'visibleCols', 'showTable', 'showAlerts', 'layoutMode'
+                'visibleCols', 'showTable', 'showAlerts'
             ];
 
             keys.forEach(key => {
@@ -1580,13 +1567,17 @@
 
             let prevYear = null;
 
-            cuentasVisibles.forEach((cuenta) => {
+            cuentasVisibles.forEach((cuenta, index) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
-                // Lógica para los separadores de año (Ahora incluye el primero con línea)
+                // Lógica para los separadores de año
                 if (year !== prevYear && year !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
+                    if (index === 0) {
+                        divider.style.background = 'transparent'; // Quita la línea vertical del primer año
+                        divider.style.border = 'none';
+                    }
                     divider.innerHTML = `<div class="year-label">${year}</div>`;
                     chartArea.appendChild(divider);
                 }
@@ -1847,7 +1838,7 @@
             renderGrafico();
         }
 
-        function cambiarGapBarras(val) {
+        function cambiarGapBars(val) {
             barGap = parseInt(val);
             document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
             localStorage.setItem('barGap', barGap);
