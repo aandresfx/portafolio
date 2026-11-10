@@ -204,7 +204,7 @@
         .y-axis {
             position: relative; 
             width: 35px; 
-            height: 400px; /* Modificado para mayor altura */
+            height: 400px;
             border-right: 1px solid var(--axis-line); 
             margin-right: 15px; 
             margin-top: 40px; 
@@ -233,7 +233,7 @@
             gap: var(--bar-gap); 
             flex-grow: 1; 
             position: relative; 
-            height: 560px; /* Modificado para mayor altura */
+            height: 560px;
             overflow-x: auto;
             overflow-y: hidden; 
             padding-top: 40px; 
@@ -248,7 +248,7 @@
         .chart-column { 
             position: relative; 
             width: 45px; 
-            height: 400px; /* Modificado para mayor altura */
+            height: 400px;
             flex-shrink: 0; 
             display: flex; 
             flex-direction: column; 
@@ -260,10 +260,36 @@
             opacity: 0.8;
         }
 
+        /* --- SEPARADOR DE AÑOS --- */
+        .year-divider {
+            position: relative;
+            width: 1px;
+            height: 400px;
+            background-color: var(--axis-line);
+            flex-shrink: 0;
+            opacity: 0.5;
+            margin: 0 5px; /* Un poco de margen extra */
+        }
+        .year-label {
+            position: absolute;
+            top: -35px; /* Ubicado justo por encima de las barras/avatares */
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
         .bar-container { 
             position: relative; 
             width: 100%; 
-            height: 400px; /* Modificado para mayor altura */
+            height: 400px;
         }
 
         .avatar-container {
@@ -515,7 +541,7 @@
 </head>
 <body>
 
-    <!-- MODAL DE EDICIÓN (NUEVO) -->
+    <!-- MODAL DE EDICIÓN -->
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
             <h3 id="modal-title">Editar Porcentaje</h3>
@@ -867,7 +893,6 @@
             if (!isNaN(parsed)) {
                 cuentas[editingIndex].actual = parsed;
                 
-                // Actualizar la tabla directamente para evitar re-renderizar todo
                 const trs = document.querySelectorAll('#tabla-datos tbody tr');
                 if (trs[editingIndex]) {
                     const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
@@ -1439,7 +1464,7 @@
                     tick.innerText = `${i}%`;
                 } else {
                     tick.className = 'y-tick-minor';
-                    tick.innerText = `${i}%`; // Se agrega el texto para las líneas intermedias
+                    tick.innerText = `${i}%`; 
                 }
                 
                 tick.style.top = `${topPercent}%`;
@@ -1448,7 +1473,19 @@
 
             document.getElementById('global-zero-line').style.top = `240px`; 
 
+            let prevYear = null;
+
             cuentasVisibles.forEach(cuenta => {
+                let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
+
+                // Insertar separador de año si cambia
+                if (prevYear !== null && year !== prevYear && year !== '') {
+                    const divider = document.createElement('div');
+                    divider.className = 'year-divider';
+                    divider.innerHTML = `<div class="year-label">${year}</div>`;
+                    chartArea.appendChild(divider);
+                }
+
                 const column = document.createElement('div');
                 column.className = 'chart-column';
                 const isPropio = cuenta.modality === 'Capital propio';
@@ -1575,10 +1612,12 @@
                 const originalIndex = cuentas.findIndex(c => c === cuenta);
                 column.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
-                    openEditModal(originalIndex); // LLAMADA AL NUEVO MODAL
+                    openEditModal(originalIndex); 
                 };
                 
                 chartArea.appendChild(column);
+
+                if (year) prevYear = year;
             });
         }
 
@@ -1649,7 +1688,7 @@
             }
             
             renderGrafico();
-            populateFilters(); // Actualizar filtros si cambia algún dato
+            populateFilters(); 
         }
 
         function toggleAlerta(index) {
