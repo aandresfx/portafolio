@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portafolio - Mercados evolutivos</title>
+    <title>C³ | Mercados evolutivos</title>
     
     <!-- 1. FAVICON DE LA PESTAÑA -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png">
@@ -341,7 +341,9 @@
         .labels-area { 
             position: absolute;
             top: 100%; 
-            width: 110px; 
+            width: 80px; /* REDUCIDO */
+            left: 50%; /* CENTRADO */
+            transform: translateX(-50%); /* CENTRADO */
             text-align: center; 
             padding-top: 10px; 
             z-index: 10; 
@@ -530,21 +532,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--input-bg);
             padding: 8px 10px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
             cursor: pointer;
             transition: background 0.2s;
         }
-        .alert-item:hover { background: rgba(66, 153, 225, 0.1); }
+        .alert-item:hover { filter: brightness(1.1); }
         
         .alert-item.maintenance-item {
-            background: rgba(229, 62, 62, 0.15);
-            border-color: rgba(229, 62, 62, 0.3);
-        }
-        .alert-item.maintenance-item:hover {
-            background: rgba(229, 62, 62, 0.25);
+            border: 2px solid rgba(229, 62, 62, 0.5);
         }
 
         .alert-content {
@@ -595,7 +592,7 @@
 
             <div class="panel-header">
                 <div style="width: 60px;"></div>
-                <h2>Gráfico</h2>
+                <h2>CENTRO DE CONTROL DE CUENTAS</h2>
                 <div class="header-tools">
                     <button class="icon-btn" onclick="exportChart()" title="Descargar Imagen">📸</button>
                     <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
@@ -650,7 +647,7 @@
         <div class="panel-alertas glass-panel" id="panel-alertas">
             <div class="panel-header">
                 <div style="width: 30px;"></div>
-                <h2>Monitoreo</h2>
+                <h2>HOY</h2>
                 <div class="header-tools">
                     <button class="icon-btn" onclick="toggleAlerts()" title="Cerrar Panel">❌</button>
                 </div>
@@ -995,6 +992,13 @@
                     const item = document.createElement('div');
                     item.className = 'alert-item';
                     
+                    const empColor = empresas.find(e => e.name === c.name)?.color || 'var(--border-color)';
+                    const empTextColor = getContrastColor(empColor);
+                    
+                    item.style.backgroundColor = empColor;
+                    item.style.color = empTextColor;
+                    item.style.borderColor = 'transparent'; // Para que se vea el color puro
+
                     item.onclick = (e) => {
                         if(e.target.closest('.btn-clear-alert')) return;
                         openEditModal(originalIndex);
@@ -1008,10 +1012,10 @@
                     if (c.investor) {
                         const inv = inversores.find(i => i.name === c.investor);
                         if (inv && inv.avatar) {
-                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
+                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.2);">`;
                         } else {
                             const initial = c.investor.charAt(0).toUpperCase();
-                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
+                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
                         }
                     }
 
@@ -1019,16 +1023,16 @@
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
-                            <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
-                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? colores.pos : (c.actual < 0 ? colores.neg : 'var(--text-main)')}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
+                            <span style="font-size: 10px; opacity: 0.8; white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? '#1a202c' : (c.actual < 0 ? '#fff' : empTextColor)}; white-space: nowrap; text-shadow: 0 0 2px rgba(255,255,255,0.3);">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             ${c.news ? '<span style="font-size: 11px;" title="Noticia de alto impacto">📰</span>' : ''}
-                            <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 0) : '-'}</span>
+                            <span style="font-size: 10px; color: #ffcccc; font-weight: bold; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${c.dailyLimit ? getPercentStr(c.dailyLimit, 0) : '-'}</span>
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
-                                <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
-                                <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
-                                <button class="btn-clear-alert" onclick="clearAlertFromPanel(${originalIndex})" title="Quitar de Monitoreo">✅</button>
+                                <span style="font-size: 10px; opacity: 0.8; white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
+                                <span style="font-size: 10px; opacity: 0.8; white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
+                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="color: #38a169; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px;">✅</button>
                             </div>
                         </div>
                     `;
@@ -1052,6 +1056,12 @@
                     const item = document.createElement('div');
                     item.className = 'alert-item maintenance-item'; 
                     
+                    const empColor = empresas.find(e => e.name === c.name)?.color || 'var(--border-color)';
+                    const empTextColor = getContrastColor(empColor);
+                    
+                    item.style.backgroundColor = empColor;
+                    item.style.color = empTextColor;
+
                     item.onclick = (e) => {
                         if(e.target.closest('.btn-clear-alert')) return;
                         openEditModal(originalIndex);
@@ -1066,10 +1076,10 @@
                     if (c.investor) {
                         const inv = inversores.find(i => i.name === c.investor);
                         if (inv && inv.avatar) {
-                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`;
+                            avatarHtml = `<img src="${inv.avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.2);">`;
                         } else {
                             const initial = c.investor.charAt(0).toUpperCase();
-                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
+                            avatarHtml = `<div style="width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">${initial}</div>`;
                         }
                     }
 
@@ -1077,13 +1087,13 @@
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
-                            <span style="font-size: 11px; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
-                            <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
-                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? colores.pos : (c.actual < 0 ? colores.neg : 'var(--text-main)')}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
+                            <span style="font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px;">${c.name}</span>
+                            <span style="font-size: 10px; opacity: 0.8; white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
+                            <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? '#1a202c' : (c.actual < 0 ? '#fff' : empTextColor)}; white-space: nowrap; text-shadow: 0 0 2px rgba(255,255,255,0.3);">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
-                                <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">Quedan ${daysRemaining} días</span>
-                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
+                                <span style="font-size: 10px; color: #ffcccc; font-weight: bold; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Quedan ${daysRemaining} días</span>
+                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="color: #38a169; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px;">✅</button>
                             </div>
                         </div>
                     `;
@@ -1310,7 +1320,6 @@
             return Number(num).toFixed(decimals) + '%';
         }
         
-        // NUEVA FUNCIÓN: Formatea el porcentaje para quitar ceros innecesarios
         function getSmartPercentStr(num) {
             if(num === null || num === undefined || num === '') return '';
             let n = Number(num);
