@@ -497,14 +497,51 @@
         .modal-content {
             background: var(--card-bg); padding: 25px; border-radius: 12px;
             border: var(--glass-border); box-shadow: var(--shadow);
-            width: 300px; text-align: center; display: flex; flex-direction: column; gap: 15px;
+            width: 320px; text-align: center; display: flex; flex-direction: column; gap: 15px;
             animation: scaleIn 0.2s ease-out;
         }
         @keyframes scaleIn {
             from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        .modal-content h3 { margin: 0; font-size: 16px; color: var(--text-main); font-weight: 600; }
+        
+        /* NUEVO: Estilos para el header informativo del modal */
+        .modal-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 5px;
+        }
+        .modal-info-header img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .modal-info-header .avatar-placeholder {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .modal-input-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: left;
+            padding-left: 5px;
+            margin-bottom: -10px;
+        }
+
         .modal-input {
             font-size: 24px; text-align: center; padding: 10px;
             width: 100%; border-radius: 8px; font-weight: bold;
@@ -605,8 +642,12 @@
     <!-- MODAL DE EDICIÓN -->
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
-            <h3 id="modal-title">Editar Porcentaje</h3>
+            <!-- Header dinámico generado por JS -->
+            <div class="modal-info-header" id="modal-info-header"></div>
+            
+            <div class="modal-input-label">Nuevo porcentaje actual:</div>
             <input type="number" step="0.1" id="modal-input" class="modal-input" autofocus onkeydown="if(event.key==='Enter') saveModalValue()">
+            
             <div class="modal-actions">
                 <button class="toggle-btn" onclick="saveModalValue()">Guardar</button>
                 <button class="toggle-btn secondary" onclick="closeEditModal()">Cancelar</button>
@@ -1039,7 +1080,7 @@
                         }
                     }
 
-                    // Línea de MONITOREO: avatar -> empresa -> capital -> % actual -> modalidad -> noticias -> limite diario -> riesgo USD -> riesgo % -> check
+                    // Línea de MONITOREO
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1100,7 +1141,7 @@
                         }
                     }
 
-                    // Línea de MANTENIMIENTO: avatar -> empresa -> capital -> % actual -> modalidad -> "Quedan N días" -> check
+                    // Línea de MANTENIMIENTO
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1140,7 +1181,32 @@
         function openEditModal(index) {
             editingIndex = index;
             const cuenta = cuentas[index];
-            document.getElementById('modal-title').innerText = `Editar % (${cuenta.name})`;
+
+            // Construir el header informativo
+            const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--border-color)';
+            const empTextColor = getContrastColor(empColor);
+            const modColor = getModColor(cuenta.modality);
+            const modTextColor = getContrastColor(modColor);
+
+            let avatarHtml = '';
+            if (cuenta.investor) {
+                const inv = inversores.find(i => i.name === cuenta.investor);
+                if (inv && inv.avatar) {
+                    avatarHtml = `<img src="${inv.avatar}" alt="${inv.name}">`;
+                } else {
+                    const initial = cuenta.investor.charAt(0).toUpperCase();
+                    avatarHtml = `<div class="avatar-placeholder">${initial}</div>`;
+                }
+            }
+
+            document.getElementById('modal-info-header').innerHTML = `
+                ${avatarHtml}
+                <span style="background-color: ${empColor}; color: ${empTextColor}; padding: 2px 6px; border-radius: 4px;">${cuenta.name}</span>
+                <span style="color: var(--text-muted);">${getCurrencyStr(cuenta.capital)}</span>
+                <span style="color: ${cuenta.actual > 0 ? colores.pos : (cuenta.actual < 0 ? colores.neg : 'var(--text-main)')};">${getPercentStr(cuenta.actual, 1)}</span>
+                <span style="background-color: ${modColor}; color: ${modTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${cuenta.modality}</span>
+            `;
+
             const input = document.getElementById('modal-input');
             input.value = cuenta.actual || 0;
             document.getElementById('edit-modal').classList.add('active');
