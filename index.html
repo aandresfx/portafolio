@@ -26,6 +26,10 @@
             --glass-border: 1px solid rgba(255, 255, 255, 0.5);
             --bar-gap: 25px;
             --chart-label-size: 11px;
+            
+            /* NUEVAS VARIABLES PARA TEMAS */
+            --hover-bg: rgba(0, 0, 0, 0.05); 
+            --check-bg: rgba(0, 0, 0, 0.08);
         }
 
         body.dark-mode {
@@ -41,6 +45,10 @@
             --axis-line: #4a5568;
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             --glass-border: 1px solid rgba(255, 255, 255, 0.05);
+            
+            /* NUEVAS VARIABLES PARA TEMAS OSCUROS */
+            --hover-bg: rgba(255, 255, 255, 0.1);
+            --check-bg: rgba(255, 255, 255, 0.15);
         }
 
         body {
@@ -351,7 +359,8 @@
             border-radius: 8px;
             transition: background 0.2s;
         }
-        .labels-area:hover { background: rgba(255, 255, 255, 0.1); }
+        /* CORRECCIÓN: Hover adaptado al tema */
+        .labels-area:hover { background: var(--hover-bg); }
 
         .name-text { 
             font-size: var(--chart-label-size); 
@@ -553,8 +562,25 @@
             display: flex; align-items: center; gap: 4px; width: 100%; overflow: hidden;
         }
         
+        /* CORRECCIÓN: Botón de check adaptado al tema con transparencia */
         .btn-clear-alert {
-            background: transparent; border: none; cursor: pointer; font-size: 16px; color: #38a169; flex-shrink: 0;
+            background: var(--check-bg);
+            border: none; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: #38a169; 
+            flex-shrink: 0;
+            border-radius: 50%; 
+            width: 22px; 
+            height: 22px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-clear-alert:hover {
+            transform: scale(1.1);
+            background: rgba(56, 161, 105, 0.2); /* Un toque verdoso al pasar el mouse */
         }
 
         /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
@@ -1033,7 +1059,7 @@
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
-                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="color: #38a169; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px;">✅</button>
+                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
                             </div>
                         </div>
                     `;
@@ -1091,7 +1117,7 @@
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                                 <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">Quedan ${daysRemaining} días</span>
-                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy" style="color: #38a169; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px;">✅</button>
+                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
                             </div>
                         </div>
                     `;
