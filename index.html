@@ -27,7 +27,7 @@
             --bar-gap: 25px;
             --chart-label-size: 11px;
             
-            /* NUEVAS VARIABLES PARA TEMAS */
+            /* VARIABLES PARA TEMAS */
             --hover-bg: rgba(0, 0, 0, 0.05); 
             --check-bg: rgba(0, 0, 0, 0.08);
         }
@@ -46,7 +46,7 @@
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             --glass-border: 1px solid rgba(255, 255, 255, 0.05);
             
-            /* NUEVAS VARIABLES PARA TEMAS OSCUROS */
+            /* VARIABLES PARA TEMAS OSCUROS */
             --hover-bg: rgba(255, 255, 255, 0.1);
             --check-bg: rgba(255, 255, 255, 0.15);
         }
@@ -359,7 +359,6 @@
             border-radius: 8px;
             transition: background 0.2s;
         }
-        /* CORRECCIÓN: Hover adaptado al tema */
         .labels-area:hover { background: var(--hover-bg); }
 
         .name-text { 
@@ -562,7 +561,6 @@
             display: flex; align-items: center; gap: 4px; width: 100%; overflow: hidden;
         }
         
-        /* CORRECCIÓN: Botón de check adaptado al tema con transparencia */
         .btn-clear-alert {
             background: var(--check-bg);
             border: none; 
@@ -580,7 +578,7 @@
         }
         .btn-clear-alert:hover {
             transform: scale(1.1);
-            background: rgba(56, 161, 105, 0.2); /* Un toque verdoso al pasar el mouse */
+            background: rgba(56, 161, 105, 0.2);
         }
 
         /* --- MARCA DE AGUA Y LOGO FLOTANTE --- */
@@ -765,12 +763,10 @@
     <div class="settings-panel" id="global-settings-panel">
         
         <label style="margin-top:5px;">Colores de Barras:</label>
-        <label>Positivo (Examen): <input type="color" id="color-pos" onchange="guardarColores()"></label>
-        <label>Negativo (Examen): <input type="color" id="color-neg" onchange="guardarColores()"></label>
+        <label>Positivo: <input type="color" id="color-pos" onchange="guardarColores()"></label>
+        <label>Negativo: <input type="color" id="color-neg" onchange="guardarColores()"></label>
         <label>Aprobado: <input type="color" id="color-passed" onchange="guardarColores()"></label>
         <label>Desaprobado: <input type="color" id="color-failed" onchange="guardarColores()"></label>
-        <label>Propio (+): <input type="color" id="color-own-pos" onchange="guardarColores()"></label>
-        <label>Propio (-): <input type="color" id="color-own-neg" onchange="guardarColores()"></label>
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
@@ -789,11 +785,11 @@
 
         <hr style="width:100%; border:0; border-top:1px solid var(--border-color); margin: 5px 0;">
         
-        <label style="color: #4299e1;">Copia de Seguridad (Backup):</label>
+        <label style="color: #4299e1;">Copia de seguridad</label>
         <p style="font-size:10px; color:var(--text-muted); margin:2px 0 8px 0;">Descarga un archivo con todos tus datos para transferirlos a otra PC.</p>
         <div style="display:flex; gap:5px;">
-            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar Backup</button>
-            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar Backup</button>
+            <button class="toggle-btn" onclick="exportarDatos()" style="flex:1; font-size:11px;">Descargar datos</button>
+            <button class="toggle-btn secondary" onclick="document.getElementById('file-import').click()" style="flex:1; font-size:11px;">Cargar datos</button>
             <input type="file" id="file-import" accept=".json" style="display:none;" onchange="importarDatos(event)">
         </div>
     </div>
@@ -895,8 +891,7 @@
 
         let colores = JSON.parse(localStorage.getItem('misColores')) || { 
             pos: "#38a169", neg: "#e53e3e", 
-            passed: "#a3e635", failed: "#7f1d1d",
-            ownPos: "#3b82f6", ownNeg: "#ec4899"
+            passed: "#a3e635", failed: "#7f1d1d"
         };
 
         let chartLabels = JSON.parse(localStorage.getItem('chartLabels')) || {
@@ -931,8 +926,6 @@
             document.getElementById('color-neg').value = colores.neg;
             document.getElementById('color-passed').value = colores.passed;
             document.getElementById('color-failed').value = colores.failed;
-            document.getElementById('color-own-pos').value = colores.ownPos;
-            document.getElementById('color-own-neg').value = colores.ownNeg;
 
             document.getElementById('bar-val-display').value = barValueDisplay;
             
@@ -1418,8 +1411,6 @@
                 color = colores.failed;
             } else if (cuenta.status.includes('Aprobado') && !isPropio) {
                 color = colores.passed;
-            } else if (isPropio) {
-                color = displayValue >= 0 ? colores.ownPos : colores.ownNeg;
             } else {
                 color = displayValue >= 0 ? colores.pos : colores.neg;
             }
@@ -2055,8 +2046,6 @@
             colores.neg = document.getElementById('color-neg').value;
             colores.passed = document.getElementById('color-passed').value;
             colores.failed = document.getElementById('color-failed').value;
-            colores.ownPos = document.getElementById('color-own-pos').value;
-            colores.ownNeg = document.getElementById('color-own-neg').value;
             
             localStorage.setItem('misColores', JSON.stringify(colores));
             renderTabla();
