@@ -87,6 +87,7 @@
         .container.show-alerts { 
             grid-template-columns: minmax(0, 1fr) 360px; 
             grid-template-areas: "chart alerts"; 
+            align-items: start; /* Evita que el panel de alertas se estire */
         }
         
         .container.show-table.show-alerts { 
@@ -104,11 +105,13 @@
         .panel-tabla { grid-area: table; display: none; }
         .panel-grafico { grid-area: chart; display: flex; }
         
+        /* AQUÍ ESTÁ LA ALTURA NUMÉRICA DEL PANEL HOY */
         .panel-alertas { 
             grid-area: alerts; 
             display: none; 
             flex-direction: column; 
-            height: 100%; 
+            height: 680px; /* <-- CAMBIA ESTE VALOR SI NECESITAS MÁS O MENOS ALTURA */
+            overflow: hidden; /* Evita que el panel crezca más allá de esta altura */
         }
 
         .glass-panel {
@@ -560,6 +563,8 @@
             flex-direction: column;
             gap: 10px;
             padding-right: 5px;
+            /* Espacio reservado para el mensaje de "Todo al día" al final de la lista */
+            padding-bottom: 20px; 
         }
         .section-title {
             font-size: 11px;
@@ -642,7 +647,6 @@
     <!-- MODAL DE EDICIÓN -->
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
-            <!-- Header dinámico generado por JS -->
             <div class="modal-info-header" id="modal-info-header"></div>
             
             <div class="modal-input-label">Nuevo porcentaje actual:</div>
@@ -1080,7 +1084,6 @@
                         }
                     }
 
-                    // Línea de MONITOREO
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1141,7 +1144,6 @@
                         }
                     }
 
-                    // Línea de MANTENIMIENTO
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
