@@ -84,14 +84,15 @@
 
         .container.show-table { grid-template-areas: "chart" "table"; }
         
+        /* AMPLIADO EL PANEL HOY A 420px */
         .container.show-alerts { 
-            grid-template-columns: minmax(0, 1fr) 360px; 
+            grid-template-columns: minmax(0, 1fr) 420px; 
             grid-template-areas: "chart alerts"; 
-            align-items: start; /* Evita que el panel de alertas se estire */
+            align-items: start;
         }
         
         .container.show-table.show-alerts { 
-            grid-template-columns: minmax(0, 1fr) 360px; 
+            grid-template-columns: minmax(0, 1fr) 420px; 
             grid-template-areas: "chart alerts" "table table"; 
         }
 
@@ -105,13 +106,12 @@
         .panel-tabla { grid-area: table; display: none; }
         .panel-grafico { grid-area: chart; display: flex; }
         
-        /* AQUÍ ESTÁ LA ALTURA NUMÉRICA DEL PANEL HOY */
         .panel-alertas { 
             grid-area: alerts; 
             display: none; 
             flex-direction: column; 
-            height: 662px; /* <-- CAMBIA ESTE VALOR SI NECESITAS MÁS O MENOS ALTURA */
-            overflow: hidden; /* Evita que el panel crezca más allá de esta altura */
+            height: 680px; 
+            overflow: hidden; 
         }
 
         .glass-panel {
@@ -508,7 +508,6 @@
             to { transform: scale(1); opacity: 1; }
         }
         
-        /* NUEVO: Estilos para el header informativo del modal */
         .modal-info-header {
             display: flex;
             align-items: center;
@@ -563,7 +562,6 @@
             flex-direction: column;
             gap: 10px;
             padding-right: 5px;
-            /* Espacio reservado para el mensaje de "Todo al día" al final de la lista */
             padding-bottom: 20px; 
         }
         .section-title {
@@ -648,10 +646,8 @@
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
             <div class="modal-info-header" id="modal-info-header"></div>
-            
-            <div class="modal-input-label">Nuevo porcentaje actual:</div>
+            <div class="modal-input-label" id="modal-input-label">Nuevo porcentaje actual:</div>
             <input type="number" step="0.1" id="modal-input" class="modal-input" autofocus onkeydown="if(event.key==='Enter') saveModalValue()">
-            
             <div class="modal-actions">
                 <button class="toggle-btn" onclick="saveModalValue()">Guardar</button>
                 <button class="toggle-btn secondary" onclick="closeEditModal()">Cancelar</button>
@@ -672,7 +668,6 @@
                     <button class="icon-btn" onclick="toggleChartSettings()" title="Configurar">⚙️</button>
                 </div>
                 
-                <!-- Menú de opciones del gráfico -->
                 <div class="dropdown-menu" id="chart-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar en las barras:</span>
                     <select id="bar-val-display" onchange="cambiarBarValueDisplay(this.value)" style="width:100%; padding:4px; margin-bottom: 10px;">
@@ -694,9 +689,7 @@
 
                     <hr>
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Textos debajo (Arrastrar para ordenar):</span>
-                    <div id="chart-labels-list">
-                        <!-- Se genera con JS -->
-                    </div>
+                    <div id="chart-labels-list"></div>
                     
                     <hr>
                     <label style="flex-direction: column; align-items: flex-start; gap: 5px;">
@@ -726,9 +719,7 @@
                     <button class="icon-btn" onclick="toggleAlerts()" title="Cerrar Panel">❌</button>
                 </div>
             </div>
-            <div id="alert-list-container">
-                <!-- Se genera con JS -->
-            </div>
+            <div id="alert-list-container"></div>
         </div>
 
         <!-- Panel Tabla -->
@@ -742,10 +733,8 @@
                     <button class="icon-btn" onclick="toggleTable()" title="Cerrar Tabla">❌</button>
                 </div>
                 
-                <!-- Menú de opciones de la tabla -->
                 <div class="dropdown-menu" id="table-settings-menu">
                     <span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>
-                    <!-- Se genera con JS -->
                 </div>
             </div>
             <div class="table-container">
@@ -760,13 +749,11 @@
         </div>
     </div>
 
-    <!-- Botones Flotantes Globales -->
     <button class="table-btn" id="btn-toggle-table" onclick="toggleTable()" title="Mostrar/Ocultar Tabla">📝</button>
     <button class="alert-btn" id="btn-toggle-alerts" onclick="toggleAlerts()" title="Mostrar/Ocultar Monitoreo">💻</button>
     <button class="management-btn" onclick="toggleManagementPanel()" title="Gestionar Empresas, Inversores y Modalidades">➕</button>
     <button class="settings-btn" onclick="toggleGlobalSettings()" title="Ajustes Visuales y Backup">⚙️</button>
     
-    <!-- Panel de Gestión de Datos (Con Pestañas) -->
     <div class="management-panel" id="management-panel">
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('empresas', this)">Empresas</button>
@@ -804,7 +791,6 @@
         </div>
     </div>
 
-    <!-- Panel de Configuración Visual y Backup -->
     <div class="settings-panel" id="global-settings-panel">
         
         <label style="margin-top:5px;">Colores de Barras:</label>
@@ -839,7 +825,6 @@
         </div>
     </div>
 
-    <!-- Marca de agua y Logo Flotante -->
     <div class="brand-container">
         <div class="brand-logo">
             <img src="https://raw.githubusercontent.com/aandresfx/portafolio/cf4948803ebae83693ffc6006fd9d64c787aaa76/Mercados%20evolutivos.png" alt="Logo">
@@ -893,18 +878,19 @@
 
         // --- DATOS ---
         let cuentas = JSON.parse(localStorage.getItem('misCuentasPro')) || [
-            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, dailyLimit: -5, startDate: "01/09/2024", lastActivity: "10/11/2026", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "", news: true },
-            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, dailyLimit: -5, startDate: "02/10/2024", lastActivity: "01/11/2026", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "💻", news: false },
-            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, dailyLimit: -4, startDate: "10/10/2026", lastActivity: "20/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "", news: true },
-            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, dailyLimit: null, startDate: "15/11/2026", lastActivity: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "", news: false }
+            { visible: true, name: "FTMO", investor: "Andrés", capital: 100000, cost: -510, risk: 1.25, dailyLimit: -5, startDate: "01/09/2024", lastActivity: "10/11/2026", modality: "Examen", status: "En curso ⏳", actual: -9.4, min: -10, max: 10, notes: "Fase 1/2", url: "", alert: "", news: true, dailyActual: 0 },
+            { visible: true, name: "FTMO", investor: "Lucía", capital: 25000, cost: -250, risk: 1.25, dailyLimit: -5, startDate: "02/10/2024", lastActivity: "01/11/2026", modality: "Examen", status: "Aprobado ✅", actual: 10.0, min: -10, max: 10, notes: "Fase 1/2", url: "https://www.myfxbook.com", alert: "💻", news: false, dailyActual: 1.5 },
+            { visible: true, name: "Bullfy", investor: "Andrés", capital: 5000, cost: -100, risk: 1.0, dailyLimit: -4, startDate: "10/10/2026", lastActivity: "20/10/2026", modality: "Mixto", status: "Desaprobado ❌", actual: -3.0, min: -4, max: 8, notes: "Fase Única", url: "", alert: "", news: true, dailyActual: -0.5 },
+            { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, dailyLimit: null, startDate: "15/11/2026", lastActivity: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "", news: false, dailyActual: 0 }
         ];
 
-        // MIGRACIÓN DE DATOS
+        // MIGRACIÓN DE DATOS (Añade dailyActual si no existe)
         cuentas.forEach(c => {
             if (c.news === undefined) c.news = false;
             if (c.dailyLimit === undefined) c.dailyLimit = null;
             if (c.lastActivity === undefined) c.lastActivity = "";
             if (c.alert === '⏰') c.alert = '💻'; 
+            if (c.dailyActual === undefined) c.dailyActual = 0;
         });
 
         let empresas = JSON.parse(localStorage.getItem('misEmpresas'));
@@ -945,9 +931,7 @@
         if (chartLabels.modality === undefined) chartLabels.modality = false;
 
         let chartFilters = { year: 'all', company: 'all', investor: 'all', modality: 'all', status: 'all' };
-
         let barValueDisplay = localStorage.getItem('barValueDisplay') || 'pct'; 
-
         let isDarkMode = localStorage.getItem('darkMode') === 'true';
         let savedBgImage = localStorage.getItem('bgImage') || 'https://raw.githubusercontent.com/aandresfx/portafolio/982689e9cb64e93a4624b0eaca9f3e0a1b6e6190/Fondo.jpg';
         let overlayOpacity = parseInt(localStorage.getItem('overlayOpacity') || 50);
@@ -957,15 +941,11 @@
         let currentSort = { key: null, dir: 'asc' };
         let isDraggingColumn = false;
         let tempAvatarBase64 = "";
-
-        // MODAL VARIABLES
         let editingIndex = -1;
-
-        // ESTADO DE UI
+        let isDailyEdit = false; // NUEVA VARIABLE
         let showTable = localStorage.getItem('showTable') !== 'false';
         let showAlerts = localStorage.getItem('showAlerts') === 'true';
 
-        // Inicializar UI
         function initUI() {
             document.getElementById('color-pos').value = colores.pos;
             document.getElementById('color-neg').value = colores.neg;
@@ -973,7 +953,6 @@
             document.getElementById('color-failed').value = colores.failed;
 
             document.getElementById('bar-val-display').value = barValueDisplay;
-            
             document.getElementById('gap-slider').value = barGap;
             document.documentElement.style.setProperty('--bar-gap', barGap + 'px');
             
@@ -997,7 +976,6 @@
         }
         initUI();
 
-        // --- CONTROL DE LAYOUT ---
         function updateLayout() {
             const container = document.getElementById('main-container');
             const panelTabla = document.getElementById('panel-tabla');
@@ -1016,28 +994,16 @@
             localStorage.setItem('showAlerts', showAlerts);
         }
 
-        function toggleTable() {
-            showTable = !showTable;
-            updateLayout();
-        }
+        function toggleTable() { showTable = !showTable; updateLayout(); }
+        function toggleAlerts() { showAlerts = !showAlerts; updateLayout(); if(showAlerts) renderAlertPanel(); }
 
-        function toggleAlerts() {
-            showAlerts = !showAlerts;
-            updateLayout();
-            if(showAlerts) renderAlertPanel();
-        }
-
-        // --- PANEL DE MONITOREO Y MANTENIMIENTO ---
         function getDaysDiff(dateStr) {
             if(!dateStr) return 999; 
-            
             const parts = dateStr.split('/');
             if(parts.length !== 3) return 999;
-            
             const targetDate = new Date(parts[2], parts[1]-1, parts[0]);
             const today = new Date();
             today.setHours(0, 0, 0, 0); 
-            
             const diffTime = Math.abs(today - targetDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             return diffDays;
@@ -1048,9 +1014,7 @@
             if(!list) return;
             list.innerHTML = '';
             
-            // --- LISTADO DE MONITOREO ---
             const alertas = cuentas.filter(c => c.alert);
-            
             list.innerHTML += `<div class="section-title">MONITOREO</div>`;
             
             if (alertas.length === 0) {
@@ -1064,9 +1028,9 @@
                     const empColor = empresas.find(e => e.name === c.name)?.color || 'var(--border-color)';
                     const empTextColor = getContrastColor(empColor);
 
+                    // Al hacer clic en cualquier parte del item, abrimos el modal de edición diaria
                     item.onclick = (e) => {
-                        if(e.target.closest('.btn-clear-alert')) return;
-                        openEditModal(originalIndex);
+                        openDailyEditModal(originalIndex);
                     };
 
                     const modColor = getModColor(c.modality);
@@ -1084,6 +1048,11 @@
                         }
                     }
 
+                    // Lógica del indicador diario
+                    let dailyVal = c.dailyActual || 0;
+                    let dailyColor = dailyVal > 0 ? '#38a169' : (dailyVal < 0 ? '#e53e3e' : 'var(--text-muted)');
+                    let dailyText = dailyVal > 0 ? `▲ ${dailyVal}%` : (dailyVal < 0 ? `▼ ${dailyVal}%` : '0.0%');
+
                     item.innerHTML = `
                         <div class="alert-content">
                             ${avatarHtml}
@@ -1093,10 +1062,19 @@
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
                             ${c.news ? '<span style="font-size: 11px;" title="Noticia de alto impacto">📰</span>' : ''}
                             <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">${c.dailyLimit ? getPercentStr(c.dailyLimit, 0) : '-'}</span>
+                            
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
-                                <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
+                                
+                                <!-- REEMPLAZO DEL CHECKMARK POR INDICADOR DIARIO -->
+                                <div onclick="event.stopPropagation(); openDailyEditModal(${originalIndex})" 
+                                     style="cursor:pointer; font-weight:bold; color:${dailyColor}; min-width: 60px; text-align: center; display: flex; align-items: center; justify-content: center; background: var(--check-bg); border-radius: 4px; padding: 2px 4px; font-size: 11px; transition: transform 0.2s;" 
+                                     title="Registrar rendimiento de hoy"
+                                     onmouseover="this.style.transform='scale(1.05)'"
+                                     onmouseout="this.style.transform='scale(1)'">
+                                    ${dailyText}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1104,7 +1082,6 @@
                 });
             }
 
-            // --- LISTADO DE MANTENIMIENTO ---
             const mantenimiento = cuentas.filter(c => {
                 const days = getDaysDiff(c.lastActivity);
                 return days >= 15 && days <= 30; 
@@ -1151,6 +1128,7 @@
                             <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(c.capital)}</span>
                             <span style="font-size: 11px; font-weight: bold; color: ${c.actual > 0 ? colores.pos : (c.actual < 0 ? colores.neg : 'var(--text-main)')}; white-space: nowrap;">${getPercentStr(c.actual, 1)}</span>
                             <span style="font-size: 9px; background: ${modColor}; color: ${modText}; padding: 1px 4px; border-radius: 3px; white-space: nowrap;">${c.modality}</span>
+                            
                             <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                                 <span style="font-size: 10px; color: #e53e3e; font-weight: bold; white-space: nowrap;">Quedan ${daysRemaining} días</span>
                                 <button class="btn-clear-alert" onclick="updateActivityToToday(${originalIndex})" title="Marcar actividad hoy">✅</button>
@@ -1160,14 +1138,6 @@
                     list.appendChild(item);
                 });
             }
-        }
-
-        function clearAlertFromPanel(index) {
-            cuentas[index].alert = '';
-            localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
-            renderTabla(); 
-            renderGrafico(); 
-            renderAlertPanel(); 
         }
 
         function updateActivityToToday(index) {
@@ -1180,11 +1150,13 @@
         }
 
         // --- MODAL ---
+        
+        // 1. Abrir modal para editar total (desde gráfico)
         function openEditModal(index) {
             editingIndex = index;
+            isDailyEdit = false;
             const cuenta = cuentas[index];
-
-            // Construir el header informativo
+            
             const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--border-color)';
             const empTextColor = getContrastColor(empColor);
             const modColor = getModColor(cuenta.modality);
@@ -1193,12 +1165,8 @@
             let avatarHtml = '';
             if (cuenta.investor) {
                 const inv = inversores.find(i => i.name === cuenta.investor);
-                if (inv && inv.avatar) {
-                    avatarHtml = `<img src="${inv.avatar}" alt="${inv.name}">`;
-                } else {
-                    const initial = cuenta.investor.charAt(0).toUpperCase();
-                    avatarHtml = `<div class="avatar-placeholder">${initial}</div>`;
-                }
+                if (inv && inv.avatar) { avatarHtml = `<img src="${inv.avatar}" alt="${inv.name}">`; }
+                else { const initial = cuenta.investor.charAt(0).toUpperCase(); avatarHtml = `<div class="avatar-placeholder">${initial}</div>`; }
             }
 
             document.getElementById('modal-info-header').innerHTML = `
@@ -1209,8 +1177,42 @@
                 <span style="background-color: ${modColor}; color: ${modTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${cuenta.modality}</span>
             `;
 
+            document.getElementById('modal-input-label').innerText = "Nuevo porcentaje total (%):";
             const input = document.getElementById('modal-input');
             input.value = cuenta.actual || 0;
+            document.getElementById('edit-modal').classList.add('active');
+            setTimeout(() => { input.focus(); input.select(); }, 100);
+        }
+
+        // 2. Abrir modal para registrar rendimiento diario (desde HOY)
+        function openDailyEditModal(index) {
+            editingIndex = index;
+            isDailyEdit = true;
+            const cuenta = cuentas[index];
+            
+            const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--border-color)';
+            const empTextColor = getContrastColor(empColor);
+            const modColor = getModColor(cuenta.modality);
+            const modTextColor = getContrastColor(modColor);
+
+            let avatarHtml = '';
+            if (cuenta.investor) {
+                const inv = inversores.find(i => i.name === cuenta.investor);
+                if (inv && inv.avatar) { avatarHtml = `<img src="${inv.avatar}" alt="${inv.name}">`; }
+                else { const initial = cuenta.investor.charAt(0).toUpperCase(); avatarHtml = `<div class="avatar-placeholder">${initial}</div>`; }
+            }
+
+            document.getElementById('modal-info-header').innerHTML = `
+                ${avatarHtml}
+                <span style="background-color: ${empColor}; color: ${empTextColor}; padding: 2px 6px; border-radius: 4px;">${cuenta.name}</span>
+                <span style="color: var(--text-muted);">${getCurrencyStr(cuenta.capital)}</span>
+                <span style="color: ${cuenta.actual > 0 ? colores.pos : (cuenta.actual < 0 ? colores.neg : 'var(--text-main)')};">${getPercentStr(cuenta.actual, 1)}</span>
+                <span style="background-color: ${modColor}; color: ${modTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${cuenta.modality}</span>
+            `;
+
+            document.getElementById('modal-input-label').innerText = "Porcentaje generado hoy (%):";
+            const input = document.getElementById('modal-input');
+            input.value = 0; // Por defecto 0
             document.getElementById('edit-modal').classList.add('active');
             setTimeout(() => { input.focus(); input.select(); }, 100);
         }
@@ -1226,26 +1228,28 @@
             const parsed = parseFloat(inputVal.replace(',', '.'));
             
             if (!isNaN(parsed)) {
-                cuentas[editingIndex].actual = parsed;
                 
-                const trs = document.querySelectorAll('#tabla-datos tbody tr');
-                if (trs[editingIndex]) {
-                    const activeColumns = columnOrder.filter(k => visibleCols.includes(k));
-                    const actIndex = activeColumns.indexOf('actual');
-                    if (actIndex > -1) {
-                        const inputElement = trs[editingIndex].children[actIndex].querySelector('input');
-                        if (inputElement) {
-                            inputElement.value = getPercentStr(parsed, 1);
-                            const c = getAccountColor(cuentas[editingIndex]);
-                            inputElement.style.backgroundColor = c;
-                            inputElement.style.color = getContrastColor(c);
-                        }
-                    }
+                if (isDailyEdit) {
+                    // Lógica si es edición diaria
+                    cuentas[editingIndex].dailyActual = parsed;
+                    
+                    let currentActual = Number(cuentas[editingIndex].actual) || 0;
+                    cuentas[editingIndex].actual = currentActual + parsed;
+
+                    const hoy = new Date();
+                    cuentas[editingIndex].lastActivity = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
+                } else {
+                    // Lógica si es edición total (desde gráfico)
+                    cuentas[editingIndex].actual = parsed;
                 }
                 
+                // Guardar y renderizar todo de nuevo
                 localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
+                renderTabla();
                 renderGrafico();
                 renderAlertPanel();
+                populateFilters();
+                
             } else {
                 alert("Por favor, ingresa un número válido.");
             }
@@ -1279,16 +1283,8 @@
             fillSelect('filter-status', statuses, 'Estados', chartFilters.status);
         }
 
-        function updateFilter(key, value) {
-            chartFilters[key] = value;
-            renderGrafico();
-        }
-
-        function clearFilters() {
-            chartFilters = { year: 'all', company: 'all', investor: 'all', modality: 'all', status: 'all' };
-            populateFilters();
-            renderGrafico();
-        }
+        function updateFilter(key, value) { chartFilters[key] = value; renderGrafico(); }
+        function clearFilters() { chartFilters = { year: 'all', company: 'all', investor: 'all', modality: 'all', status: 'all' }; populateFilters(); renderGrafico(); }
 
         // --- PESTAÑAS DE GESTIÓN ---
         function switchTab(tabName, btn) {
@@ -1448,9 +1444,7 @@
             if(parts.length === 3) {
                 const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
                 const month = parseInt(parts[1], 10) - 1;
-                if(month >= 0 && month < 12) {
-                    return `${months[month]} ${parts[2]}`;
-                }
+                if(month >= 0 && month < 12) { return `${months[month]} ${parts[2]}`; }
             }
             return dateStr; 
         }
@@ -1497,9 +1491,7 @@
 
             keys.forEach(key => {
                 const item = localStorage.getItem(key);
-                if (item !== null) {
-                    backup[key] = item; 
-                }
+                if (item !== null) { backup[key] = item; }
             });
 
             const dataStr = JSON.stringify(backup, null, 2);
@@ -1523,19 +1515,14 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    
                     for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            localStorage.setItem(key, data[key]);
-                        }
+                        if (data.hasOwnProperty(key)) { localStorage.setItem(key, data[key]); }
                     }
-                    
                     alert("¡Datos importados con éxito! La página se recargará para aplicar los cambios.");
                     location.reload();
-                    
                 } catch (error) {
                     console.error(error);
-                    alert("Error al leer el archivo. Asegúrate de que sea un archivo de backup válido (.json).");
+                    alert("Error al leer el archivo.");
                 }
             };
             reader.readAsText(file);
@@ -1592,17 +1579,13 @@
                             break;
                         case 'name':
                             let optionsHTML = empresas.map(e => `<option value="${e.name}" ${cuenta.name === e.name ? 'selected' : ''}>${e.name}</option>`).join('');
-                            if(!empresas.find(e => e.name === cuenta.name)) {
-                                optionsHTML += `<option value="${cuenta.name}" selected>${cuenta.name}</option>`;
-                            }
+                            if(!empresas.find(e => e.name === cuenta.name)) { optionsHTML += `<option value="${cuenta.name}" selected>${cuenta.name}</option>`; }
                             const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'transparent';
                             td.innerHTML = `<select class="in-name" style="background-color: ${empColor}; color: ${getContrastColor(empColor)};" onchange="actualizarDato(${index}, 'name', this.value); const c = empresas.find(e => e.name === this.value)?.color || 'transparent'; this.style.backgroundColor = c; this.style.color = getContrastColor(c);">${optionsHTML}</select>`;
                             break;
                         case 'investor':
                             let invOptions = `<option value="">--</option>` + inversores.map(inv => `<option value="${inv.name}" ${cuenta.investor === inv.name ? 'selected' : ''}>${inv.name}</option>`).join('');
-                            if(cuenta.investor && !inversores.find(i => i.name === cuenta.investor)) {
-                                invOptions += `<option value="${cuenta.investor}" selected>${cuenta.investor}</option>`;
-                            }
+                            if(cuenta.investor && !inversores.find(i => i.name === cuenta.investor)) { invOptions += `<option value="${cuenta.investor}" selected>${cuenta.investor}</option>`; }
                             td.innerHTML = `<select class="in-investor" onchange="actualizarDato(${index}, 'investor', this.value)">${invOptions}</select>`;
                             break;
                         case 'capital':
@@ -1633,9 +1616,7 @@
                             break;
                         case 'modality':
                             let modOptionsHTML = modalidades.map(m => `<option value="${m.name}" ${cuenta.modality === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
-                            if(!modalidades.find(m => m.name === cuenta.modality) && cuenta.modality) {
-                                modOptionsHTML += `<option value="${cuenta.modality}" selected>${cuenta.modality}</option>`;
-                            }
+                            if(!modalidades.find(m => m.name === cuenta.modality) && cuenta.modality) { modOptionsHTML += `<option value="${cuenta.modality}" selected>${cuenta.modality}</option>`; }
                             const modBg = getModColor(cuenta.modality);
                             td.innerHTML = `<select class="in-mod" style="background-color: ${modBg}; color: ${getContrastColor(modBg)};" onchange="cambiarModalidad(${index}, this.value)">${modOptionsHTML}</select>`;
                             break;
@@ -1652,21 +1633,11 @@
                             td.innerHTML = `<input type="text" class="in-num" style="background-color: ${actBg}; color: ${actColor}; font-weight: bold;" value="${getPercentStr(cuenta.actual, 1)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 1); actualizarDato(${index}, 'actual', parsePercent(this.value)); const c = getAccountColor(cuentas[${index}]); this.style.backgroundColor = c; this.style.color = getContrastColor(c);" onkeydown="if(event.key==='Enter') this.blur()">`;
                             break;
                         case 'min':
-                            if (isPropio) {
-                                td.innerHTML = '';
-                                td.style.borderBottom = '1px solid transparent';
-                            } else {
-                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
-                            }
-                            break;
+                            if (isPropio) { td.innerHTML = ''; td.style.borderBottom = '1px solid transparent'; }
+                            else { td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.min, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'min', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`; } break;
                         case 'max':
-                            if (isPropio) {
-                                td.innerHTML = '';
-                                td.style.borderBottom = '1px solid transparent';
-                            } else {
-                                td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.max, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`;
-                            }
-                            break;
+                            if (isPropio) { td.innerHTML = ''; td.style.borderBottom = '1px solid transparent'; }
+                            else { td.innerHTML = `<input type="text" class="in-num" value="${getPercentStr(cuenta.max, 0)}" onfocus="this.value = parsePercent(this.value) || ''; this.select()" onblur="this.value = getPercentStr(parsePercent(this.value), 0); actualizarDato(${index}, 'max', parsePercent(this.value))" onkeydown="if(event.key==='Enter') this.blur()">`; } break;
                         case 'url':
                             td.innerHTML = `<input type="url" class="in-url" value="${cuenta.url || ''}" onfocus="this.select()" onchange="actualizarDato(${index}, 'url', this.value)" placeholder="https://...">`;
                             break;
@@ -1771,7 +1742,6 @@
             chartArea.innerHTML = '<div class="global-zero-line" id="global-zero-line"></div>';
             yAxis.innerHTML = '';
 
-            // APLICAR FILTROS
             const cuentasVisibles = cuentas.filter(c => {
                 if (c.visible === false) return false;
                 
@@ -1803,9 +1773,7 @@
 
             let globalMax = Math.ceil(maxAbs / 5) * 5;
 
-            if (globalMax === maxAbs) {
-                globalMax += 5;
-            }
+            if (globalMax === maxAbs) { globalMax += 5; }
 
             const globalMin = -globalMax;
             const rangeGlobal = globalMax - globalMin;
@@ -1836,7 +1804,6 @@
             cuentasVisibles.forEach((cuenta, index) => {
                 let year = cuenta.startDate ? cuenta.startDate.split('/')[2] : '';
 
-                // Lógica para los separadores de año
                 if (year !== prevYear && year !== '') {
                     const divider = document.createElement('div');
                     divider.className = 'year-divider';
@@ -1858,24 +1825,16 @@
                 const textColor = getContrastColor(color);
                 
                 let valStr;
-                if (displayValue % 1 === 0) {
-                    valStr = displayValue.toFixed(0);
-                } else {
-                    valStr = displayValue.toFixed(1);
-                }
+                if (displayValue % 1 === 0) { valStr = displayValue.toFixed(0); } else { valStr = displayValue.toFixed(1); }
                 const pctStr = displayValue > 0 ? `+${valStr}%` : `${valStr}%`;
                 
                 const usdVal = ((Number(cuenta.capital) || 0) * displayValue) / 100;
                 const usdStr = getCurrencyStr(usdVal);
 
                 let textoValor = '';
-                if (barValueDisplay === 'pct') {
-                    textoValor = pctStr;
-                } else if (barValueDisplay === 'usd') {
-                    textoValor = usdStr;
-                } else {
-                    textoValor = `${pctStr}<br><span style="font-size:0.85em; opacity:0.8;">${usdStr}</span>`;
-                }
+                if (barValueDisplay === 'pct') { textoValor = pctStr; }
+                else if (barValueDisplay === 'usd') { textoValor = usdStr; }
+                else { textoValor = `${pctStr}<br><span style="font-size:0.85em; opacity:0.8;">${usdStr}</span>`; }
 
                 let rangeHeightPercent = 0;
                 let rangeBottomPercent = 0;
@@ -1900,61 +1859,34 @@
                         case 'investor':
                             if (cuenta.investor) {
                                 const inv = inversores.find(i => i.name === cuenta.investor);
-                                if (inv && inv.avatar) {
-                                    labelsHTML += `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`;
-                                } else {
-                                    const initial = cuenta.investor.charAt(0).toUpperCase();
-                                    labelsHTML += `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`;
-                                }
-                            }
-                            break;
+                                if (inv && inv.avatar) { labelsHTML += `<div class="avatar-container"><img src="${inv.avatar}" alt="${inv.name}"></div>`; }
+                                else { const initial = cuenta.investor.charAt(0).toUpperCase(); labelsHTML += `<div class="avatar-container" title="${cuenta.investor}">${initial}</div>`; }
+                            } break;
                         case 'alert':
-                            if (cuenta.alert) labelsHTML += `<div class="alert-text">${cuenta.alert}</div>`;
-                            break;
+                            if (cuenta.alert) labelsHTML += `<div class="alert-text">${cuenta.alert}</div>`; break;
                         case 'name':
                             const empColor = empresas.find(e => e.name === cuenta.name)?.color || 'var(--text-main)';
                             const empTextColor = getContrastColor(empColor);
-                            labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`;
-                            break;
+                            labelsHTML += `<div class="name-text" style="background-color: ${empColor}; color: ${empTextColor};">${cuenta.name}</div>`; break;
                         case 'modality':
                             if (cuenta.modality) {
                                 const modColor = getModColor(cuenta.modality);
                                 const modTextColor = getContrastColor(modColor);
                                 labelsHTML += `<div class="name-text" style="background-color: ${modColor}; color: ${modTextColor}; font-size: calc(var(--chart-label-size) - 1px);">${cuenta.modality}</div>`;
-                            }
-                            break;
-                        case 'capital':
-                            labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`;
-                            break;
-                        case 'cost':
-                            if (cuenta.cost !== '' && cuenta.cost !== null && cuenta.cost !== undefined) {
-                                labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`;
-                            }
-                            break;
-                        case 'risk':
-                            if (cuenta.risk) labelsHTML += `<div class="risk-text"> ${getPercentStr(cuenta.risk, 2)}</div>`;
-                            break;
+                            } break;
+                        case 'capital': labelsHTML += `<div class="cap-text">${getCurrencyStr(cuenta.capital)}</div>`; break;
+                        case 'cost': if (cuenta.cost !== '' && cuenta.cost !== null && cuenta.cost !== undefined) { labelsHTML += `<div class="cost-text">${getCostStr(cuenta.cost)}</div>`; } break;
+                        case 'risk': if (cuenta.risk) labelsHTML += `<div class="risk-text"> ${getPercentStr(cuenta.risk, 2)}</div>`; break;
                         case 'risk_usd':
                             if (cuenta.risk) {
                                 let riskUsdVal = (Number(cuenta.capital) || 0) * (Number(cuenta.risk) || 0) / 100;
                                 labelsHTML += `<div class="risk-text"> ${getCurrencyStr(riskUsdVal)}</div>`;
-                            }
-                            break;
+                            } break;
                         case 'status':
-                            if (cuenta.status) {
-                                let soloEmoji = cuenta.status.split(' ').pop(); 
-                                labelsHTML += `<div class="status-text">${soloEmoji}</div>`;
-                            }
-                            break;
-                        case 'date':
-                            if (cuenta.startDate) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`;
-                            break;
-                        case 'url':
-                            if (cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`;
-                            break;
-                        case 'notes':
-                            if (cuenta.notes) labelsHTML += `<div class="notes-text">${cuenta.notes}</div>`;
-                            break;
+                            if (cuenta.status) { let soloEmoji = cuenta.status.split(' ').pop(); labelsHTML += `<div class="status-text">${soloEmoji}</div>`; } break;
+                        case 'date': if (cuenta.startDate) labelsHTML += `<div class="date-text">${formatMonthYear(cuenta.startDate)}</div>`; break;
+                        case 'url': if (cuenta.url && cuenta.url.trim() !== '') labelsHTML += `<a href="${cuenta.url}" target="_blank" class="audit-link">Auditoría</a>`; break;
+                        case 'notes': if (cuenta.notes) labelsHTML += `<div class="notes-text">${cuenta.notes}</div>`; break;
                     }
                 });
 
@@ -1966,21 +1898,19 @@
                             <span class="val-text" style="color: ${textColor};">${textoValor}</span>
                         </div>
                     </div>
-                    <div class="labels-area" title="Clic para activar/desactivar monitoreo">
+                    <div class="labels-area" title="Clic para editar el % total">
                         ${labelsHTML.includes('avatar-container') ? labelsHTML.replace(labelsHTML.substring(0, labelsHTML.indexOf('</div>') + 6), '') : labelsHTML}
                     </div>
                 `;
                 
                 const originalIndex = cuentas.findIndex(c => c === cuenta);
 
-                // Clic en la barra abre el modal de edición
                 const barContainer = column.querySelector('.bar-container');
                 barContainer.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
                     openEditModal(originalIndex); 
                 };
 
-                // Clic en el área de los textos activa/desactiva la alerta (monitoreo)
                 const labelsArea = column.querySelector('.labels-area');
                 labelsArea.onclick = (e) => {
                     if(e.target.closest('.avatar-container') || e.target.tagName === 'A') return;
@@ -1993,7 +1923,7 @@
             });
         }
 
-        // --- EXPORTAR IMAGEN (PANTALLA COMPLETA) ---
+        // --- EXPORTAR IMAGEN ---
         function exportChart() {
             const body = document.body;
             const panels = document.querySelectorAll('.glass-panel');
@@ -2227,7 +2157,7 @@
             const defaultCompany = empresas.length > 0 ? empresas[0].name : "FTMO";
             const defaultModality = modalidades.length > 0 ? modalidades[0].name : "Examen";
             
-            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, dailyLimit: null, startDate: fechaStr, lastActivity: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "", news: false });
+            cuentas.push({ visible: true, name: defaultCompany, investor: "", capital: "", cost: 0, risk: 0, dailyLimit: null, startDate: fechaStr, lastActivity: fechaStr, modality: defaultModality, status: "En curso ⏳", actual: 0, min: -10, max: 10, notes: "", url: "", alert: "", news: false, dailyActual: 0 });
             guardarYRenderizar();
         }
 
@@ -2271,229 +2201,4 @@
                 localStorage.setItem('misEmpresas', JSON.stringify(empresas));
                 renderCompanyList();
                 renderTabla();
-                renderGrafico();
-                populateFilters();
-            }
-        }
-
-        function agregarEmpresa() {
-            const nameInput = document.getElementById('new-company-name');
-            const colorInput = document.getElementById('new-company-color');
-            const name = nameInput.value.trim();
-            const color = colorInput.value;
-
-            if(name && !empresas.find(e => e.name.toLowerCase() === name.toLowerCase())) {
-                empresas.push({ name: name, color: color });
-                localStorage.setItem('misEmpresas', JSON.stringify(empresas));
-                nameInput.value = '';
-                renderCompanyList();
-                renderTabla();
-                renderGrafico();
-                populateFilters();
-            } else if(name) {
-                alert("La empresa ya existe.");
-            }
-        }
-
-        // --- GESTIÓN DE INVERSORES ---
-        function renderInvestorList() {
-            const list = document.getElementById('investor-list');
-            list.innerHTML = '';
-            inversores.forEach((inv, index) => {
-                const row = document.createElement('div');
-                row.className = 'list-row';
-                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div class="avatar-placeholder">${inv.name.charAt(0)}</div>`;
-                row.innerHTML = `
-                    ${avatarSrc}
-                    <input type="text" value="${inv.name}" onchange="cambiarNombreInversor(${index}, this.value)">
-                    <button class="btn-delete" onclick="eliminarInversor(${index})" title="Eliminar">🗑️</button>
-                `;
-                list.appendChild(row);
-            });
-        }
-
-        function cambiarNombreInversor(index, nuevoNombre) {
-            if(!nuevoNombre.trim()) { renderInvestorList(); return; }
-            const oldName = inversores[index].name;
-            inversores[index].name = nuevoNombre.trim();
-            localStorage.setItem('misInversores', JSON.stringify(inversores));
-            
-            cuentas.forEach(c => { if(c.investor === oldName) c.investor = nuevoNombre.trim(); });
-            guardarYRenderizar();
-            renderInvestorList();
-        }
-
-        function previewAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempAvatarBase64 = e.target.result;
-                    const preview = document.getElementById('avatar-preview');
-                    preview.src = tempAvatarBase64;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function agregarInversor() {
-            const nameInput = document.getElementById('new-investor-name');
-            const name = nameInput.value.trim();
-
-            if(name && !inversores.find(i => i.name.toLowerCase() === name.toLowerCase())) {
-                inversores.push({ name: name, avatar: tempAvatarBase64 });
-                localStorage.setItem('misInversores', JSON.stringify(inversores));
-                
-                nameInput.value = '';
-                tempAvatarBase64 = "";
-                const preview = document.getElementById('avatar-preview');
-                preview.src = '';
-                preview.style.display = 'none';
-                document.getElementById('new-investor-avatar').value = '';
-
-                renderInvestorList();
-                renderTabla();
-                renderGrafico();
-                populateFilters();
-            } else if(name) {
-                alert("El inversor ya existe.");
-            }
-        }
-
-        function eliminarInversor(index) {
-            if(confirm(`¿Eliminar al inversor ${inversores[index].name}?`)) {
-                inversores.splice(index, 1);
-                localStorage.setItem('misInversores', JSON.stringify(inversores));
-                renderInvestorList();
-                renderTabla();
-                renderGrafico();
-                populateFilters();
-            }
-        }
-
-        // --- GESTIÓN DE MODALIDADES ---
-        function renderModalityList() {
-            const list = document.getElementById('modality-list');
-            if (!list) return;
-            list.innerHTML = '';
-            modalidades.forEach((mod, index) => {
-                const row = document.createElement('div');
-                row.className = 'list-row';
-                row.innerHTML = `
-                    <input type="text" value="${mod.name}" onchange="cambiarNombreModalidad(${index}, this.value)">
-                    <input type="color" value="${mod.color}" onchange="cambiarColorModalidad(${index}, this.value)">
-                    <button class="btn-delete" onclick="eliminarModalidad(${index})" title="Eliminar">🗑️</button>
-                `;
-                list.appendChild(row);
-            });
-        }
-
-        function cambiarNombreModalidad(index, nuevoNombre) {
-            if(!nuevoNombre.trim()) { renderModalityList(); return; }
-            const oldName = modalidades[index].name;
-            modalidades[index].name = nuevoNombre.trim();
-            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-            
-            cuentas.forEach(c => { if(c.modality === oldName) c.modality = nuevoNombre.trim(); });
-            guardarYRenderizar();
-            renderModalityList();
-        }
-
-        function cambiarColorModalidad(index, nuevoColor) {
-            modalidades[index].color = nuevoColor;
-            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-            renderTabla();
-            renderGrafico();
-        }
-
-        function eliminarModalidad(index) {
-            if(confirm(`¿Eliminar la modalidad ${modalidades[index].name}?`)) {
-                modalidades.splice(index, 1);
-                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-                renderModalityList();
-                renderTabla();
-                renderGrafico();
-                populateFilters();
-            }
-        }
-
-        function agregarModalidad() {
-            const nameInput = document.getElementById('new-modality-name');
-            const colorInput = document.getElementById('new-modality-color');
-            const name = nameInput.value.trim();
-            const color = colorInput.value;
-
-            if(name && !modalidades.find(m => m.name.toLowerCase() === name.toLowerCase())) {
-                modalidades.push({ name: name, color: color });
-                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
-                nameInput.value = '';
-                renderModalityList();
-                renderTabla();
-                renderGrafico();
-                populateFilters();
-            } else if(name) {
-                alert("La modalidad ya existe.");
-            }
-        }
-
-        // --- COLUMNAS VISIBLES ---
-        function renderTableSettings() {
-            const menu = document.getElementById('table-settings-menu');
-            menu.innerHTML = '<span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>';
-            
-            columnOrder.forEach(key => {
-                const colDef = columnasDef.find(c => c.key === key);
-                if (key === 'visible' || key === 'actions') return;
-
-                const label = document.createElement('label');
-                const isChecked = visibleCols.includes(key);
-                label.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleColumn('${key}', this.checked)"> ${colDef.label}`;
-                menu.appendChild(label);
-            });
-        }
-
-        function toggleColumn(key, isChecked) {
-            if(isChecked) {
-                if(!visibleCols.includes(key)) visibleCols.push(key);
-            } else {
-                visibleCols = visibleCols.filter(k => k !== key);
-            }
-            localStorage.setItem('visibleCols', JSON.stringify(visibleCols));
-            renderTabla();
-        }
-
-        // Navegación con TAB
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.getElementById('edit-modal').classList.contains('active')) {
-                closeEditModal();
-            }
-            
-            if (e.key === 'Tab') {
-                const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled && !el.readOnly);
-                const current = document.activeElement;
-                if (inputs.includes(current)) {
-                    e.preventDefault();
-                    const index = inputs.indexOf(current);
-                    const isShift = e.shiftKey;
-                    let nextIndex = isShift ? index - 1 : index + 1;
-                    if (nextIndex >= inputs.length) {
-                        document.querySelector('.btn-add').focus();
-                    } else if (nextIndex < 0) {
-                        inputs[inputs.length - 1].focus();
-                    } else {
-                        inputs[nextIndex].focus();
-                        inputs[nextIndex].select();
-                    }
-                } else if (current.classList.contains('btn-add') && !e.shiftKey) {
-                    e.preventDefault();
-                    inputs[0].focus();
-                    inputs[0].select();
-                }
-            }
-        });
-
-        guardarYRenderizar();
-    </script>
-</body>
-</html>
+                render
