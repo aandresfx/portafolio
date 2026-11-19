@@ -500,7 +500,8 @@
         .modal-content {
             background: var(--card-bg); padding: 25px; border-radius: 12px;
             border: var(--glass-border); box-shadow: var(--shadow);
-            width: 320px; text-align: center; display: flex; flex-direction: column; gap: 15px;
+            width: 340px; /* Un poco más ancho para el selector */
+            text-align: center; display: flex; flex-direction: column; gap: 15px;
             animation: scaleIn 0.2s ease-out;
         }
         @keyframes scaleIn {
@@ -539,9 +540,11 @@
         .modal-input-label {
             font-size: 11px;
             color: var(--text-muted);
-            text-align: left;
-            padding-left: 5px;
-            margin-bottom: -10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+            margin-bottom: -5px;
         }
 
         .modal-input {
@@ -646,8 +649,17 @@
     <div class="modal-overlay" id="edit-modal">
         <div class="modal-content">
             <div class="modal-info-header" id="modal-info-header"></div>
-            <div class="modal-input-label" id="modal-input-label">Nuevo porcentaje actual:</div>
+            
+            <div class="modal-input-label">
+                <span id="modal-input-label">Nuevo porcentaje actual:</span>
+                <select id="daily-input-type" style="display:none; padding:2px; font-size:11px; margin-top:2px;">
+                    <option value="pct">Porcentaje (%)</option>
+                    <option value="usd">Dólares ($)</option>
+                </select>
+            </div>
+            
             <input type="number" step="0.1" id="modal-input" class="modal-input" autofocus onkeydown="if(event.key==='Enter') saveModalValue()">
+            
             <div class="modal-actions">
                 <button class="toggle-btn" onclick="saveModalValue()">Guardar</button>
                 <button class="toggle-btn secondary" onclick="closeEditModal()">Cancelar</button>
@@ -884,7 +896,7 @@
             { visible: true, name: "Axi", investor: "Lucía", capital: 10000, cost: 0, risk: 1.0, dailyLimit: null, startDate: "15/11/2026", lastActivity: "15/11/2026", modality: "Capital propio", status: "En curso ⏳", actual: 2.5, min: null, max: null, notes: "Ahorros", url: "", alert: "", news: false, dailyActual: 0 }
         ];
 
-        // MIGRACIÓN DE DATOS (Añade dailyActual si no existe)
+        // MIGRACIÓN DE DATOS
         cuentas.forEach(c => {
             if (c.news === undefined) c.news = false;
             if (c.dailyLimit === undefined) c.dailyLimit = null;
@@ -942,7 +954,7 @@
         let isDraggingColumn = false;
         let tempAvatarBase64 = "";
         let editingIndex = -1;
-        let isDailyEdit = false; // NUEVA VARIABLE
+        let isDailyEdit = false;
         let showTable = localStorage.getItem('showTable') !== 'false';
         let showAlerts = localStorage.getItem('showAlerts') === 'true';
 
@@ -1028,10 +1040,7 @@
                     const empColor = empresas.find(e => e.name === c.name)?.color || 'var(--border-color)';
                     const empTextColor = getContrastColor(empColor);
 
-                    // Al hacer clic en cualquier parte del item, abrimos el modal de edición diaria
-                    item.onclick = (e) => {
-                        openDailyEditModal(originalIndex);
-                    };
+                    item.onclick = (e) => { openDailyEditModal(originalIndex); };
 
                     const modColor = getModColor(c.modality);
                     const modText = getContrastColor(modColor);
@@ -1048,9 +1057,10 @@
                         }
                     }
 
-                    // Lógica del indicador diario
-                    let dailyVal = c.dailyActual || 0;
-                    let dailyColor = dailyVal > 0 ? '#38a169' : (dailyVal < 0 ? '#e53e3e' : 'var(--text-muted)');
+                    // Lógica del indicador diario con fondo de color
+                    let dailyVal = Number(c.dailyActual) || 0;
+                    let dailyBg = dailyVal > 0 ? colores.pos : (dailyVal < 0 ? colores.neg : 'var(--check-bg)');
+                    let dailyColor = dailyVal !== 0 ? '#ffffff' : 'var(--text-muted)';
                     let dailyText = dailyVal > 0 ? `▲ ${dailyVal}%` : (dailyVal < 0 ? `▼ ${dailyVal}%` : '0.0%');
 
                     item.innerHTML = `
@@ -1067,12 +1077,12 @@
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getCurrencyStr(riskUsdVal)}</span>
                                 <span style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">${getSmartPercentStr(c.risk)}</span>
                                 
-                                <!-- REEMPLAZO DEL CHECKMARK POR INDICADOR DIARIO -->
+                                <!-- INDICADOR DIARIO CON FONDO DE COLOR -->
                                 <div onclick="event.stopPropagation(); openDailyEditModal(${originalIndex})" 
-                                     style="cursor:pointer; font-weight:bold; color:${dailyColor}; min-width: 60px; text-align: center; display: flex; align-items: center; justify-content: center; background: var(--check-bg); border-radius: 4px; padding: 2px 4px; font-size: 11px; transition: transform 0.2s;" 
+                                     style="cursor:pointer; font-weight:bold; color:${dailyColor}; background:${dailyBg}; min-width: 60px; text-align: center; display: flex; align-items: center; justify-content: center; border-radius: 4px; padding: 4px 6px; font-size: 11px; transition: transform 0.2s, filter 0.2s;" 
                                      title="Registrar rendimiento de hoy"
-                                     onmouseover="this.style.transform='scale(1.05)'"
-                                     onmouseout="this.style.transform='scale(1)'">
+                                     onmouseover="this.style.transform='scale(1.05)'; this.style.filter='brightness(1.2)'"
+                                     onmouseout="this.style.transform='scale(1)'; this.style.filter='brightness(1)'">
                                     ${dailyText}
                                 </div>
                             </div>
@@ -1177,6 +1187,7 @@
                 <span style="background-color: ${modColor}; color: ${modTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${cuenta.modality}</span>
             `;
 
+            document.getElementById('daily-input-type').style.display = 'none';
             document.getElementById('modal-input-label').innerText = "Nuevo porcentaje total (%):";
             const input = document.getElementById('modal-input');
             input.value = cuenta.actual || 0;
@@ -1210,9 +1221,12 @@
                 <span style="background-color: ${modColor}; color: ${modTextColor}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${cuenta.modality}</span>
             `;
 
-            document.getElementById('modal-input-label').innerText = "Porcentaje generado hoy (%):";
+            document.getElementById('modal-input-label').innerText = "Rendimiento de hoy:";
+            document.getElementById('daily-input-type').style.display = 'block';
+            document.getElementById('daily-input-type').value = 'pct'; // Por defecto %
+            
             const input = document.getElementById('modal-input');
-            input.value = 0; // Por defecto 0
+            input.value = 0;
             document.getElementById('edit-modal').classList.add('active');
             setTimeout(() => { input.focus(); input.select(); }, 100);
         }
@@ -1230,20 +1244,25 @@
             if (!isNaN(parsed)) {
                 
                 if (isDailyEdit) {
-                    // Lógica si es edición diaria
-                    cuentas[editingIndex].dailyActual = parsed;
+                    const type = document.getElementById('daily-input-type').value;
+                    let parsedPct = parsed;
+
+                    if (type === 'usd') {
+                        const cap = Number(cuentas[editingIndex].capital) || 1; // Evitar división por cero
+                        parsedPct = (parsed / cap) * 100;
+                    }
+
+                    cuentas[editingIndex].dailyActual = parsedPct;
                     
                     let currentActual = Number(cuentas[editingIndex].actual) || 0;
-                    cuentas[editingIndex].actual = currentActual + parsed;
+                    cuentas[editingIndex].actual = currentActual + parsedPct;
 
                     const hoy = new Date();
                     cuentas[editingIndex].lastActivity = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth()+1).padStart(2, '0')}/${hoy.getFullYear()}`;
                 } else {
-                    // Lógica si es edición total (desde gráfico)
                     cuentas[editingIndex].actual = parsed;
                 }
                 
-                // Guardar y renderizar todo de nuevo
                 localStorage.setItem('misCuentasPro', JSON.stringify(cuentas));
                 renderTabla();
                 renderGrafico();
