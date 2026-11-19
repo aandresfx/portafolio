@@ -2201,4 +2201,223 @@
                 localStorage.setItem('misEmpresas', JSON.stringify(empresas));
                 renderCompanyList();
                 renderTabla();
-                render
+                renderGrafico();
+                populateFilters();
+            }
+        }
+
+        function agregarEmpresa() {
+            const nameInput = document.getElementById('new-company-name');
+            const colorInput = document.getElementById('new-company-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if(name && !empresas.find(e => e.name.toLowerCase() === name.toLowerCase())) {
+                empresas.push({ name: name, color: color });
+                localStorage.setItem('misEmpresas', JSON.stringify(empresas));
+                nameInput.value = '';
+                renderCompanyList();
+                renderTabla();
+                renderGrafico();
+                populateFilters();
+            } else if(name) { alert("La empresa ya existe."); }
+        }
+
+        // --- GESTIÓN DE INVERSORES ---
+        function renderInvestorList() {
+            const list = document.getElementById('investor-list');
+            list.innerHTML = '';
+            inversores.forEach((inv, index) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                const avatarSrc = inv.avatar ? `<img src="${inv.avatar}">` : `<div class="avatar-placeholder">${inv.name.charAt(0)}</div>`;
+                row.innerHTML = `
+                    ${avatarSrc}
+                    <input type="text" value="${inv.name}" onchange="cambiarNombreInversor(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarInversor(${index})" title="Eliminar">🗑️</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function cambiarNombreInversor(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderInvestorList(); return; }
+            const oldName = inversores[index].name;
+            inversores[index].name = nuevoNombre.trim();
+            localStorage.setItem('misInversores', JSON.stringify(inversores));
+            
+            cuentas.forEach(c => { if(c.investor === oldName) c.investor = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderInvestorList();
+        }
+
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempAvatarBase64 = e.target.result;
+                    const preview = document.getElementById('avatar-preview');
+                    preview.src = tempAvatarBase64;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function agregarInversor() {
+            const nameInput = document.getElementById('new-investor-name');
+            const name = nameInput.value.trim();
+
+            if(name && !inversores.find(i => i.name.toLowerCase() === name.toLowerCase())) {
+                inversores.push({ name: name, avatar: tempAvatarBase64 });
+                localStorage.setItem('misInversores', JSON.stringify(inversores));
+                
+                nameInput.value = '';
+                tempAvatarBase64 = "";
+                const preview = document.getElementById('avatar-preview');
+                preview.src = '';
+                preview.style.display = 'none';
+                document.getElementById('new-investor-avatar').value = '';
+
+                renderInvestorList();
+                renderTabla();
+                renderGrafico();
+                populateFilters();
+            } else if(name) { alert("El inversor ya existe."); }
+        }
+
+        function eliminarInversor(index) {
+            if(confirm(`¿Eliminar al inversor ${inversores[index].name}?`)) {
+                inversores.splice(index, 1);
+                localStorage.setItem('misInversores', JSON.stringify(inversores));
+                renderInvestorList();
+                renderTabla();
+                renderGrafico();
+                populateFilters();
+            }
+        }
+
+        // --- GESTIÓN DE MODALIDADES ---
+        function renderModalityList() {
+            const list = document.getElementById('modality-list');
+            if (!list) return;
+            list.innerHTML = '';
+            modalidades.forEach((mod, index) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                row.innerHTML = `
+                    <input type="text" value="${mod.name}" onchange="cambiarNombreModalidad(${index}, this.value)">
+                    <input type="color" value="${mod.color}" onchange="cambiarColorModalidad(${index}, this.value)">
+                    <button class="btn-delete" onclick="eliminarModalidad(${index})" title="Eliminar">🗑️</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function cambiarNombreModalidad(index, nuevoNombre) {
+            if(!nuevoNombre.trim()) { renderModalityList(); return; }
+            const oldName = modalidades[index].name;
+            modalidades[index].name = nuevoNombre.trim();
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            
+            cuentas.forEach(c => { if(c.modality === oldName) c.modality = nuevoNombre.trim(); });
+            guardarYRenderizar();
+            renderModalityList();
+        }
+
+        function cambiarColorModalidad(index, nuevoColor) {
+            modalidades[index].color = nuevoColor;
+            localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+            renderTabla();
+            renderGrafico();
+        }
+
+        function eliminarModalidad(index) {
+            if(confirm(`¿Eliminar la modalidad ${modalidades[index].name}?`)) {
+                modalidades.splice(index, 1);
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+                populateFilters();
+            }
+        }
+
+        function agregarModalidad() {
+            const nameInput = document.getElementById('new-modality-name');
+            const colorInput = document.getElementById('new-modality-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if(name && !modalidades.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+                modalidades.push({ name: name, color: color });
+                localStorage.setItem('misModalidades', JSON.stringify(modalidades));
+                nameInput.value = '';
+                renderModalityList();
+                renderTabla();
+                renderGrafico();
+                populateFilters();
+            } else if(name) { alert("La modalidad ya existe."); }
+        }
+
+        // --- COLUMNAS VISIBLES ---
+        function renderTableSettings() {
+            const menu = document.getElementById('table-settings-menu');
+            menu.innerHTML = '<span style="font-weight:bold; font-size:11px; color:var(--text-muted);">Mostrar columnas:</span>';
+            
+            columnOrder.forEach(key => {
+                const colDef = columnasDef.find(c => c.key === key);
+                if (key === 'visible' || key === 'actions') return;
+
+                const label = document.createElement('label');
+                const isChecked = visibleCols.includes(key);
+                label.innerHTML = `<input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleColumn('${key}', this.checked)"> ${colDef.label}`;
+                menu.appendChild(label);
+            });
+        }
+
+        function toggleColumn(key, isChecked) {
+            if(isChecked) {
+                if(!visibleCols.includes(key)) visibleCols.push(key);
+            } else {
+                visibleCols = visibleCols.filter(k => k !== key);
+            }
+            localStorage.setItem('visibleCols', JSON.stringify(visibleCols));
+            renderTabla();
+        }
+
+        // Navegación con TAB
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('edit-modal').classList.contains('active')) {
+                closeEditModal();
+            }
+            
+            if (e.key === 'Tab') {
+                const inputs = Array.from(document.querySelectorAll('#tabla-datos input, #tabla-datos select')).filter(el => !el.disabled && !el.readOnly);
+                const current = document.activeElement;
+                if (inputs.includes(current)) {
+                    e.preventDefault();
+                    const index = inputs.indexOf(current);
+                    const isShift = e.shiftKey;
+                    let nextIndex = isShift ? index - 1 : index + 1;
+                    if (nextIndex >= inputs.length) {
+                        document.querySelector('.btn-add').focus();
+                    } else if (nextIndex < 0) {
+                        inputs[inputs.length - 1].focus();
+                    } else {
+                        inputs[nextIndex].focus();
+                        inputs[nextIndex].select();
+                    }
+                } else if (current.classList.contains('btn-add') && !e.shiftKey) {
+                    e.preventDefault();
+                    inputs[0].focus();
+                    inputs[0].select();
+                }
+            }
+        });
+
+        guardarYRenderizar();
+    </script>
+</body>
+</html>
